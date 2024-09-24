@@ -18,7 +18,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  pick_or_save: ^2.2.4
+  pick_or_save:
+    git: https://github.com/kumsumit/pick_or_save.git
 
   pdf_manipulator:
     # When depending on this package from a real application you should use:
@@ -41,7 +42,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.1
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

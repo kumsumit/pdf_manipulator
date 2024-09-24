@@ -96,8 +96,7 @@ suspend fun getWatermarkedPDFPath(
             var position: PositionType = positionType
 
             if (position == PositionType.Custom) {
-                if (customPositionXCoordinatesList.size == pdfDocument.numberOfPages && customPositionYCoordinatesList.size == pdfDocument.numberOfPages) {
-                } else {
+                if (!(customPositionXCoordinatesList.size == pdfDocument.numberOfPages && customPositionYCoordinatesList.size == pdfDocument.numberOfPages)) {
                     Log.e(
                         "Warning",
                         "customPositionXCoordinatesList or customPositionYCoordinatesList length is not equal to the total number of pages so assigning positionType to PositionType.center"
