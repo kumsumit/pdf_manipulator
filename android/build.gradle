@@ -2,7 +2,7 @@ group 'com.deepanshuchaudhary.pdf_manipulator'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.0.20'
+    ext.kotlin_version = '2.0.21'
     repositories {
         google()
         mavenCentral()
@@ -12,7 +12,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.1'
+        classpath 'com.android.tools.build:gradle:8.7.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -56,10 +56,12 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.15.0'
 
     implementation 'org.slf4j:slf4j-api:2.0.16'
+    // https://mvnrepository.com/artifact/com.itextpdf/itext-core
+    implementation 'com.itextpdf:itext-core:9.0.0'
 
-    implementation 'com.itextpdf.android:kernel-android:8.0.5'
-    implementation 'com.itextpdf.android:layout-android:8.0.5'
+    implementation 'com.itextpdf.android:kernel-android:9.0.0'
+    implementation 'com.itextpdf.android:layout-android:9.0.0'
 }
