@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import io.flutter.plugin.common.MethodChannel.Result
 
 private const val LOG_TAG = "PdfManipulator"
 
@@ -532,5 +533,25 @@ class PdfManipulator(
     ) {
         job?.cancel()
         Log.d(LOG_TAG, "Canceled Manipulations")
+    }
+     fun extractImagesFromPdf(result: MethodChannel.Result, pdfBytes: ByteArray?) {
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+
+            if (pdfBytes == null) {
+                result.error("invalid_argument", "PDF bytes are null", null)
+                return@launch
+            }
+
+            val context = activity
+
+            try {
+                val extractedImages = getExtractImagesFromPdf(pdfBytes, context)
+                result.success(extractedImages)
+            } catch (e: Exception) {
+                result.error("extraction_failed", "Failed to extract images: ${e.message}", null)
+            }
+        }
     }
 }

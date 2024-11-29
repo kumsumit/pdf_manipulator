@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -128,6 +129,14 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     final String? result =
         await methodChannel.invokeMethod<String?>('cancelManipulations');
     return result;
+  }
+
+  /// Extracts images from the provided PDF file.
+  ///
+  /// Returns a list of byte arrays representing the extracted images.
+  /// Throws exception on error.
+  Future<List<Uint8List>?> extractImagesFromPdf({required Uint8List pdfBytes}) {
+    return PdfManipulatorPlatform.instance.extractImagesFromPdf(pdfBytes: pdfBytes);
   }
 }
 

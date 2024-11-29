@@ -119,6 +119,10 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
         }
         when (call.method) {
+            "extractImagesFromPdf" -> pdfManipulator!!.extractImagesFromPdf(
+                result,
+                pdfBytes = call.argument<ByteArray>("pdfBytes"),
+            )
             "mergePDFs" -> pdfManipulator!!.mergePdfs(
                 result,
                 sourceFilesPaths = parseMethodCallArrayOfStringArgument(

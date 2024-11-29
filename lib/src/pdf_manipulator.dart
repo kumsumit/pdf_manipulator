@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import '../pdf_manipulator.dart';
 import 'package:pdf_manipulator/src/pdf_manipulator_method_channel.dart';
 import 'pdf_manipulator_platform_interface.dart';
 
@@ -115,5 +117,12 @@ class PdfManipulator {
   /// Returns the cancelling message.
   Future<String?> cancelManipulations() {
     return PdfManipulatorPlatform.instance.cancelManipulations();
+  }
+   /// Extracts images from the provided PDF file.
+  ///
+  /// Returns a list of byte arrays representing the extracted images.
+  /// Throws exception on error.
+  Future<List<Uint8List>?> extractImagesFromPdf({required Uint8List pdfBytes}) {
+    return PdfManipulatorPlatform.instance.extractImagesFromPdf(pdfBytes: pdfBytes);
   }
 }
