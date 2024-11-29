@@ -1,5 +1,6 @@
 package com.deepanshuchaudhary.pdf_manipulator
 
+import android.content.Context
 import android.util.Log
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -18,7 +19,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
-
+    private lateinit var context: Context
     private var pdfManipulator: PdfManipulator? = null
     private var pluginBinding: FlutterPlugin.FlutterPluginBinding? = null
     private var activityBinding: ActivityPluginBinding? = null
@@ -29,7 +30,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(LOG_TAG, "onAttachedToEngine - IN")
-
+        context = flutterPluginBinding.applicationContext
         if (pluginBinding != null) {
             Log.w(LOG_TAG, "onAttachedToEngine - already attached")
         }
@@ -120,8 +121,9 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         }
         when (call.method) {
             "extractImagesFromPdf" -> pdfManipulator!!.extractImagesFromPdf(
-                result,
-                pdfBytes = call.argument<ByteArray>("pdfBytes"),
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("outputDir").toString(),
             )
             "mergePDFs" -> pdfManipulator!!.mergePdfs(
                 result,

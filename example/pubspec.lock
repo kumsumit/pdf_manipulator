@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  ffi:
+    dependency: transitive
+    description:
+      name: ffi
+      sha256: "16ed7b077ef01ad6170a3d0c57caa4a112a38d7a2ed5602e0aca9ca6f3d98da6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.3"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -139,6 +147,60 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.0"
+  path_provider:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: f8058fee027daef389cd229a12fee9a7ede4b59e
+      url: "https://github.com/kumsumit/path_provider.git"
+    source: git
+    version: "2.1.5"
+  path_provider_android:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "3f6b159b87ea1a43abe565cc69a4112bc9de7056"
+      url: "https://github.com/kumsumit/path_provider_android.git"
+    source: git
+    version: "2.2.13"
+  path_provider_foundation:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "7df635a13da8580574f4ac68a842cb1d4fdf9be3"
+      url: "https://github.com/kumsumit/path_provider_foundation.git"
+    source: git
+    version: "2.4.0"
+  path_provider_linux:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "0a64000e5851c4f31030032b48869bd9111bb580"
+      url: "https://github.com/kumsumit/path_provider_linux.git"
+    source: git
+    version: "2.2.1"
+  path_provider_platform_interface:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "04979ca2044423ac0b82f2a4fc582decc7e84e99"
+      url: "https://github.com/kumsumit/path_provider_platform_interface.git"
+    source: git
+    version: "2.1.2"
+  path_provider_windows:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "1bddd64796c9f02e23663a49ec9d3b3f62504448"
+      url: "https://github.com/kumsumit/path_provider_windows.git"
+    source: git
+    version: "2.3.0"
   pdf_manipulator:
     dependency: "direct main"
     description:
@@ -155,6 +217,14 @@ packages:
       url: "https://github.com/kumsumit/pick_or_save.git"
     source: git
     version: "2.2.4"
+  platform:
+    dependency: transitive
+    description:
+      name: platform
+      sha256: "5d6b1b0036a5f331ebc77c850ebc8506cbc1e9416c27e59b439f917a902a4984"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.6"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -233,6 +303,23 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.2.5"
+  win32:
+    dependency: transitive
+    description:
+      name: win32
+      sha256: "84ba388638ed7a8cb3445a320c8273136ab2631cd5f2c57888335504ddab1bc2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.8.0"
+  xdg_directories:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "410932cf9651a439aa3e2c2f21098cc61e6daa8a"
+      url: "https://github.com/kumsumit/xdg_directories.git"
+    source: git
+    version: "1.0.3"
 sdks:
   dart: ">=3.5.1 <4.0.0"
   flutter: ">=3.24.0"

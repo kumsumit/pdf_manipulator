@@ -11,6 +11,7 @@ export 'src/pdf_manipulator_method_channel.dart'
         PDFPageRotatorDeleterReorderParams,
         PDFCompressorParams,
         PDFWatermarkParams,
+        ExtractImageFromPDFParams,
         WatermarkLayer,
         PositionType,
         PDFPagesSizeParams,

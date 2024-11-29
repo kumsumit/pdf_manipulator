@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'pdf_manipulator_method_channel.dart';
@@ -89,7 +87,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns a list of byte arrays representing the extracted images.
   /// Throws exception on error.
-  Future<List<Uint8List>?> extractImagesFromPdf({required Uint8List pdfBytes}) {
-    return PdfManipulatorPlatform.instance.extractImagesFromPdf(pdfBytes: pdfBytes);
+  Future<void> extractImagesFromPdf({ExtractImageFromPDFParams? params}) {
+     throw UnimplementedError('extractImagesFromPdf() has not been implemented.');
   }
 }

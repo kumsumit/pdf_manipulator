@@ -21,6 +21,9 @@ dependencies:
   pick_or_save:
     git: https://github.com/kumsumit/pick_or_save.git
 
+  path_provider:
+    git: https://github.com/kumsumit/path_provider.git  
+
   pdf_manipulator:
     # When depending on this package from a real application you should use:
     #   pdf_manipulator: ^x.y.z

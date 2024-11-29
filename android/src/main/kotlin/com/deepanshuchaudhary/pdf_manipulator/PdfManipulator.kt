@@ -2,12 +2,20 @@ package com.deepanshuchaudhary.pdf_manipulator
 
 import android.app.Activity
 import android.util.Log
-import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import io.flutter.plugin.common.MethodChannel.Result
+import android.content.Context
+import android.net.Uri
+import com.itextpdf.text.pdf.PdfReader
+import com.itextpdf.text.pdf.parser.ImageRenderInfo
+import com.itextpdf.text.pdf.parser.PdfReaderContentParser
+import com.itextpdf.text.pdf.parser.RenderListener
+import com.itextpdf.text.pdf.parser.TextRenderInfo
+import java.io.FileOutputStream
+
 
 private const val LOG_TAG = "PdfManipulator"
 
@@ -21,7 +29,7 @@ class PdfManipulator(
 
     // For merging multiple pdf files.
     fun mergePdfs(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilesPaths: List<String>?,
     ) {
         Log.d(
@@ -49,7 +57,7 @@ class PdfManipulator(
 
     // For merging multiple pdf files.
     fun splitPdf(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         pageCount: Int,
         byteSize: Number?,
@@ -94,7 +102,7 @@ class PdfManipulator(
 
     // For removing pages from pdf.
     fun pdfPageDeleter(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         pageNumbers: List<Int>?,
     ) {
@@ -124,7 +132,7 @@ class PdfManipulator(
 
     // For reordering pages of pdf.
     fun pdfPageReorder(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         pageNumbers: List<Int>?,
     ) {
@@ -154,7 +162,7 @@ class PdfManipulator(
 
     // For rotating pages of pdf.
     fun pdfPageRotator(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         pagesRotationInfo: List<Map<String, Int>>?,
     ) {
@@ -193,7 +201,7 @@ class PdfManipulator(
 
     // For reordering, deleting, rotating pages of pdf.
     fun pdfPageRotatorDeleterReorder(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         pageNumbersForReorder: List<Int>,
         pageNumbersForDeleter: List<Int>,
@@ -246,7 +254,7 @@ class PdfManipulator(
 
     // For compressing pdf.
     fun pdfCompressor(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         imageQuality: Int?,
         imageScale: Double?,
@@ -279,7 +287,7 @@ class PdfManipulator(
 
     // For compressing pdf.
     fun watermarkPdf(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         text: String?,
         fontSize: Double?,
@@ -328,7 +336,7 @@ class PdfManipulator(
 
     // For pdf pages size.
     fun pdfPagesSize(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
     ) {
         Log.d(
@@ -361,7 +369,7 @@ class PdfManipulator(
 
     // For pdf validity and protection.
     fun pdfValidityAndProtection(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         userOrOwnerPassword: String?,
     ) {
@@ -399,7 +407,7 @@ class PdfManipulator(
 
     // For pdf decryption.
     fun pdfDecryption(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         userOrOwnerPassword: String?,
     ) {
@@ -431,7 +439,7 @@ class PdfManipulator(
 
     // For pdf encryption.
     fun pdfEncryption(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceFilePath: String?,
         ownerPassword: String?,
         userPassword: String?,
@@ -493,7 +501,7 @@ class PdfManipulator(
 
     // For converting images to pdfs.
     fun imagesToPdfs(
-        resultCallback: MethodChannel.Result,
+        resultCallback: Result,
         sourceImagesPaths: List<String>?,
         createSinglePdf: Boolean?
     ) {
@@ -534,24 +542,97 @@ class PdfManipulator(
         job?.cancel()
         Log.d(LOG_TAG, "Canceled Manipulations")
     }
-     fun extractImagesFromPdf(result: MethodChannel.Result, pdfBytes: ByteArray?) {
 
-        val uiScope = CoroutineScope(Dispatchers.Main)
-        job = uiScope.launch {
 
-            if (pdfBytes == null) {
-                result.error("invalid_argument", "PDF bytes are null", null)
-                return@launch
+
+    fun extractImagesFromPdf(context: Context, pdfPath:String, outputDir: String) {
+        Log.d(LOG_TAG, "extractImageFromPdf")
+        Log.d(LOG_TAG,pdfPath);
+        val pdfUri = Uri.parse(pdfPath)
+        val inputStream = context.contentResolver.openInputStream(pdfUri)
+        val pdfReader = PdfReader(inputStream)
+        val parser = PdfReaderContentParser(pdfReader)
+
+        val listener = object : RenderListener {
+            override fun renderText(renderInfo: TextRenderInfo) {
+                // We don't need to handle text rendering here
             }
 
-            val context = activity
+            override fun beginTextBlock() {
+                // Not needed
+            }
 
-            try {
-                val extractedImages = getExtractImagesFromPdf(pdfBytes, context)
-                result.success(extractedImages)
-            } catch (e: Exception) {
-                result.error("extraction_failed", "Failed to extract images: ${e.message}", null)
+            override fun endTextBlock() {
+                // Not needed
+            }
+
+            override fun renderImage(renderInfo: ImageRenderInfo) {
+                try {
+                    val imageObject = renderInfo.image
+                    if (imageObject != null) {
+                        val image = imageObject.imageAsBytes
+                        val fileName = "$outputDir/image_${renderInfo.ref.number}.png"
+
+                        val outputStream = FileOutputStream(fileName)
+                        outputStream.write(image)
+                        outputStream.close()
+                        Log.d(LOG_TAG, fileName)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
+
+        for (i in 1..pdfReader.numberOfPages) {
+            parser.processContent(i, listener)
+        }
+
+        pdfReader.close()
     }
+
+    // Usage example
+//    val pdfUri = Uri.parse("content://path/to/your/pdf/document.pdf")
+//    val outputDir = "path/to/your/output/directory"
+//    extractImagesFromPdf(context, pdfUri, outputDir)
+
+
+
+//    fun extractImagesFromPdf( pdfBytes: ByteArray?): List<File> {
+//        val pdfReader = PdfReader(pdfBytes)
+//        val images = mutableListOf<File>()
+//        for (i in 0 until pdfReader.numberOfPages) {
+//            val parser = PdfReaderContentParser(pdfReader)
+//            val imageProcessor = parser.processContent(i, )//   processContent(i, parser.getClass().getClassLoader())
+//            val image = imageProcessor.getImage()
+//            if (image != null) {
+//                images.add(File("path/to/save/image_${i}.jpg"))
+//                // Save the image to the file
+//            }
+//        }
+//        pdfReader.close()
+//        return images
+//    }
+
+
+//     fun extractImagesFromPdf(result: Result, pdfBytes: ByteArray?) {
+//
+//        val uiScope = CoroutineScope(Dispatchers.Main)
+//        job = uiScope.launch {
+//
+//            if (pdfBytes == null) {
+//                result.error("invalid_argument", "PDF bytes are null", null)
+//                return@launch
+//            }
+//
+//            val context = activity
+//
+//            try {
+//                val extractedImages =  getExtractImagesFromPdf(pdfBytes, context)
+//                result.success(extractedImages)
+//            } catch (e: Exception) {
+//                result.error("extraction_failed", "Failed to extract images: ${e.message}", null)
+//            }
+//        }
+//    }
 }

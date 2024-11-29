@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -135,8 +134,11 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   ///
   /// Returns a list of byte arrays representing the extracted images.
   /// Throws exception on error.
-  Future<List<Uint8List>?> extractImagesFromPdf({required Uint8List pdfBytes}) {
-    return PdfManipulatorPlatform.instance.extractImagesFromPdf(pdfBytes: pdfBytes);
+  @override
+  Future<void> extractImagesFromPdf(
+      {ExtractImageFromPDFParams? params}) async{
+     await methodChannel.invokeMethod<List?>(
+        'extractImagesFromPdf', params?.toJson());
   }
 }
 
@@ -153,6 +155,17 @@ class PDFMergerParams {
     return <String, dynamic>{
       'pdfsPaths': pdfsPaths,
     };
+  }
+}
+
+class ExtractImageFromPDFParams {
+  final String pdfPath;
+  final String outputDir;
+
+  ExtractImageFromPDFParams({required this.pdfPath, required this.outputDir});
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{'pdfPath': pdfPath, 'outputDir': outputDir};
   }
 }
 
