@@ -547,7 +547,7 @@ class PdfManipulator(
 
     fun extractImagesFromPdf(context: Context, pdfPath:String, outputDir: String) {
         Log.d(LOG_TAG, "extractImageFromPdf")
-        Log.d(LOG_TAG,pdfPath);
+        Log.d(LOG_TAG,pdfPath)
         val pdfUri = Uri.parse(pdfPath)
         val inputStream = context.contentResolver.openInputStream(pdfUri)
         val pdfReader = PdfReader(inputStream)
