@@ -591,13 +591,17 @@ class PDFCompressorParams {
   /// Provide true to unEmbed all fonts to decrease size further.
   final bool unEmbedFonts;
 
+  /// Advanced compression options.
+  final PDFAdvancedCompressionOptions? advancedOptions;
+
   /// Create parameters for the [pdfCompressor] method.
-  const PDFCompressorParams(
-      {required this.pdfPath,
-      required this.imageQuality,
-      required this.imageScale,
-      this.unEmbedFonts = false})
-      : assert(imageScale > 0 || imageScale <= 5,
+  const PDFCompressorParams({
+    required this.pdfPath,
+    required this.imageQuality,
+    required this.imageScale,
+    this.unEmbedFonts = false,
+    this.advancedOptions,
+  }) : assert(imageScale > 0 || imageScale <= 5,
             'imageScale should be greater than 0 and less tan or equal to 5'),
         assert(imageQuality > 0 || imageQuality <= 100,
             'imageQuality should be greater than 0 and less tan or equal to 100');
@@ -608,6 +612,69 @@ class PDFCompressorParams {
       'imageQuality': imageQuality,
       'imageScale': imageScale,
       'unEmbedFonts': unEmbedFonts,
+      'advancedOptions': advancedOptions?.toJson(),
+    };
+  }
+}
+
+/// Advanced compression options for PDF optimization.
+class PDFAdvancedCompressionOptions {
+  /// Enable font subsetting (embed only used characters).
+  final bool enableFontSubsetting;
+
+  /// Remove duplicate fonts across the document.
+  final bool removeDuplicateFonts;
+
+  /// Compress font streams more aggressively.
+  final bool compressFonts;
+
+  /// Remove unused objects and optimize PDF structure.
+  final bool optimizeStructure;
+
+  /// Remove unused metadata and non-essential information.
+  final bool removeUnusedMetadata;
+
+  /// Merge duplicate images to reduce file size.
+  final bool deduplicateImages;
+
+  /// Convert images to more efficient formats when possible.
+  final bool optimizeImageFormats;
+
+  /// Compress content streams more aggressively.
+  final bool compressStreams;
+
+  /// Flatten form fields to reduce complexity.
+  final bool flattenFormFields;
+
+  /// Remove unused named destinations and outlines.
+  final bool cleanNamedDestinations;
+
+  /// Create parameters for the [PDFAdvancedCompressionOptions] class.
+  const PDFAdvancedCompressionOptions({
+    this.enableFontSubsetting = false,
+    this.removeDuplicateFonts = false,
+    this.compressFonts = false,
+    this.optimizeStructure = false,
+    this.removeUnusedMetadata = false,
+    this.deduplicateImages = false,
+    this.optimizeImageFormats = false,
+    this.compressStreams = false,
+    this.flattenFormFields = false,
+    this.cleanNamedDestinations = false,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'enableFontSubsetting': enableFontSubsetting,
+      'removeDuplicateFonts': removeDuplicateFonts,
+      'compressFonts': compressFonts,
+      'optimizeStructure': optimizeStructure,
+      'removeUnusedMetadata': removeUnusedMetadata,
+      'deduplicateImages': deduplicateImages,
+      'optimizeImageFormats': optimizeImageFormats,
+      'compressStreams': compressStreams,
+      'flattenFormFields': flattenFormFields,
+      'cleanNamedDestinations': cleanNamedDestinations,
     };
   }
 }

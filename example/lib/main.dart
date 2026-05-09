@@ -170,6 +170,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _pickedFilePathForRepair;
   PDFRepairResult? _repairResult;
 
+  String? _pickedFilePathForAdvancedCompression;
+  String? _advancedCompressedPdfPath;
+
   Future<String?> _cancelTask() async {
     String? result;
     try {
@@ -512,6 +515,19 @@ class _MyHomePageState extends State<MyHomePage> {
     PDFRepairResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfRepair(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _pdfAdvancedCompressor(
+      PDFCompressorParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfCompressor(params: params);
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -2684,6 +2700,154 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                       ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Advanced PDF Compression",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Compress PDF with Advanced Options",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick PDF file to compress',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForAdvancedCompression = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForAdvancedCompression != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForAdvancedCompression!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Compress with Advanced Options',
+                          onPressed: _pickedFilePathForAdvancedCompression == null
+                              ? null
+                              : () async {
+                                  final params = PDFCompressorParams(
+                                    pdfPath: _pickedFilePathForAdvancedCompression!,
+                                    imageQuality: 85,
+                                    imageScale: 0.9,
+                                    unEmbedFonts: true,
+                                    advancedOptions: PDFAdvancedCompressionOptions(
+                                      enableFontSubsetting: true,
+                                      removeDuplicateFonts: true,
+                                      compressFonts: true,
+                                      optimizeStructure: true,
+                                      removeUnusedMetadata: true,
+                                      deduplicateImages: true,
+                                      optimizeImageFormats: true,
+                                      compressStreams: true,
+                                      flattenFormFields: false, // Be careful with this
+                                      cleanNamedDestinations: true,
+                                    ),
+                                  );
+
+                                  String? result =
+                                      await _pdfAdvancedCompressor(params);
+
+                                  if (mounted) {
+                                    setState(() {
+                                      _advancedCompressedPdfPath = result;
+                                    });
+                                  }
+                                }),
+                      if (_advancedCompressedPdfPath != null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                  buttonText: 'Save Advanced Compressed PDF',
+                                  onPressed: () async {
+                                      final params = FileSaverParams(
+                                        localOnly: _localOnly,
+                                        saveFiles: [
+                                          SaveFileInfo(
+                                              filePath: _advancedCompressedPdfPath,
+                                              fileName: "Advanced Compressed PDF.pdf")
+                                        ],
+                                      );
+
+                                      List<String>? result =
+                                          await _fileSaver(params);
+
+                                      if (mounted && context.mounted) {
+                                        callSnackBar(
+                                            context: context,
+                                            text: result.toString());
+                                      }
+                                    }),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _advancedCompressedPdfPath = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ),
+
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "Advanced Compression Features:",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Text("• Font subsetting (embed only used characters)"),
+                            Text("• Duplicate font removal"),
+                            Text("• Font stream compression"),
+                            Text("• Structure optimization (unused objects)"),
+                            Text("• Metadata cleanup"),
+                            Text("• Image deduplication"),
+                            Text("• Image format optimization"),
+                            Text("• Aggressive stream compression"),
+                            Text("• Named destination cleanup"),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

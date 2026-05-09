@@ -279,6 +279,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 imageQuality = call.argument("imageQuality"),
                 imageScale = call.argument("imageScale"),
                 unEmbedFonts = call.argument("unEmbedFonts"),
+                advancedOptions = call.argument<Map<String, Any>>("advancedOptions"),
             )
             "pdfWatermark" -> pdfManipulator!!.watermarkPdf(
                 result,

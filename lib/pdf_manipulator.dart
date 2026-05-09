@@ -61,4 +61,5 @@ export 'src/pdf_manipulator_method_channel.dart'
         PDFRepairResult,
         PDFCorruptionStatus,
         PDFRepairStatus,
-        PDFRecoveredContent;
+        PDFRecoveredContent,
+        PDFAdvancedCompressionOptions;

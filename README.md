@@ -40,6 +40,7 @@ A flutter plugin for doing various manipulations such as merge, split, compress 
 - Supports creating, modifying, and extracting PDF bookmarks/outlines (table of contents).
 - Supports comparing two PDFs and highlighting differences (text, layout, structure).
 - Supports repairing corrupted or damaged PDF files.
+- Supports advanced PDF compression with font optimization, structure optimization, and image deduplication.
 
 **Note:** To use it in realease mode you will need to create a file named proguard-rules.pro in your project Android->App->proguard-rules.pro. In that file you need to add the below block of text at the end of the file.
 ```
@@ -779,6 +780,38 @@ if (recoveredContent != null) {
 
 // Get any issues encountered during repair
 List<String> repairIssues = repairResult.issues;
+```
+
+### Advanced PDF compression
+
+```dart
+String? compressedPdfPath = await PdfManipulator().pdfCompressor(
+  params: PDFCompressorParams(
+    pdfPath: pdfPath,
+    imageQuality: 80,      // Basic image quality (0-100)
+    imageScale: 0.8,       // Basic image scale (0-5)
+    unEmbedFonts: true,    // Basic font unembedding
+    advancedOptions: PDFAdvancedCompressionOptions(
+      // Font optimizations
+      enableFontSubsetting: true,     // Embed only used characters
+      removeDuplicateFonts: true,     // Remove duplicate fonts
+      compressFonts: true,            // Compress font streams
+
+      // Structure optimizations
+      optimizeStructure: true,        // Remove unused objects
+      removeUnusedMetadata: true,     // Remove non-essential metadata
+
+      // Image optimizations
+      deduplicateImages: true,        // Remove duplicate images
+      optimizeImageFormats: true,     // Convert to optimal formats
+
+      // Advanced options
+      compressStreams: true,          // Aggressive stream compression
+      flattenFormFields: true,        // Convert form fields to static content
+      cleanNamedDestinations: true,   // Remove unused destinations
+    ),
+  ),
+);
 ```
 
 Note: To try the demos shown in below images run the example included in this plugin.

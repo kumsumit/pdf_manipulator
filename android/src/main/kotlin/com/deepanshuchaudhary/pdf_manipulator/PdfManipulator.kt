@@ -295,6 +295,7 @@ class PdfManipulator(
         imageQuality: Int?,
         imageScale: Double?,
         unEmbedFonts: Boolean?,
+        advancedOptions: Map<String, Any>?,
     ) {
         Log.d(
             LOG_TAG, "pdfCompressor - IN, sourceFilePath=$sourceFilePath"
@@ -304,7 +305,7 @@ class PdfManipulator(
         job = uiScope.launch {
             try {
                 val resultPDFPath: String? = getCompressedPDFPath(
-                    sourceFilePath!!, imageQuality!!, imageScale!!, unEmbedFonts!!, activity
+                    sourceFilePath!!, imageQuality!!, imageScale!!, unEmbedFonts!!, advancedOptions, activity
                 )
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
