@@ -165,6 +165,18 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 call.argument<String>("pdfPath").toString(),
                 call.argument<List<Map<String, Any>>>("annotations") ?: listOf(),
             )
+            "fillFormFields" -> pdfManipulator!!.fillFormFields(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<Map<String, Any>>("fieldValues") ?: mapOf(),
+                call.argument<Boolean>("flatten") == true,
+            )
+            "extractFormFieldData" -> pdfManipulator!!.extractFormFieldData(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
             "mergePDFs" -> pdfManipulator!!.mergePdfs(
                 result,
                 sourceFilesPaths = parseMethodCallArrayOfStringArgument(

@@ -87,8 +87,10 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
-  Future<List<String>?> extractImagesFromPdf({ExtractImageFromPDFParams? params}) {
-     throw UnimplementedError('extractImagesFromPdf() has not been implemented.');
+  Future<List<String>?> extractImagesFromPdf(
+      {ExtractImageFromPDFParams? params}) {
+    throw UnimplementedError(
+        'extractImagesFromPdf() has not been implemented.');
   }
 
   /// Converts PDF pages to images.
@@ -96,15 +98,16 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   /// Returns a list of paths to the generated images.
   /// Throws exception on error.
   Future<List<String>?> pdfToImages({PDFToImagesParams? params}) {
-     throw UnimplementedError('pdfToImages() has not been implemented.');
+    throw UnimplementedError('pdfToImages() has not been implemented.');
   }
 
   /// Extracts text from PDF pages.
   ///
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
-  Future<PDFTextExtractionResult?> pdfTextExtraction({PDFTextExtractionParams? params}) {
-     throw UnimplementedError('pdfTextExtraction() has not been implemented.');
+  Future<PDFTextExtractionResult?> pdfTextExtraction(
+      {PDFTextExtractionParams? params}) {
+    throw UnimplementedError('pdfTextExtraction() has not been implemented.');
   }
 
   /// Performs OCR on PDF pages using Google ML Kit.
@@ -112,7 +115,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   /// Returns PDFOCRResult containing recognized text and confidence scores.
   /// Throws exception on error.
   Future<PDFOCRResult?> pdfOcr({PDFOCRParams? params}) {
-     throw UnimplementedError('pdfOcr() has not been implemented.');
+    throw UnimplementedError('pdfOcr() has not been implemented.');
   }
 
   /// Adds a digital signature to PDF using certificate.
@@ -120,7 +123,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   /// Returns the path to the signed PDF file.
   /// Throws exception on error.
   Future<String?> pdfDigitalSignature({PDFDigitalSignatureParams? params}) {
-     throw UnimplementedError('pdfDigitalSignature() has not been implemented.');
+    throw UnimplementedError('pdfDigitalSignature() has not been implemented.');
   }
 
   /// Adds annotations to PDF.
@@ -128,6 +131,25 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   /// Returns the path to the annotated PDF file.
   /// Throws exception on error.
   Future<String?> pdfAnnotations({PDFAnnotationsParams? params}) {
-     throw UnimplementedError('pdfAnnotations() has not been implemented.');
+    throw UnimplementedError('pdfAnnotations() has not been implemented.');
+  }
+
+  /// Fills PDF form fields with the provided values.
+  ///
+  /// Returns the path to the filled PDF file.
+  /// Throws exception on error.
+  Future<String?> fillFormFields({PDFFormFillParams? params}) {
+    throw UnimplementedError('fillFormFields() has not been implemented.');
+  }
+
+  /// Extracts PDF form field names, values, types, and options.
+  ///
+  /// Returns PDFFormFieldData containing field metadata keyed by field name.
+  /// Throws exception on error.
+  Future<PDFFormFieldData?> extractFormFieldData({
+    PDFFormFieldDataParams? params,
+  }) {
+    throw UnimplementedError(
+        'extractFormFieldData() has not been implemented.');
   }
 }

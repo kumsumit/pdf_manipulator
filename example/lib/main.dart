@@ -109,6 +109,14 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _pickedFilePathForAnnotations;
   String? _annotatedPdfPath;
 
+  String? _pickedFilePathForFormFields;
+  String? _formFilledPdfPath;
+  PDFFormFieldData? _formFieldData;
+  final Map<String, dynamic> _sampleFormValues = {
+    'name': 'Jane Doe',
+    'email': 'jane.doe@example.com',
+  };
+
   Future<String?> _cancelTask() async {
     String? result;
     try {
@@ -283,12 +291,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<void> _extractImageFromPDF(
-      ExtractImageFromPDFParams params) async {
+  Future<void> _extractImageFromPDF(ExtractImageFromPDFParams params) async {
     // List<String>? result;
     try {
-       await _pdfManipulatorPlugin
-          .extractImagesFromPdf(params: params);
+      await _pdfManipulatorPlugin.extractImagesFromPdf(params: params);
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -309,7 +315,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<PDFTextExtractionResult?> _pdfTextExtraction(PDFTextExtractionParams params) async {
+  Future<PDFTextExtractionResult?> _pdfTextExtraction(
+      PDFTextExtractionParams params) async {
     PDFTextExtractionResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfTextExtraction(params: params);
@@ -349,6 +356,31 @@ class _MyHomePageState extends State<MyHomePage> {
     String? result;
     try {
       result = await _pdfManipulatorPlugin.pdfAnnotations(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _fillFormFields(PDFFormFillParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.fillFormFields(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFFormFieldData?> _extractFormFieldData(
+      PDFFormFieldDataParams params) async {
+    PDFFormFieldData? result;
+    try {
+      result = await _pdfManipulatorPlugin.extractFormFieldData(params: params);
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -1413,10 +1445,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-
-
-
-                Text(
+              Text(
                 "Extract Image from PDF",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -1460,26 +1489,25 @@ class _MyHomePageState extends State<MyHomePage> {
                               _pickedFilePathForExtractImageFromPDF == null
                                   ? null
                                   : () async {
-                                 final  outputDir = await getApplicationSupportDirectory();
-                                      final params =
-                                          ExtractImageFromPDFParams(
-                                        pdfPath:
-                                            _pickedFilePathForExtractImageFromPDF!,
-                                            outputDir: outputDir.path //"/storage/emulated/0/DCIM/Camera",
-                                        // pageNumber: 1,
-                                        // imageFormat: ImageFormat.png,
-                                      );
+                                      final outputDir =
+                                          await getApplicationSupportDirectory();
+                                      final params = ExtractImageFromPDFParams(
+                                          pdfPath:
+                                              _pickedFilePathForExtractImageFromPDF!,
+                                          outputDir: outputDir
+                                              .path //"/storage/emulated/0/DCIM/Camera",
+                                          // pageNumber: 1,
+                                          // imageFormat: ImageFormat.png,
+                                          );
 
-                                    
-                                          await _extractImageFromPDF(params);
+                                      await _extractImageFromPDF(params);
 
                                       if (mounted && context.mounted) {
                                         callSnackBar(
                                             context: context,
                                             text: "Image Extracted");
                                       }
-                                     }),
-
+                                    }),
                     ],
                   ),
                 ),
@@ -1534,7 +1562,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     scale: _imageScale,
                                   );
 
-                                  List<String>? result = await _pdfToImages(params);
+                                  List<String>? result =
+                                      await _pdfToImages(params);
 
                                   if (result != null && result.isNotEmpty) {
                                     setState(() {
@@ -1545,7 +1574,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   if (mounted && context.mounted) {
                                     callSnackBar(
                                         context: context,
-                                        text: "Generated ${result?.length ?? 0} images");
+                                        text:
+                                            "Generated ${result?.length ?? 0} images");
                                   }
                                 }),
                       Text(
@@ -1584,7 +1614,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                   if (result != null && result.isNotEmpty) {
                                     setState(() {
-                                      _pickedFilePathForTextExtraction = result[0];
+                                      _pickedFilePathForTextExtraction =
+                                          result[0];
                                     });
                                   }
 
@@ -1603,7 +1634,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     pdfPath: _pickedFilePathForTextExtraction!,
                                   );
 
-                                  PDFTextExtractionResult? result = await _pdfTextExtraction(params);
+                                  PDFTextExtractionResult? result =
+                                      await _pdfTextExtraction(params);
 
                                   if (result != null) {
                                     setState(() {
@@ -1614,7 +1646,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   if (mounted && context.mounted) {
                                     callSnackBar(
                                         context: context,
-                                        text: "Extracted text from ${result?.pageTexts.length ?? 0} pages");
+                                        text:
+                                            "Extracted text from ${result?.pageTexts.length ?? 0} pages");
                                   }
                                 }),
                       if (_textExtractionResult != null)
@@ -1699,7 +1732,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   if (mounted && context.mounted) {
                                     callSnackBar(
                                         context: context,
-                                        text: "OCR completed on ${result?.pageResults.length ?? 0} pages");
+                                        text:
+                                            "OCR completed on ${result?.pageResults.length ?? 0} pages");
                                   }
                                 }),
                       Text(
@@ -1736,6 +1770,168 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 16),
               Text(
+                "PDF form fields",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick fillable PDF file',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForFormFields = result[0];
+                                      _formFieldData = null;
+                                      _formFilledPdfPath = null;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Extract form field data',
+                          onPressed: _pickedFilePathForFormFields == null
+                              ? null
+                              : () async {
+                                  final params = PDFFormFieldDataParams(
+                                    pdfPath: _pickedFilePathForFormFields!,
+                                  );
+
+                                  PDFFormFieldData? result =
+                                      await _extractFormFieldData(params);
+
+                                  if (result != null) {
+                                    setState(() {
+                                      _formFieldData = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text:
+                                            "Found ${result?.fields.length ?? 0} form fields");
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Fill form fields',
+                          onPressed: _pickedFilePathForFormFields == null
+                              ? null
+                              : () async {
+                                  final fields = _formFieldData?.fields ?? {};
+                                  final values = <String, dynamic>{};
+
+                                  for (final field in fields.values) {
+                                    if (field.type == 'signature') continue;
+                                    if (field.type == 'checkbox') {
+                                      values[field.name] = true;
+                                    } else if ((field.type == 'radio' ||
+                                            field.type == 'combo' ||
+                                            field.type == 'list') &&
+                                        field.options.isNotEmpty) {
+                                      values[field.name] = field.options.first;
+                                    } else {
+                                      values[field.name] =
+                                          'Sample ${field.name}';
+                                    }
+                                  }
+
+                                  final params = PDFFormFillParams(
+                                    pdfPath: _pickedFilePathForFormFields!,
+                                    fieldValues: values.isEmpty
+                                        ? _sampleFormValues
+                                        : values,
+                                  );
+
+                                  String? result =
+                                      await _fillFormFields(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _formFilledPdfPath = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result != null
+                                            ? "PDF form filled"
+                                            : "No PDF form was filled");
+                                  }
+                                }),
+                      if (_formFieldData != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Fields:",
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              Text(
+                                _formFieldData!.fields.values
+                                    .take(5)
+                                    .map((field) =>
+                                        "${field.name} (${field.type}) = ${field.value}")
+                                    .join("\n"),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      CustomButton(
+                          buttonText: 'Save filled PDF',
+                          onPressed: _formFilledPdfPath == null
+                              ? null
+                              : _isBusy
+                                  ? null
+                                  : () async {
+                                      final params = FileSaverParams(
+                                        localOnly: _localOnly,
+                                        saveFiles: [
+                                          SaveFileInfo(
+                                              filePath: _formFilledPdfPath,
+                                              fileName: "Filled Form PDF.pdf")
+                                        ],
+                                      );
+
+                                      List<String>? result =
+                                          await _fileSaver(params);
+
+                                      if (mounted && context.mounted) {
+                                        callSnackBar(
+                                            context: context,
+                                            text: result.toString());
+                                      }
+                                    }),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
                 "Add Digital Signature to PDF",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -1762,7 +1958,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                   if (result != null && result.isNotEmpty) {
                                     setState(() {
-                                      _pickedFilePathForDigitalSignature = result[0];
+                                      _pickedFilePathForDigitalSignature =
+                                          result[0];
                                     });
                                   }
 
@@ -1801,12 +1998,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                 }),
                       CustomButton(
                           buttonText: 'Add Digital Signature',
-                          onPressed: _pickedFilePathForDigitalSignature == null ||
-                              _pickedCertificatePath == null
+                          onPressed: _pickedFilePathForDigitalSignature ==
+                                      null ||
+                                  _pickedCertificatePath == null
                               ? null
                               : () async {
                                   final params = PDFDigitalSignatureParams(
-                                    pdfPath: _pickedFilePathForDigitalSignature!,
+                                    pdfPath:
+                                        _pickedFilePathForDigitalSignature!,
                                     certificatePath: _pickedCertificatePath!,
                                     certificatePassword: _certificatePassword,
                                     reason: "Document approval",
@@ -1822,7 +2021,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   );
 
-                                  String? result = await _pdfDigitalSignature(params);
+                                  String? result =
+                                      await _pdfDigitalSignature(params);
 
                                   if (result != null) {
                                     setState(() {
@@ -1833,7 +2033,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                   if (mounted && context.mounted) {
                                     callSnackBar(
                                         context: context,
-                                        text: result != null ? "PDF signed successfully" : "Failed to sign PDF");
+                                        text: result != null
+                                            ? "PDF signed successfully"
+                                            : "Failed to sign PDF");
                                   }
                                 }),
                       Text(
@@ -1886,7 +2088,6 @@ callSnackBar({required BuildContext context, required String text}) {
     content: Text(text),
   ));
 }
-
 
 // null
 //                                   ? null

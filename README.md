@@ -34,6 +34,8 @@ A flutter plugin for doing various manipulations such as merge, split, compress 
 - Supports OCR (Optical Character Recognition) on PDF pages.
 - Supports adding digital signatures to PDFs.
 - Supports adding annotations to PDFs (text, highlight, underline, etc.).
+- Supports filling PDF form fields.
+- Supports extracting PDF form field data.
 
 **Note:** To use it in realease mode you will need to create a file named proguard-rules.pro in your project Android->App->proguard-rules.pro. In that file you need to add the below block of text at the end of the file.
 ```
@@ -327,6 +329,37 @@ String? signedPdfPath = await PdfManipulator().pdfDigitalSignature(
         pageNumber: 1,
       ),
 );
+```
+
+### Filling PDF form fields
+
+```dart
+String? filledPdfPath = await PdfManipulator().fillFormFields(
+  params: PDFFormFillParams(
+      pdfPath: pdfPath,
+      fieldValues: {
+        "name": "Jane Doe",
+        "email": "jane.doe@example.com",
+        "subscribe": true, // Checkbox fields can use bool values.
+      },
+      flatten: false, // Optional: set true to make fields non-editable
+);
+```
+
+### Extracting PDF form field data
+
+```dart
+PDFFormFieldData? formData = await PdfManipulator().extractFormFieldData(
+  params: PDFFormFieldDataParams(pdfPath: pdfPath),
+);
+
+/// Getting form field info.
+Map<String, PDFFormField>? fields = formData?.fields;
+PDFFormField? nameField = fields?["name"];
+String? currentValue = nameField?.value;
+String? fieldType = nameField?.type; // text, checkbox, radio, combo, list, etc.
+List<String>? options = nameField?.options; // Choice/checkbox/radio options.
+bool? isRequired = nameField?.isRequired;
 ```
 
 ### Adding annotations to PDF

@@ -81,7 +81,8 @@ class PdfManipulator {
   ///
   /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
-  Future<List<String>?> extractImagesFromPdf({required ExtractImageFromPDFParams params}) {
+  Future<List<String>?> extractImagesFromPdf(
+      {required ExtractImageFromPDFParams params}) {
     return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
   }
 
@@ -97,7 +98,8 @@ class PdfManipulator {
   ///
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
-  Future<PDFTextExtractionResult?> pdfTextExtraction({required PDFTextExtractionParams params}) {
+  Future<PDFTextExtractionResult?> pdfTextExtraction(
+      {required PDFTextExtractionParams params}) {
     return PdfManipulatorPlatform.instance.pdfTextExtraction(params: params);
   }
 
@@ -113,7 +115,8 @@ class PdfManipulator {
   ///
   /// Returns the path to the signed PDF file.
   /// Throws exception on error.
-  Future<String?> pdfDigitalSignature({required PDFDigitalSignatureParams params}) {
+  Future<String?> pdfDigitalSignature(
+      {required PDFDigitalSignatureParams params}) {
     return PdfManipulatorPlatform.instance.pdfDigitalSignature(params: params);
   }
 
@@ -125,8 +128,23 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.pdfAnnotations(params: params);
   }
 
+  /// Fills PDF form fields with the provided values.
+  ///
+  /// Returns the path to the filled PDF file.
+  /// Throws exception on error.
+  Future<String?> fillFormFields({required PDFFormFillParams params}) {
+    return PdfManipulatorPlatform.instance.fillFormFields(params: params);
+  }
 
-
+  /// Extracts PDF form field names, values, types, and options.
+  ///
+  /// Returns PDFFormFieldData containing field metadata keyed by field name.
+  /// Throws exception on error.
+  Future<PDFFormFieldData?> extractFormFieldData({
+    required PDFFormFieldDataParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.extractFormFieldData(params: params);
+  }
 
   /// Provides pdf file validity and protection info.
   ///
@@ -162,10 +180,10 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.imagesToPdfs(params: params);
   }
 
-   /// Cancels running manipulations.
-   ///
-   /// Returns the cancelling message.
-   Future<String?> cancelManipulations() {
-     return PdfManipulatorPlatform.instance.cancelManipulations();
-   }
+  /// Cancels running manipulations.
+  ///
+  /// Returns the cancelling message.
+  Future<String?> cancelManipulations() {
+    return PdfManipulatorPlatform.instance.cancelManipulations();
+  }
 }

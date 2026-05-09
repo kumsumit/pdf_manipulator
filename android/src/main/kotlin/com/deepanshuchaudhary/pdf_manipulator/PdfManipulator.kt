@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import io.flutter.plugin.common.MethodChannel.Result
 import android.content.Context
 import android.net.Uri
@@ -21,9 +22,11 @@ import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.itextpdf.text.Document
 import com.itextpdf.text.Rectangle
+import com.itextpdf.text.pdf.AcroFields
 import com.itextpdf.text.pdf.PdfAnnotation
 import com.itextpdf.text.pdf.PdfArray
 import com.itextpdf.text.pdf.PdfName
+import com.itextpdf.text.pdf.PdfReader
 import com.itextpdf.text.pdf.PdfStamper
 import com.itextpdf.text.pdf.PdfSignatureAppearance
 import com.itextpdf.text.pdf.PdfWriter
@@ -775,6 +778,60 @@ class PdfManipulator(
         Log.d(LOG_TAG, "pdfAnnotations - OUT")
     }
 
+    // For filling PDF form fields
+    fun fillFormFields(
+        resultCallback: Result,
+        context: Context,
+        pdfPath: String,
+        fieldValues: Map<String, Any>,
+        flatten: Boolean
+    ) {
+        Log.d(LOG_TAG, "fillFormFields - IN, pdfPath=$pdfPath, fieldsCount=${fieldValues.size}")
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val filledPdfPath = fillPdfFormFields(context, pdfPath, fieldValues, flatten)
+                utils.finishSuccessfullyWithString(filledPdfPath, resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "fillFormFields_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "fillFormFields_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "fillFormFields - OUT")
+    }
+
+    // For extracting PDF form field data
+    fun extractFormFieldData(
+        resultCallback: Result,
+        context: Context,
+        pdfPath: String
+    ) {
+        Log.d(LOG_TAG, "extractFormFieldData - IN, pdfPath=$pdfPath")
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val formFieldData = extractPdfFormFieldData(context, pdfPath)
+                utils.finishSuccessfullyWithMap(formFieldData, resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "extractFormFieldData_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "extractFormFieldData_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "extractFormFieldData - OUT")
+    }
+
     // Usage example
 //    val pdfUri = Uri.parse("content://path/to/your/pdf/document.pdf")
 //    val outputDir = "path/to/your/output/directory"
@@ -943,6 +1000,142 @@ class PdfManipulator(
             "pageTexts" to pageTexts,
             "fullText" to fullText.toString()
         )
+    }
+
+    private suspend fun fillPdfFormFields(
+        context: Context,
+        pdfPath: String,
+        fieldValues: Map<String, Any>,
+        flatten: Boolean
+    ): String = withContext(Dispatchers.IO) {
+        val outputDir = File(context.cacheDir, "form_filled_pdfs").apply {
+            if (!exists()) mkdirs()
+        }
+        val outputFile = File(outputDir, "form_filled_${System.currentTimeMillis()}.pdf")
+
+        val inputStream = openPdfInputStream(context, pdfPath)
+        val reader = PdfReader(inputStream)
+        val stamper = PdfStamper(reader, FileOutputStream(outputFile))
+
+        try {
+            val fields = stamper.acroFields
+            fields.setGenerateAppearances(true)
+
+            val missingFields = mutableListOf<String>()
+            fieldValues.forEach { (name, value) ->
+                val fieldValue = normalizeFormFieldValue(fields, name, value)
+                if (!fields.setField(name, fieldValue)) {
+                    missingFields.add(name)
+                }
+            }
+
+            if (missingFields.isNotEmpty()) {
+                throw IllegalArgumentException(
+                    "PDF form does not contain field(s): ${missingFields.joinToString(", ")}"
+                )
+            }
+
+            stamper.formFlattening = flatten
+        } finally {
+            stamper.close()
+            reader.close()
+            inputStream.close()
+        }
+
+        return@withContext outputFile.absolutePath
+    }
+
+    private suspend fun extractPdfFormFieldData(
+        context: Context,
+        pdfPath: String
+    ): Map<String, Any> = withContext(Dispatchers.IO) {
+        val inputStream = openPdfInputStream(context, pdfPath)
+        val reader = PdfReader(inputStream)
+
+        try {
+            val acroFields = reader.acroFields
+            val fields = mutableMapOf<String, Any>()
+
+            acroFields.fields.keys.sorted().forEach { fieldName ->
+                val fieldType = acroFields.getFieldType(fieldName)
+                val options = getFormFieldOptions(acroFields, fieldName)
+                val item = acroFields.getFieldItem(fieldName)
+                val fieldFlags = item?.getMerged(0)?.getAsNumber(PdfName.FF)?.intValue() ?: 0
+
+                fields[fieldName] = mapOf(
+                    "name" to fieldName,
+                    "value" to (acroFields.getField(fieldName) ?: ""),
+                    "type" to formFieldTypeName(fieldType),
+                    "options" to options,
+                    "isRequired" to ((fieldFlags and 2) != 0)
+                )
+            }
+
+            return@withContext mapOf("fields" to fields)
+        } finally {
+            reader.close()
+            inputStream.close()
+        }
+    }
+
+    private fun openPdfInputStream(context: Context, pdfPath: String): FileInputStream {
+        val uri = Uri.parse(pdfPath)
+        if (uri.scheme == null || uri.scheme == "file") {
+            val filePath = uri.path ?: pdfPath
+            return FileInputStream(File(filePath))
+        }
+
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IOException("Cannot open PDF file")
+
+        val tempFile = File.createTempFile("pdf_form_input_", ".pdf", context.cacheDir)
+        tempFile.deleteOnExit()
+        FileOutputStream(tempFile).use { outputStream ->
+            inputStream.use { it.copyTo(outputStream) }
+        }
+
+        return FileInputStream(tempFile)
+    }
+
+    private fun normalizeFormFieldValue(
+        fields: AcroFields,
+        fieldName: String,
+        value: Any
+    ): String {
+        if (value is Boolean) {
+            return if (value) {
+                fields.getAppearanceStates(fieldName)
+                    ?.firstOrNull { !it.equals("Off", ignoreCase = true) }
+                    ?: "Yes"
+            } else {
+                "Off"
+            }
+        }
+
+        return value.toString()
+    }
+
+    private fun getFormFieldOptions(fields: AcroFields, fieldName: String): List<String> {
+        val appearanceStates = fields.getAppearanceStates(fieldName)
+            ?.filter { !it.equals("Off", ignoreCase = true) }
+            ?: listOf()
+        val displayOptions = fields.getListOptionDisplay(fieldName)?.toList() ?: listOf()
+        val exportOptions = fields.getListOptionExport(fieldName)?.toList() ?: listOf()
+
+        return (displayOptions + exportOptions + appearanceStates).distinct()
+    }
+
+    private fun formFieldTypeName(fieldType: Int): String {
+        return when (fieldType) {
+            AcroFields.FIELD_TYPE_PUSHBUTTON -> "pushButton"
+            AcroFields.FIELD_TYPE_CHECKBOX -> "checkbox"
+            AcroFields.FIELD_TYPE_RADIOBUTTON -> "radio"
+            AcroFields.FIELD_TYPE_TEXT -> "text"
+            AcroFields.FIELD_TYPE_LIST -> "list"
+            AcroFields.FIELD_TYPE_COMBO -> "combo"
+            AcroFields.FIELD_TYPE_SIGNATURE -> "signature"
+            else -> "unknown"
+        }
     }
 
     private suspend fun addAnnotationsToPdf(

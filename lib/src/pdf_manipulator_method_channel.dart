@@ -136,9 +136,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Throws exception on error.
   @override
   Future<List<String>?> extractImagesFromPdf(
-      {ExtractImageFromPDFParams? params}) async{
-    final List? paths =
-        await methodChannel.invokeMethod<List?>('extractImagesFromPdf', params?.toJson());
+      {ExtractImageFromPDFParams? params}) async {
+    final List? paths = await methodChannel.invokeMethod<List?>(
+        'extractImagesFromPdf', params?.toJson());
     return paths?.cast<String>();
   }
 
@@ -148,8 +148,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Throws exception on error.
   @override
   Future<List<String>?> pdfToImages({PDFToImagesParams? params}) async {
-    final List? paths =
-        await methodChannel.invokeMethod<List?>('pdfToImages', params?.toJson());
+    final List? paths = await methodChannel.invokeMethod<List?>(
+        'pdfToImages', params?.toJson());
     return paths?.cast<String>();
   }
 
@@ -158,9 +158,10 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
   @override
-  Future<PDFTextExtractionResult?> pdfTextExtraction({PDFTextExtractionParams? params}) async {
-    final Map? result =
-        await methodChannel.invokeMethod<Map?>('pdfTextExtraction', params?.toJson());
+  Future<PDFTextExtractionResult?> pdfTextExtraction(
+      {PDFTextExtractionParams? params}) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'pdfTextExtraction', params?.toJson());
 
     if (result == null) return null;
 
@@ -189,7 +190,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     if (result == null) return null;
 
     final Map<int, OCRPageResult> pageResults = {};
-    final Map<String, dynamic> pageResultsMap = result['pageResults'] as Map<String, dynamic>? ?? {};
+    final Map<String, dynamic> pageResultsMap =
+        result['pageResults'] as Map<String, dynamic>? ?? {};
 
     pageResultsMap.forEach((key, value) {
       if (value is Map) {
@@ -213,9 +215,10 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns the path to the signed PDF file.
   /// Throws exception on error.
   @override
-  Future<String?> pdfDigitalSignature({PDFDigitalSignatureParams? params}) async {
-    final String? result =
-        await methodChannel.invokeMethod<String?>('pdfDigitalSignature', params?.toJson());
+  Future<String?> pdfDigitalSignature(
+      {PDFDigitalSignatureParams? params}) async {
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'pdfDigitalSignature', params?.toJson());
     return result;
   }
 
@@ -225,9 +228,36 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Throws exception on error.
   @override
   Future<String?> pdfAnnotations({PDFAnnotationsParams? params}) async {
-    final String? result =
-        await methodChannel.invokeMethod<String?>('pdfAnnotations', params?.toJson());
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'pdfAnnotations', params?.toJson());
     return result;
+  }
+
+  /// Fills PDF form fields with the provided values.
+  ///
+  /// Returns the path to the filled PDF file.
+  /// Throws exception on error.
+  @override
+  Future<String?> fillFormFields({PDFFormFillParams? params}) async {
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'fillFormFields', params?.toJson());
+    return result;
+  }
+
+  /// Extracts PDF form field names, values, types, and options.
+  ///
+  /// Returns PDFFormFieldData containing field metadata keyed by field name.
+  /// Throws exception on error.
+  @override
+  Future<PDFFormFieldData?> extractFormFieldData({
+    PDFFormFieldDataParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'extractFormFieldData', params?.toJson());
+
+    if (result == null) return null;
+
+    return PDFFormFieldData.fromJson(Map<dynamic, dynamic>.from(result));
   }
 }
 
@@ -896,9 +926,9 @@ class PDFToImagesParams {
     this.imageFormat = ImageFormat.png,
     this.quality = 90,
     this.scale = 1.0,
-  }) : assert(scale == null || (scale >= 0.1 && scale <= 5.0),
+  })  : assert(scale == null || (scale >= 0.1 && scale <= 5.0),
             'scale should be between 0.1 and 5.0'),
-       assert(quality == null || (quality >= 1 && quality <= 100),
+        assert(quality == null || (quality >= 1 && quality <= 100),
             'quality should be between 1 and 100');
 
   Map<String, dynamic> toJson() {
@@ -955,6 +985,132 @@ class PDFTextExtractionResult {
   }
 }
 
+/// Parameters for the [fillFormFields] method.
+class PDFFormFillParams {
+  /// Provide path of pdf file containing form fields.
+  final String pdfPath;
+
+  /// Field values keyed by PDF form field name.
+  final Map<String, dynamic> fieldValues;
+
+  /// Set true to flatten fields after filling.
+  final bool flatten;
+
+  /// Create parameters for the [fillFormFields] method.
+  const PDFFormFillParams({
+    required this.pdfPath,
+    required this.fieldValues,
+    this.flatten = false,
+  }) : assert(fieldValues.length > 0, 'provide at least 1 form field value');
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'fieldValues': fieldValues,
+      'flatten': flatten,
+    };
+  }
+}
+
+/// Parameters for the [extractFormFieldData] method.
+class PDFFormFieldDataParams {
+  /// Provide path of pdf file containing form fields.
+  final String pdfPath;
+
+  /// Create parameters for the [extractFormFieldData] method.
+  const PDFFormFieldDataParams({
+    required this.pdfPath,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+    };
+  }
+}
+
+/// Extracted PDF form field data.
+class PDFFormFieldData {
+  /// Form fields keyed by field name.
+  final Map<String, PDFFormField> fields;
+
+  PDFFormFieldData({
+    required this.fields,
+  });
+
+  factory PDFFormFieldData.fromJson(Map<dynamic, dynamic> json) {
+    final fieldsJson = json['fields'] as Map<dynamic, dynamic>? ?? {};
+    final fields = <String, PDFFormField>{};
+
+    fieldsJson.forEach((key, value) {
+      if (value is Map) {
+        fields[key.toString()] =
+            PDFFormField.fromJson(Map<dynamic, dynamic>.from(value));
+      }
+    });
+
+    return PDFFormFieldData(fields: fields);
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'fields': fields.map((key, value) => MapEntry(key, value.toJson())),
+    };
+  }
+}
+
+/// PDF form field metadata.
+class PDFFormField {
+  /// Field name used when filling this field.
+  final String name;
+
+  /// Current field value.
+  final String value;
+
+  /// Field type as a readable string.
+  final String type;
+
+  /// Available export/display options for choice, checkbox, and radio fields.
+  final List<String> options;
+
+  /// Whether the field is marked required in the PDF.
+  final bool isRequired;
+
+  PDFFormField({
+    required this.name,
+    required this.value,
+    required this.type,
+    this.options = const [],
+    this.isRequired = false,
+  });
+
+  factory PDFFormField.fromJson(Map<dynamic, dynamic> json) {
+    return PDFFormField(
+      name: json['name'] as String? ?? '',
+      value: json['value'] as String? ?? '',
+      type: json['type'] as String? ?? 'unknown',
+      options: (json['options'] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      isRequired: json['isRequired'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'name': name,
+      'value': value,
+      'type': type,
+      'options': options,
+      'isRequired': isRequired,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'PDFFormField{name: $name, value: $value, type: $type, options: $options, isRequired: $isRequired}';
+  }
+}
+
 /// Parameters for the [pdfOcr] method.
 class PDFOCRParams {
   /// Provide path of pdf file to perform OCR on.
@@ -997,7 +1153,8 @@ class PDFOCRResult {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'pageResults': pageResults.map((key, value) => MapEntry(key.toString(), value.toJson())),
+      'pageResults': pageResults
+          .map((key, value) => MapEntry(key.toString(), value.toJson())),
       'fullText': fullText,
     };
   }
