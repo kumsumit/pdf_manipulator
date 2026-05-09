@@ -1,4 +1,3 @@
-import '../pdf_manipulator.dart';
 import 'package:pdf_manipulator/src/pdf_manipulator_method_channel.dart';
 import 'pdf_manipulator_platform_interface.dart';
 
@@ -185,5 +184,65 @@ class PdfManipulator {
   /// Returns the cancelling message.
   Future<String?> cancelManipulations() {
     return PdfManipulatorPlatform.instance.cancelManipulations();
+  }
+
+  /// Reads PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns PDFMetadataResult containing metadata information.
+  /// Throws exception on error.
+  Future<PDFMetadataResult?> pdfMetadataReader({
+    required PDFMetadataReaderParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfMetadataReader(params: params);
+  }
+
+  /// Updates PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfMetadataWriter({
+    required PDFMetadataWriterParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfMetadataWriter(params: params);
+  }
+
+  /// Extracts PDF bookmarks/outlines (table of contents).
+  ///
+  /// Returns PDFBookmarkData containing hierarchical bookmark structure.
+  /// Throws exception on error.
+  Future<PDFBookmarkData?> pdfBookmarkReader({
+    required PDFBookmarkReaderParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfBookmarkReader(params: params);
+  }
+
+  /// Creates or modifies PDF bookmarks/outlines.
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfBookmarkWriter({
+    required PDFBookmarkWriterParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfBookmarkWriter(params: params);
+  }
+
+  /// Compares two PDFs and highlights differences.
+  ///
+  /// Returns PDFComparisonResult containing detailed comparison information.
+  /// Throws exception on error.
+  Future<PDFComparisonResult?> pdfComparison({
+    required PDFComparisonParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfComparison(params: params);
+  }
+
+  /// Attempts to repair a corrupted or damaged PDF file.
+  ///
+  /// Returns PDFRepairResult containing repair status and recovered content.
+  /// Throws exception on error.
+  Future<PDFRepairResult?> pdfRepair({
+    required PDFRepairParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfRepair(params: params);
   }
 }

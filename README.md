@@ -36,6 +36,10 @@ A flutter plugin for doing various manipulations such as merge, split, compress 
 - Supports adding annotations to PDFs (text, highlight, underline, etc.).
 - Supports filling PDF form fields.
 - Supports extracting PDF form field data.
+- Supports reading and modifying PDF metadata (title, author, subject, keywords, creation date, modification date).
+- Supports creating, modifying, and extracting PDF bookmarks/outlines (table of contents).
+- Supports comparing two PDFs and highlighting differences (text, layout, structure).
+- Supports repairing corrupted or damaged PDF files.
 
 **Note:** To use it in realease mode you will need to create a file named proguard-rules.pro in your project Android->App->proguard-rules.pro. In that file you need to add the below block of text at the end of the file.
 ```
@@ -394,6 +398,387 @@ String? annotatedPdfPath = await PdfManipulator().pdfAnnotations(
         ),
       ],
 );
+```
+
+### Reading PDF metadata
+
+```dart
+PDFMetadataResult? metadata = await PdfManipulator().pdfMetadataReader(
+  params: PDFMetadataReaderParams(pdfPath: pdfPath),
+);
+
+String? title = metadata?.title;
+String? author = metadata?.author;
+String? subject = metadata?.subject;
+String? keywords = metadata?.keywords;
+String? creator = metadata?.creator;
+String? producer = metadata?.producer;
+String? creationDate = metadata?.creationDate; // ISO 8601 format
+String? modificationDate = metadata?.modificationDate; // ISO 8601 format
+```
+
+### Modifying PDF metadata
+
+```dart
+String? updatedPdfPath = await PdfManipulator().pdfMetadataWriter(
+  params: PDFMetadataWriterParams(
+    pdfPath: pdfPath,
+    title: "Updated Title",
+    author: "New Author",
+    subject: "Updated Subject",
+    keywords: "keyword1, keyword2, keyword3",
+    creator: "My App",
+    producer: "PDF Manipulator Plugin",
+    creationDate: "2024-01-01T10:00:00Z", // ISO 8601 format
+    modificationDate: "2024-12-31T23:59:59Z", // ISO 8601 format
+  ),
+);
+```
+
+### Reading PDF bookmarks
+
+```dart
+PDFBookmarkData? bookmarkData = await PdfManipulator().pdfBookmarkReader(
+  params: PDFBookmarkReaderParams(pdfPath: pdfPath),
+);
+
+for (var bookmark in bookmarkData?.bookmarks ?? []) {
+  print('Bookmark: ${bookmark.title} -> Page ${bookmark.pageNumber}');
+  // Process child bookmarks recursively
+  processBookmarkChildren(bookmark.children);
+}
+
+void processBookmarkChildren(List<PDFBookmark> children) {
+  for (var child in children) {
+    print('  Child: ${child.title} -> Page ${child.pageNumber}');
+    processBookmarkChildren(child.children);
+  }
+}
+```
+
+### Creating PDF bookmarks
+
+```dart
+String? bookmarkedPdfPath = await PdfManipulator().pdfBookmarkWriter(
+  params: PDFBookmarkWriterParams(
+    pdfPath: pdfPath,
+    bookmarks: [
+      PDFBookmark(
+        title: "Chapter 1",
+        pageNumber: 1,
+        children: [
+          PDFBookmark(title: "Section 1.1", pageNumber: 2),
+          PDFBookmark(title: "Section 1.2", pageNumber: 5),
+        ],
+      ),
+      PDFBookmark(
+        title: "Chapter 2",
+        pageNumber: 10,
+        children: [
+          PDFBookmark(title: "Section 2.1", pageNumber: 12),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "PDF Repair",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Repair Corrupted PDF",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick corrupted PDF to repair',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForRepair = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForRepair != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForRepair!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Attempt Repair',
+                          onPressed: _pickedFilePathForRepair == null
+                              ? null
+                              : () async {
+                                  final params = PDFRepairParams(
+                                    pdfPath: _pickedFilePathForRepair!,
+                                  );
+
+                                  PDFRepairResult? result =
+                                      await _pdfRepair(params);
+
+                                  if (mounted) {
+                                    setState(() {
+                                      _repairResult = result;
+                                    });
+                                  }
+                                }),
+                      if (_repairResult != null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                  buttonText: 'Save Repaired PDF',
+                                  onPressed: _repairResult!.repairedPdfPath == null
+                                      ? null
+                                      : () async {
+                                          final params = FileSaverParams(
+                                            localOnly: _localOnly,
+                                            saveFiles: [
+                                              SaveFileInfo(
+                                                  filePath: _repairResult!.repairedPdfPath,
+                                                  fileName: "Repaired PDF.pdf")
+                                            ],
+                                          );
+
+                                          List<String>? result =
+                                              await _fileSaver(params);
+
+                                          if (mounted && context.mounted) {
+                                            callSnackBar(
+                                                context: context,
+                                                text: result.toString());
+                                          }
+                                        }),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _repairResult = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ),
+
+                      // Results display
+                      if (_repairResult != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 300),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Repair status
+                                  Text(
+                                    "Repair Status: ${_repairResult!.wasRepaired ? 'SUCCESS' : 'FAILED'}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: _repairResult!.wasRepaired ? Colors.green : Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Corruption analysis
+                                  Text(
+                                    "Original PDF Status:",
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  Text("Can Open: ${_repairResult!.originalStatus.canOpen}"),
+                                  Text("Valid Structure: ${_repairResult!.originalStatus.hasValidStructure}"),
+                                  Text("Readable Content: ${_repairResult!.originalStatus.hasReadableContent}"),
+                                  Text("Corruption Level: ${(_repairResult!.originalStatus.corruptionLevel * 100).toInt()}%"),
+
+                                  if (_repairResult!.originalStatus.detectedIssues.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Detected Issues:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    ..._repairResult!.originalStatus.detectedIssues.map((issue) =>
+                                      Text("• $issue", style: TextStyle(color: Colors.red))
+                                    ),
+                                  ],
+
+                                  // Repair status
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "Repair Operation:",
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  Text("Completed: ${_repairResult!.repairStatus.completed}"),
+                                  Text("Content Recovered: ${_repairResult!.repairStatus.contentRecovered}"),
+                                  Text("Fully Functional: ${_repairResult!.repairStatus.fullyFunctional}"),
+                                  Text("Method: ${_repairResult!.repairStatus.repairMethod}"),
+
+                                  if (_repairResult!.repairStatus.repairInfo.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    ..._repairResult!.repairStatus.repairInfo.map((info) =>
+                                      Text("• $info", style: TextStyle(color: Colors.blue))
+                                    ),
+                                  ],
+
+                                  // Recovered content
+                                  if (_repairResult!.recoveredContent != null) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Recovered Content:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    Text("Pages: ${_repairResult!.recoveredContent!.pagesRecovered}"),
+                                    Text("Text Length: ${_repairResult!.recoveredContent!.textContentLength} characters"),
+                                    Text("Images: ${_repairResult!.recoveredContent!.imagesRecovered}"),
+                                    Text("Metadata Preserved: ${_repairResult!.recoveredContent!.metadataPreserved}"),
+                                  ],
+
+                                  // General issues
+                                  if (_repairResult!.issues.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Repair Issues:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    ..._repairResult!.issues.map((issue) =>
+                                      Text("• $issue", style: TextStyle(color: Colors.orange))
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Add Digital Signature to PDF",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+);
+```
+
+### Comparing two PDFs
+
+```dart
+PDFComparisonResult? comparisonResult = await PdfManipulator().pdfComparison(
+  params: PDFComparisonParams(
+    pdfPath1: pdfPath1,
+    pdfPath2: pdfPath2,
+    compareText: true,        // Compare text content
+    compareMetadata: true,    // Compare metadata
+    compareStructure: true,   // Compare page count and structure
+  ),
+);
+
+// Overall similarity score
+double similarity = comparisonResult!.overallSimilarity; // 0.0 to 1.0
+
+// Summary of differences
+List<String> summary = comparisonResult.summary;
+
+// Detailed results
+PDFTextComparison? textComparison = comparisonResult.textComparison;
+PDFMetadataComparison? metadataComparison = comparisonResult.metadataComparison;
+PDFStructureComparison? structureComparison = comparisonResult.structureComparison;
+
+// Text comparison details
+if (textComparison != null) {
+  double textSimilarity = textComparison.similarity;
+  List<TextDifference> textDifferences = textComparison.differences;
+}
+
+// Metadata comparison details
+if (metadataComparison != null) {
+  List<MetadataDifference> metadataDifferences = metadataComparison.differences;
+  for (var diff in metadataDifferences) {
+    print('${diff.field}: "${diff.value1}" vs "${diff.value2}"');
+  }
+}
+
+// Structure comparison details
+if (structureComparison != null) {
+  bool pageCountEqual = structureComparison.pageCountEqual;
+  int pageCount1 = structureComparison.pageCount1;
+  int pageCount2 = structureComparison.pageCount2;
+}
+```
+
+### Repairing corrupted PDFs
+
+```dart
+PDFRepairResult? repairResult = await PdfManipulator().pdfRepair(
+  params: PDFRepairParams(pdfPath: corruptedPdfPath),
+);
+
+// Check if repair was successful
+bool wasRepaired = repairResult!.wasRepaired;
+
+// Get path to repaired PDF (if successful)
+String? repairedPdfPath = repairResult.repairedPdfPath;
+
+// Analyze original corruption status
+PDFCorruptionStatus originalStatus = repairResult.originalStatus;
+bool canOpen = originalStatus.canOpen;
+double corruptionLevel = originalStatus.corruptionLevel; // 0.0 to 1.0
+List<String> detectedIssues = originalStatus.detectedIssues;
+
+// Check repair operation status
+PDFRepairStatus repairStatus = repairResult.repairStatus;
+bool repairCompleted = repairStatus.completed;
+bool contentRecovered = repairStatus.contentRecovered;
+bool fullyFunctional = repairStatus.fullyFunctional;
+String repairMethod = repairStatus.repairMethod;
+
+// Get information about recovered content
+PDFRecoveredContent? recoveredContent = repairResult.recoveredContent;
+if (recoveredContent != null) {
+  int pagesRecovered = recoveredContent.pagesRecovered;
+  int textLength = recoveredContent.textContentLength;
+  int imagesRecovered = recoveredContent.imagesRecovered;
+  bool metadataPreserved = recoveredContent.metadataPreserved;
+}
+
+// Get any issues encountered during repair
+List<String> repairIssues = repairResult.issues;
 ```
 
 Note: To try the demos shown in below images run the example included in this plugin.

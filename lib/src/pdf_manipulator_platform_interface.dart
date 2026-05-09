@@ -152,4 +152,64 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     throw UnimplementedError(
         'extractFormFieldData() has not been implemented.');
   }
+
+  /// Reads PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns PDFMetadataResult containing metadata information.
+  /// Throws exception on error.
+  Future<PDFMetadataResult?> pdfMetadataReader({
+    PDFMetadataReaderParams? params,
+  }) {
+    throw UnimplementedError('pdfMetadataReader() has not been implemented.');
+  }
+
+  /// Updates PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfMetadataWriter({
+    PDFMetadataWriterParams? params,
+  }) {
+    throw UnimplementedError('pdfMetadataWriter() has not been implemented.');
+  }
+
+  /// Extracts PDF bookmarks/outlines (table of contents).
+  ///
+  /// Returns PDFBookmarkData containing hierarchical bookmark structure.
+  /// Throws exception on error.
+  Future<PDFBookmarkData?> pdfBookmarkReader({
+    PDFBookmarkReaderParams? params,
+  }) {
+    throw UnimplementedError('pdfBookmarkReader() has not been implemented.');
+  }
+
+  /// Creates or modifies PDF bookmarks/outlines.
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfBookmarkWriter({
+    PDFBookmarkWriterParams? params,
+  }) {
+    throw UnimplementedError('pdfBookmarkWriter() has not been implemented.');
+  }
+
+  /// Compares two PDFs and highlights differences.
+  ///
+  /// Returns PDFComparisonResult containing detailed comparison information.
+  /// Throws exception on error.
+  Future<PDFComparisonResult?> pdfComparison({
+    PDFComparisonParams? params,
+  }) {
+    throw UnimplementedError('pdfComparison() has not been implemented.');
+  }
+
+  /// Attempts to repair a corrupted or damaged PDF file.
+  ///
+  /// Returns PDFRepairResult containing repair status and recovered content.
+  /// Throws exception on error.
+  Future<PDFRepairResult?> pdfRepair({
+    PDFRepairParams? params,
+  }) {
+    throw UnimplementedError('pdfRepair() has not been implemented.');
+  }
 }

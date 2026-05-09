@@ -259,6 +259,96 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
 
     return PDFFormFieldData.fromJson(Map<dynamic, dynamic>.from(result));
   }
+
+  /// Reads PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns PDFMetadataResult containing metadata information.
+  /// Throws exception on error.
+  @override
+  Future<PDFMetadataResult?> pdfMetadataReader({
+    PDFMetadataReaderParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'pdfMetadataReader', params?.toJson());
+
+    if (result == null) return null;
+
+    return PDFMetadataResult.fromJson(Map<dynamic, dynamic>.from(result));
+  }
+
+  /// Updates PDF metadata (title, author, subject, keywords, etc.).
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  @override
+  Future<String?> pdfMetadataWriter({
+    PDFMetadataWriterParams? params,
+  }) async {
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'pdfMetadataWriter', params?.toJson());
+    return result;
+  }
+
+  /// Extracts PDF bookmarks/outlines (table of contents).
+  ///
+  /// Returns PDFBookmarkData containing hierarchical bookmark structure.
+  /// Throws exception on error.
+  @override
+  Future<PDFBookmarkData?> pdfBookmarkReader({
+    PDFBookmarkReaderParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'pdfBookmarkReader', params?.toJson());
+
+    if (result == null) return null;
+
+    return PDFBookmarkData.fromJson(Map<dynamic, dynamic>.from(result));
+  }
+
+  /// Creates or modifies PDF bookmarks/outlines.
+  ///
+  /// Returns the path to the updated PDF file.
+  /// Throws exception on error.
+  @override
+  Future<String?> pdfBookmarkWriter({
+    PDFBookmarkWriterParams? params,
+  }) async {
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'pdfBookmarkWriter', params?.toJson());
+    return result;
+  }
+
+  /// Compares two PDFs and highlights differences.
+  ///
+  /// Returns PDFComparisonResult containing detailed comparison information.
+  /// Throws exception on error.
+  @override
+  Future<PDFComparisonResult?> pdfComparison({
+    PDFComparisonParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'pdfComparison', params?.toJson());
+
+    if (result == null) return null;
+
+    return PDFComparisonResult.fromJson(Map<dynamic, dynamic>.from(result));
+  }
+
+  /// Attempts to repair a corrupted or damaged PDF file.
+  ///
+  /// Returns PDFRepairResult containing repair status and recovered content.
+  /// Throws exception on error.
+  @override
+  Future<PDFRepairResult?> pdfRepair({
+    PDFRepairParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+        'pdfRepair', params?.toJson());
+
+    if (result == null) return null;
+
+    return PDFRepairResult.fromJson(Map<dynamic, dynamic>.from(result));
+  }
 }
 
 /// Parameters for the [mergePDFs] method.
@@ -1521,6 +1611,772 @@ class PDFAnnotationsParams {
     return <String, dynamic>{
       'pdfPath': pdfPath,
       'annotations': annotations.map((a) => a.toJson()).toList(),
+    };
+  }
+}
+
+/// Parameters for the [pdfMetadataReader] method.
+class PDFMetadataReaderParams {
+  /// Provide path of pdf file to read metadata from.
+  final String pdfPath;
+
+  /// Create parameters for the [pdfMetadataReader] method.
+  const PDFMetadataReaderParams({
+    required this.pdfPath,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+    };
+  }
+}
+
+/// Result class for PDF metadata information.
+class PDFMetadataResult {
+  /// PDF title.
+  final String? title;
+
+  /// PDF author.
+  final String? author;
+
+  /// PDF subject.
+  final String? subject;
+
+  /// PDF keywords.
+  final String? keywords;
+
+  /// PDF creator.
+  final String? creator;
+
+  /// PDF producer.
+  final String? producer;
+
+  /// PDF creation date (ISO 8601 format).
+  final String? creationDate;
+
+  /// PDF modification date (ISO 8601 format).
+  final String? modificationDate;
+
+  PDFMetadataResult({
+    this.title,
+    this.author,
+    this.subject,
+    this.keywords,
+    this.creator,
+    this.producer,
+    this.creationDate,
+    this.modificationDate,
+  });
+
+  factory PDFMetadataResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFMetadataResult(
+      title: json['title'] as String?,
+      author: json['author'] as String?,
+      subject: json['subject'] as String?,
+      keywords: json['keywords'] as String?,
+      creator: json['creator'] as String?,
+      producer: json['producer'] as String?,
+      creationDate: json['creationDate'] as String?,
+      modificationDate: json['modificationDate'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'title': title,
+      'author': author,
+      'subject': subject,
+      'keywords': keywords,
+      'creator': creator,
+      'producer': producer,
+      'creationDate': creationDate,
+      'modificationDate': modificationDate,
+    };
+  }
+}
+
+/// Parameters for the [pdfMetadataWriter] method.
+class PDFMetadataWriterParams {
+  /// Provide path of pdf file to update metadata.
+  final String pdfPath;
+
+  /// PDF title to set (optional).
+  final String? title;
+
+  /// PDF author to set (optional).
+  final String? author;
+
+  /// PDF subject to set (optional).
+  final String? subject;
+
+  /// PDF keywords to set (optional).
+  final String? keywords;
+
+  /// PDF creator to set (optional).
+  final String? creator;
+
+  /// PDF producer to set (optional).
+  final String? producer;
+
+  /// PDF creation date to set (ISO 8601 format, optional).
+  final String? creationDate;
+
+  /// PDF modification date to set (ISO 8601 format, optional).
+  final String? modificationDate;
+
+  /// Create parameters for the [pdfMetadataWriter] method.
+  const PDFMetadataWriterParams({
+    required this.pdfPath,
+    this.title,
+    this.author,
+    this.subject,
+    this.keywords,
+    this.creator,
+    this.producer,
+    this.creationDate,
+    this.modificationDate,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'title': title,
+      'author': author,
+      'subject': subject,
+      'keywords': keywords,
+      'creator': creator,
+      'producer': producer,
+      'creationDate': creationDate,
+      'modificationDate': modificationDate,
+    };
+  }
+}
+
+/// Parameters for the [pdfBookmarkReader] method.
+class PDFBookmarkReaderParams {
+  /// Provide path of pdf file to read bookmarks from.
+  final String pdfPath;
+
+  /// Create parameters for the [pdfBookmarkReader] method.
+  const PDFBookmarkReaderParams({
+    required this.pdfPath,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+    };
+  }
+}
+
+/// PDF bookmark entry containing title, page, and child bookmarks.
+class PDFBookmark {
+  /// Bookmark title/text.
+  final String title;
+
+  /// Page number where the bookmark points (1-indexed).
+  final int? pageNumber;
+
+  /// Named destination or page reference.
+  final String? page;
+
+  /// X coordinate for page position.
+  final double? x;
+
+  /// Y coordinate for page position.
+  final double? y;
+
+  /// Zoom level for page view.
+  final double? zoom;
+
+  /// Child bookmarks (for hierarchical structure).
+  final List<PDFBookmark> children;
+
+  PDFBookmark({
+    required this.title,
+    this.pageNumber,
+    this.page,
+    this.x,
+    this.y,
+    this.zoom,
+    this.children = const [],
+  });
+
+  factory PDFBookmark.fromJson(Map<dynamic, dynamic> json) {
+    final childrenJson = json['children'] as List? ?? [];
+    final children = childrenJson.map((child) =>
+        PDFBookmark.fromJson(Map<dynamic, dynamic>.from(child))).toList();
+
+    return PDFBookmark(
+      title: json['title'] as String? ?? '',
+      pageNumber: json['pageNumber'] as int?,
+      page: json['page'] as String?,
+      x: (json['x'] as num?)?.toDouble(),
+      y: (json['y'] as num?)?.toDouble(),
+      zoom: (json['zoom'] as num?)?.toDouble(),
+      children: children,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'title': title,
+      'pageNumber': pageNumber,
+      'page': page,
+      'x': x,
+      'y': y,
+      'zoom': zoom,
+      'children': children.map((child) => child.toJson()).toList(),
+    };
+  }
+}
+
+/// Extracted PDF bookmark data.
+class PDFBookmarkData {
+  /// Root level bookmarks.
+  final List<PDFBookmark> bookmarks;
+
+  PDFBookmarkData({
+    required this.bookmarks,
+  });
+
+  factory PDFBookmarkData.fromJson(Map<dynamic, dynamic> json) {
+    final bookmarksJson = json['bookmarks'] as List? ?? [];
+    final bookmarks = bookmarksJson.map((bookmark) =>
+        PDFBookmark.fromJson(Map<dynamic, dynamic>.from(bookmark))).toList();
+
+    return PDFBookmarkData(bookmarks: bookmarks);
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'bookmarks': bookmarks.map((bookmark) => bookmark.toJson()).toList(),
+    };
+  }
+}
+
+/// Parameters for the [pdfBookmarkWriter] method.
+class PDFBookmarkWriterParams {
+  /// Provide path of pdf file to add/modify bookmarks.
+  final String pdfPath;
+
+  /// List of bookmarks to add to the PDF.
+  final List<PDFBookmark> bookmarks;
+
+  /// Create parameters for the [pdfBookmarkWriter] method.
+  const PDFBookmarkWriterParams({
+    required this.pdfPath,
+    required this.bookmarks,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'bookmarks': bookmarks.map((b) => b.toJson()).toList(),
+    };
+  }
+}
+
+/// Parameters for the [pdfComparison] method.
+class PDFComparisonParams {
+  /// Provide path of first PDF file to compare.
+  final String pdfPath1;
+
+  /// Provide path of second PDF file to compare.
+  final String pdfPath2;
+
+  /// Set true to compare text content.
+  final bool compareText;
+
+  /// Set true to compare metadata.
+  final bool compareMetadata;
+
+  /// Set true to compare page count and basic structure.
+  final bool compareStructure;
+
+  /// Create parameters for the [pdfComparison] method.
+  const PDFComparisonParams({
+    required this.pdfPath1,
+    required this.pdfPath2,
+    this.compareText = true,
+    this.compareMetadata = true,
+    this.compareStructure = true,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath1': pdfPath1,
+      'pdfPath2': pdfPath2,
+      'compareText': compareText,
+      'compareMetadata': compareMetadata,
+      'compareStructure': compareStructure,
+    };
+  }
+}
+
+/// Result of text comparison between two PDFs.
+class PDFTextComparison {
+  /// Text content from first PDF.
+  final String text1;
+
+  /// Text content from second PDF.
+  final String text2;
+
+  /// Similarity score (0.0 to 1.0).
+  final double similarity;
+
+  /// List of text differences.
+  final List<TextDifference> differences;
+
+  PDFTextComparison({
+    required this.text1,
+    required this.text2,
+    required this.similarity,
+    required this.differences,
+  });
+
+  factory PDFTextComparison.fromJson(Map<dynamic, dynamic> json) {
+    final differencesJson = json['differences'] as List? ?? [];
+    final differences = differencesJson.map((diff) =>
+        TextDifference.fromJson(Map<dynamic, dynamic>.from(diff))).toList();
+
+    return PDFTextComparison(
+      text1: json['text1'] as String? ?? '',
+      text2: json['text2'] as String? ?? '',
+      similarity: (json['similarity'] as num?)?.toDouble() ?? 0.0,
+      differences: differences,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'text1': text1,
+      'text2': text2,
+      'similarity': similarity,
+      'differences': differences.map((diff) => diff.toJson()).toList(),
+    };
+  }
+}
+
+/// Represents a text difference between two PDFs.
+class TextDifference {
+  /// Type of difference ('added', 'removed', 'modified').
+  final String type;
+
+  /// Position in first PDF text.
+  final int position1;
+
+  /// Position in second PDF text.
+  final int position2;
+
+  /// Length of the difference.
+  final int length;
+
+  /// The differing text content.
+  final String content;
+
+  TextDifference({
+    required this.type,
+    required this.position1,
+    required this.position2,
+    required this.length,
+    required this.content,
+  });
+
+  factory TextDifference.fromJson(Map<dynamic, dynamic> json) {
+    return TextDifference(
+      type: json['type'] as String? ?? 'modified',
+      position1: json['position1'] as int? ?? 0,
+      position2: json['position2'] as int? ?? 0,
+      length: json['length'] as int? ?? 0,
+      content: json['content'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': type,
+      'position1': position1,
+      'position2': position2,
+      'length': length,
+      'content': content,
+    };
+  }
+}
+
+/// Result of metadata comparison between two PDFs.
+class PDFMetadataComparison {
+  /// Metadata from first PDF.
+  final PDFMetadataResult metadata1;
+
+  /// Metadata from second PDF.
+  final PDFMetadataResult metadata2;
+
+  /// List of metadata differences.
+  final List<MetadataDifference> differences;
+
+  PDFMetadataComparison({
+    required this.metadata1,
+    required this.metadata2,
+    required this.differences,
+  });
+
+  factory PDFMetadataComparison.fromJson(Map<dynamic, dynamic> json) {
+    final differencesJson = json['differences'] as List? ?? [];
+    final differences = differencesJson.map((diff) =>
+        MetadataDifference.fromJson(Map<dynamic, dynamic>.from(diff))).toList();
+
+    return PDFMetadataComparison(
+      metadata1: PDFMetadataResult.fromJson(Map<dynamic, dynamic>.from(json['metadata1'])),
+      metadata2: PDFMetadataResult.fromJson(Map<dynamic, dynamic>.from(json['metadata2'])),
+      differences: differences,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'metadata1': metadata1.toJson(),
+      'metadata2': metadata2.toJson(),
+      'differences': differences.map((diff) => diff.toJson()).toList(),
+    };
+  }
+}
+
+/// Represents a metadata difference between two PDFs.
+class MetadataDifference {
+  /// Metadata field name.
+  final String field;
+
+  /// Value in first PDF.
+  final String? value1;
+
+  /// Value in second PDF.
+  final String? value2;
+
+  MetadataDifference({
+    required this.field,
+    this.value1,
+    this.value2,
+  });
+
+  factory MetadataDifference.fromJson(Map<dynamic, dynamic> json) {
+    return MetadataDifference(
+      field: json['field'] as String? ?? '',
+      value1: json['value1'] as String?,
+      value2: json['value2'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'field': field,
+      'value1': value1,
+      'value2': value2,
+    };
+  }
+}
+
+/// Result of structure comparison between two PDFs.
+class PDFStructureComparison {
+  /// Page count of first PDF.
+  final int pageCount1;
+
+  /// Page count of second PDF.
+  final int pageCount2;
+
+  /// Whether page counts are equal.
+  final bool pageCountEqual;
+
+  /// List of structural differences.
+  final List<String> differences;
+
+  PDFStructureComparison({
+    required this.pageCount1,
+    required this.pageCount2,
+    required this.pageCountEqual,
+    required this.differences,
+  });
+
+  factory PDFStructureComparison.fromJson(Map<dynamic, dynamic> json) {
+    final differencesJson = json['differences'] as List? ?? [];
+    final differences = differencesJson.map((diff) => diff.toString()).toList();
+
+    return PDFStructureComparison(
+      pageCount1: json['pageCount1'] as int? ?? 0,
+      pageCount2: json['pageCount2'] as int? ?? 0,
+      pageCountEqual: json['pageCountEqual'] as bool? ?? false,
+      differences: differences,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pageCount1': pageCount1,
+      'pageCount2': pageCount2,
+      'pageCountEqual': pageCountEqual,
+      'differences': differences,
+    };
+  }
+}
+
+/// Overall result of PDF comparison.
+class PDFComparisonResult {
+  /// Text comparison results (if requested).
+  final PDFTextComparison? textComparison;
+
+  /// Metadata comparison results (if requested).
+  final PDFMetadataComparison? metadataComparison;
+
+  /// Structure comparison results (if requested).
+  final PDFStructureComparison? structureComparison;
+
+  /// Overall similarity score (0.0 to 1.0).
+  final double overallSimilarity;
+
+  /// Summary of all differences found.
+  final List<String> summary;
+
+  PDFComparisonResult({
+    this.textComparison,
+    this.metadataComparison,
+    this.structureComparison,
+    required this.overallSimilarity,
+    required this.summary,
+  });
+
+  factory PDFComparisonResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFComparisonResult(
+      textComparison: json['textComparison'] != null
+          ? PDFTextComparison.fromJson(Map<dynamic, dynamic>.from(json['textComparison']))
+          : null,
+      metadataComparison: json['metadataComparison'] != null
+          ? PDFMetadataComparison.fromJson(Map<dynamic, dynamic>.from(json['metadataComparison']))
+          : null,
+      structureComparison: json['structureComparison'] != null
+          ? PDFStructureComparison.fromJson(Map<dynamic, dynamic>.from(json['structureComparison']))
+          : null,
+      overallSimilarity: (json['overallSimilarity'] as num?)?.toDouble() ?? 0.0,
+      summary: (json['summary'] as List?)?.map((s) => s.toString()).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'textComparison': textComparison?.toJson(),
+      'metadataComparison': metadataComparison?.toJson(),
+      'structureComparison': structureComparison?.toJson(),
+      'overallSimilarity': overallSimilarity,
+      'summary': summary,
+    };
+  }
+}
+
+/// Parameters for the [pdfRepair] method.
+class PDFRepairParams {
+  /// Provide path of potentially corrupted PDF file to repair.
+  final String pdfPath;
+
+  /// Create parameters for the [pdfRepair] method.
+  const PDFRepairParams({
+    required this.pdfPath,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+    };
+  }
+}
+
+/// Result of PDF repair operation.
+class PDFRepairResult {
+  /// Whether the PDF was successfully repaired.
+  final bool wasRepaired;
+
+  /// Path to the repaired PDF file (if repair was successful).
+  final String? repairedPdfPath;
+
+  /// Original PDF corruption status.
+  final PDFCorruptionStatus originalStatus;
+
+  /// Repair operation status.
+  final PDFRepairStatus repairStatus;
+
+  /// Issues found during repair attempt.
+  final List<String> issues;
+
+  /// Information about recovered content.
+  final PDFRecoveredContent? recoveredContent;
+
+  PDFRepairResult({
+    required this.wasRepaired,
+    this.repairedPdfPath,
+    required this.originalStatus,
+    required this.repairStatus,
+    required this.issues,
+    this.recoveredContent,
+  });
+
+  factory PDFRepairResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFRepairResult(
+      wasRepaired: json['wasRepaired'] as bool? ?? false,
+      repairedPdfPath: json['repairedPdfPath'] as String?,
+      originalStatus: PDFCorruptionStatus.fromJson(Map<dynamic, dynamic>.from(json['originalStatus'])),
+      repairStatus: PDFRepairStatus.fromJson(Map<dynamic, dynamic>.from(json['repairStatus'])),
+      issues: (json['issues'] as List?)?.map((issue) => issue.toString()).toList() ?? [],
+      recoveredContent: json['recoveredContent'] != null
+          ? PDFRecoveredContent.fromJson(Map<dynamic, dynamic>.from(json['recoveredContent']))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'wasRepaired': wasRepaired,
+      'repairedPdfPath': repairedPdfPath,
+      'originalStatus': originalStatus.toJson(),
+      'repairStatus': repairStatus.toJson(),
+      'issues': issues,
+      'recoveredContent': recoveredContent?.toJson(),
+    };
+  }
+}
+
+/// Status of PDF corruption analysis.
+class PDFCorruptionStatus {
+  /// Whether the PDF can be opened.
+  final bool canOpen;
+
+  /// Whether the PDF has valid structure.
+  final bool hasValidStructure;
+
+  /// Whether the PDF has readable content.
+  final bool hasReadableContent;
+
+  /// Severity level of corruption (0.0 = no corruption, 1.0 = completely corrupted).
+  final double corruptionLevel;
+
+  /// List of detected corruption issues.
+  final List<String> detectedIssues;
+
+  PDFCorruptionStatus({
+    required this.canOpen,
+    required this.hasValidStructure,
+    required this.hasReadableContent,
+    required this.corruptionLevel,
+    required this.detectedIssues,
+  });
+
+  factory PDFCorruptionStatus.fromJson(Map<dynamic, dynamic> json) {
+    return PDFCorruptionStatus(
+      canOpen: json['canOpen'] as bool? ?? false,
+      hasValidStructure: json['hasValidStructure'] as bool? ?? false,
+      hasReadableContent: json['hasReadableContent'] as bool? ?? false,
+      corruptionLevel: (json['corruptionLevel'] as num?)?.toDouble() ?? 0.0,
+      detectedIssues: (json['detectedIssues'] as List?)?.map((issue) => issue.toString()).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'canOpen': canOpen,
+      'hasValidStructure': hasValidStructure,
+      'hasReadableContent': hasReadableContent,
+      'corruptionLevel': corruptionLevel,
+      'detectedIssues': detectedIssues,
+    };
+  }
+}
+
+/// Status of PDF repair operation.
+class PDFRepairStatus {
+  /// Whether repair operation completed successfully.
+  final bool completed;
+
+  /// Whether any content was recovered.
+  final bool contentRecovered;
+
+  /// Whether the repaired PDF is fully functional.
+  final bool fullyFunctional;
+
+  /// Repair method used.
+  final String repairMethod;
+
+  /// Additional repair information.
+  final List<String> repairInfo;
+
+  PDFRepairStatus({
+    required this.completed,
+    required this.contentRecovered,
+    required this.fullyFunctional,
+    required this.repairMethod,
+    required this.repairInfo,
+  });
+
+  factory PDFRepairStatus.fromJson(Map<dynamic, dynamic> json) {
+    return PDFRepairStatus(
+      completed: json['completed'] as bool? ?? false,
+      contentRecovered: json['contentRecovered'] as bool? ?? false,
+      fullyFunctional: json['fullyFunctional'] as bool? ?? false,
+      repairMethod: json['repairMethod'] as String? ?? '',
+      repairInfo: (json['repairInfo'] as List?)?.map((info) => info.toString()).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'completed': json['completed'],
+      'contentRecovered': json['contentRecovered'],
+      'fullyFunctional': json['fullyFunctional'],
+      'repairMethod': json['repairMethod'],
+      'repairInfo': json['repairInfo'],
+    };
+  }
+}
+
+/// Information about content recovered during PDF repair.
+class PDFRecoveredContent {
+  /// Number of pages recovered.
+  final int pagesRecovered;
+
+  /// Total text content recovered (character count).
+  final int textContentLength;
+
+  /// Number of images recovered.
+  final int imagesRecovered;
+
+  /// Whether metadata was preserved.
+  final bool metadataPreserved;
+
+  /// List of recovered elements.
+  final List<String> recoveredElements;
+
+  PDFRecoveredContent({
+    required this.pagesRecovered,
+    required this.textContentLength,
+    required this.imagesRecovered,
+    required this.metadataPreserved,
+    required this.recoveredElements,
+  });
+
+  factory PDFRecoveredContent.fromJson(Map<dynamic, dynamic> json) {
+    return PDFRecoveredContent(
+      pagesRecovered: json['pagesRecovered'] as int? ?? 0,
+      textContentLength: json['textContentLength'] as int? ?? 0,
+      imagesRecovered: json['imagesRecovered'] as int? ?? 0,
+      metadataPreserved: json['metadataPreserved'] as bool? ?? false,
+      recoveredElements: (json['recoveredElements'] as List?)?.map((element) => element.toString()).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pagesRecovered': pagesRecovered,
+      'textContentLength': textContentLength,
+      'imagesRecovered': imagesRecovered,
+      'metadataPreserved': metadataPreserved,
+      'recoveredElements': recoveredElements,
     };
   }
 }

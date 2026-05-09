@@ -177,6 +177,49 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 context,
                 call.argument<String>("pdfPath").toString(),
             )
+            "pdfMetadataReader" -> pdfManipulator!!.pdfMetadataReader(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "pdfMetadataWriter" -> pdfManipulator!!.pdfMetadataWriter(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("title"),
+                call.argument<String>("author"),
+                call.argument<String>("subject"),
+                call.argument<String>("keywords"),
+                call.argument<String>("creator"),
+                call.argument<String>("producer"),
+                call.argument<String>("creationDate"),
+                call.argument<String>("modificationDate"),
+            )
+            "pdfBookmarkReader" -> pdfManipulator!!.pdfBookmarkReader(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "pdfBookmarkWriter" -> pdfManipulator!!.pdfBookmarkWriter(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<List<Map<String, Any>>>("bookmarks") ?: listOf(),
+            )
+            "pdfComparison" -> pdfManipulator!!.pdfComparison(
+                result,
+                context,
+                call.argument<String>("pdfPath1").toString(),
+                call.argument<String>("pdfPath2").toString(),
+                call.argument<Boolean>("compareText") ?: true,
+                call.argument<Boolean>("compareMetadata") ?: true,
+                call.argument<Boolean>("compareStructure") ?: true,
+            )
+            "pdfRepair" -> pdfManipulator!!.pdfRepair(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
             "mergePDFs" -> pdfManipulator!!.mergePdfs(
                 result,
                 sourceFilesPaths = parseMethodCallArrayOfStringArgument(

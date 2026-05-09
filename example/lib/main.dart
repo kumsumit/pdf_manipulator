@@ -117,6 +117,59 @@ class _MyHomePageState extends State<MyHomePage> {
     'email': 'jane.doe@example.com',
   };
 
+  String? _pickedFilePathForMetadataReader;
+  PDFMetadataResult? _metadataResult;
+
+  String? _pickedFilePathForMetadataWriter;
+  String? _metadataUpdatedPdfPath;
+  final Map<String, String?> _sampleMetadataValues = {
+    'title': 'Updated PDF Title',
+    'author': 'New Author',
+    'subject': 'Updated Subject',
+    'keywords': 'keyword1, keyword2, keyword3',
+    'creator': 'My App',
+    'producer': 'PDF Manipulator Plugin',
+  };
+
+  String? _pickedFilePathForBookmarkReader;
+  PDFBookmarkData? _bookmarkData;
+
+  String? _pickedFilePathForBookmarkWriter;
+  String? _bookmarkUpdatedPdfPath;
+  final List<PDFBookmark> _sampleBookmarks = [
+    PDFBookmark(
+      title: "Introduction",
+      pageNumber: 1,
+    ),
+    PDFBookmark(
+      title: "Chapter 1",
+      pageNumber: 2,
+      children: [
+        PDFBookmark(title: "Section 1.1", pageNumber: 3),
+        PDFBookmark(title: "Section 1.2", pageNumber: 5),
+      ],
+    ),
+    PDFBookmark(
+      title: "Chapter 2",
+      pageNumber: 8,
+      children: [
+        PDFBookmark(title: "Section 2.1", pageNumber: 9),
+        PDFBookmark(title: "Section 2.2", pageNumber: 12),
+      ],
+    ),
+    PDFBookmark(
+      title: "Conclusion",
+      pageNumber: 15,
+    ),
+  ];
+
+  String? _pickedFilePathForComparison1;
+  String? _pickedFilePathForComparison2;
+  PDFComparisonResult? _comparisonResult;
+
+  String? _pickedFilePathForRepair;
+  PDFRepairResult? _repairResult;
+
   Future<String?> _cancelTask() async {
     String? result;
     try {
@@ -387,6 +440,105 @@ class _MyHomePageState extends State<MyHomePage> {
       log(e.toString());
     }
     return result;
+  }
+
+  Future<PDFMetadataResult?> _pdfMetadataReader(
+      PDFMetadataReaderParams params) async {
+    PDFMetadataResult? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfMetadataReader(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _pdfMetadataWriter(
+      PDFMetadataWriterParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfMetadataWriter(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFBookmarkData?> _pdfBookmarkReader(
+      PDFBookmarkReaderParams params) async {
+    PDFBookmarkData? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfBookmarkReader(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _pdfBookmarkWriter(
+      PDFBookmarkWriterParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfBookmarkWriter(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFComparisonResult?> _pdfComparison(
+      PDFComparisonParams params) async {
+    PDFComparisonResult? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfComparison(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFRepairResult?> _pdfRepair(
+      PDFRepairParams params) async {
+    PDFRepairResult? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfRepair(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  List<Widget> buildBookmarkTree(List<PDFBookmark> bookmarks, int level) {
+    List<Widget> widgets = [];
+    for (var bookmark in bookmarks) {
+      widgets.add(
+        Padding(
+          padding: EdgeInsets.only(left: level * 16.0),
+          child: Text(
+            '• ${bookmark.title}${bookmark.pageNumber != null ? ' (Page ${bookmark.pageNumber})' : ''}',
+            style: TextStyle(
+              fontWeight: level == 0 ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
+      if (bookmark.children.isNotEmpty) {
+        widgets.addAll(buildBookmarkTree(bookmark.children, level + 1));
+      }
+    }
+    return widgets;
   }
 
   @override
@@ -1932,6 +2084,612 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               const SizedBox(height: 16),
               Text(
+                "PDF Metadata Management",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      // Metadata Reader Section
+                      Text(
+                        "Read PDF Metadata",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick PDF file to read metadata',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForMetadataReader = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForMetadataReader != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForMetadataReader!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                                buttonText: 'Read Metadata',
+                                onPressed: _pickedFilePathForMetadataReader == null
+                                    ? null
+                                    : () async {
+                                        final params = PDFMetadataReaderParams(
+                                          pdfPath: _pickedFilePathForMetadataReader!,
+                                        );
+
+                                        PDFMetadataResult? result =
+                                            await _pdfMetadataReader(params);
+
+                                        if (mounted) {
+                                          setState(() {
+                                            _metadataResult = result;
+                                          });
+                                        }
+                                      }),
+                          ),
+                          if (_metadataResult != null)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _metadataResult = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                        ],
+                      ),
+                      if (_metadataResult != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Title: ${_metadataResult!.title ?? 'N/A'}"),
+                              Text("Author: ${_metadataResult!.author ?? 'N/A'}"),
+                              Text("Subject: ${_metadataResult!.subject ?? 'N/A'}"),
+                              Text("Keywords: ${_metadataResult!.keywords ?? 'N/A'}"),
+                              Text("Creator: ${_metadataResult!.creator ?? 'N/A'}"),
+                              Text("Producer: ${_metadataResult!.producer ?? 'N/A'}"),
+                              Text("Creation Date: ${_metadataResult!.creationDate ?? 'N/A'}"),
+                              Text("Modification Date: ${_metadataResult!.modificationDate ?? 'N/A'}"),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      const Divider(height: 32),
+
+                      // Metadata Writer Section
+                      Text(
+                        "Write PDF Metadata",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick PDF file to update metadata',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForMetadataWriter = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForMetadataWriter != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForMetadataWriter!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Update Metadata',
+                          onPressed: _pickedFilePathForMetadataWriter == null
+                              ? null
+                              : () async {
+                                  final params = PDFMetadataWriterParams(
+                                    pdfPath: _pickedFilePathForMetadataWriter!,
+                                    title: _sampleMetadataValues['title'],
+                                    author: _sampleMetadataValues['author'],
+                                    subject: _sampleMetadataValues['subject'],
+                                    keywords: _sampleMetadataValues['keywords'],
+                                    creator: _sampleMetadataValues['creator'],
+                                    producer: _sampleMetadataValues['producer'],
+                                  );
+
+                                  String? result =
+                                      await _pdfMetadataWriter(params);
+
+                                  if (mounted) {
+                                    setState(() {
+                                      _metadataUpdatedPdfPath = result;
+                                    });
+                                  }
+                                }),
+                      if (_metadataUpdatedPdfPath != null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                  buttonText: 'Save Updated PDF',
+                                  onPressed: () async {
+                                      final params = FileSaverParams(
+                                        localOnly: _localOnly,
+                                        saveFiles: [
+                                          SaveFileInfo(
+                                              filePath: _metadataUpdatedPdfPath,
+                                              fileName: "Updated Metadata PDF.pdf")
+                                        ],
+                                      );
+
+                                      List<String>? result =
+                                          await _fileSaver(params);
+
+                                      if (mounted && context.mounted) {
+                                        callSnackBar(
+                                            context: context,
+                                            text: result.toString());
+                                      }
+                                    }),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _metadataUpdatedPdfPath = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "PDF Bookmark Management",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      // Bookmark Reader Section
+                      Text(
+                        "Read PDF Bookmarks",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick PDF file to read bookmarks',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForBookmarkReader = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForBookmarkReader != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForBookmarkReader!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                                buttonText: 'Read Bookmarks',
+                                onPressed: _pickedFilePathForBookmarkReader == null
+                                    ? null
+                                    : () async {
+                                        final params = PDFBookmarkReaderParams(
+                                          pdfPath: _pickedFilePathForBookmarkReader!,
+                                        );
+
+                                        PDFBookmarkData? result =
+                                            await _pdfBookmarkReader(params);
+
+                                        if (mounted) {
+                                          setState(() {
+                                            _bookmarkData = result;
+                                          });
+                                        }
+                                      }),
+                          ),
+                          if (_bookmarkData != null)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _bookmarkData = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                        ],
+                      ),
+                      if (_bookmarkData != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: buildBookmarkTree(_bookmarkData!.bookmarks, 0),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const Divider(height: 32),
+
+                      // Bookmark Writer Section
+                      Text(
+                        "Write PDF Bookmarks",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Pick PDF file to add bookmarks',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForBookmarkWriter = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForBookmarkWriter != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Selected: ${_pickedFilePathForBookmarkWriter!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                          buttonText: 'Add Sample Bookmarks',
+                          onPressed: _pickedFilePathForBookmarkWriter == null
+                              ? null
+                              : () async {
+                                  final params = PDFBookmarkWriterParams(
+                                    pdfPath: _pickedFilePathForBookmarkWriter!,
+                                    bookmarks: _sampleBookmarks,
+                                  );
+
+                                  String? result =
+                                      await _pdfBookmarkWriter(params);
+
+                                  if (mounted) {
+                                    setState(() {
+                                      _bookmarkUpdatedPdfPath = result;
+                                    });
+                                  }
+                                }),
+                      if (_bookmarkUpdatedPdfPath != null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                  buttonText: 'Save Bookmarked PDF',
+                                  onPressed: () async {
+                                      final params = FileSaverParams(
+                                        localOnly: _localOnly,
+                                        saveFiles: [
+                                          SaveFileInfo(
+                                              filePath: _bookmarkUpdatedPdfPath,
+                                              fileName: "Bookmarked PDF.pdf")
+                                        ],
+                                      );
+
+                                      List<String>? result =
+                                          await _fileSaver(params);
+
+                                      if (mounted && context.mounted) {
+                                        callSnackBar(
+                                            context: context,
+                                            text: result.toString());
+                                      }
+                                    }),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _bookmarkUpdatedPdfPath = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "PDF Comparison",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Compare Two PDFs",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      // First PDF picker
+                      CustomButton(
+                          buttonText: 'Pick First PDF to compare',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForComparison1 = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForComparison1 != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "First PDF: ${_pickedFilePathForComparison1!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      // Second PDF picker
+                      CustomButton(
+                          buttonText: 'Pick Second PDF to compare',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForComparison2 = result[0];
+                                    });
+                                  }
+                                }),
+                      if (_pickedFilePathForComparison2 != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Second PDF: ${_pickedFilePathForComparison2!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      // Compare button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                                buttonText: 'Compare PDFs',
+                                onPressed: (_pickedFilePathForComparison1 == null ||
+                                           _pickedFilePathForComparison2 == null)
+                                    ? null
+                                    : () async {
+                                        final params = PDFComparisonParams(
+                                          pdfPath1: _pickedFilePathForComparison1!,
+                                          pdfPath2: _pickedFilePathForComparison2!,
+                                          compareText: true,
+                                          compareMetadata: true,
+                                          compareStructure: true,
+                                        );
+
+                                        PDFComparisonResult? result =
+                                            await _pdfComparison(params);
+
+                                        if (mounted) {
+                                          setState(() {
+                                            _comparisonResult = result;
+                                          });
+                                        }
+                                      }),
+                          ),
+                          if (_comparisonResult != null)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _comparisonResult = null;
+                                });
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                        ],
+                      ),
+
+                      // Results display
+                      if (_comparisonResult != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 300),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Overall similarity
+                                  Text(
+                                    "Overall Similarity: ${(_comparisonResult!.overallSimilarity * 100).toInt()}%",
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Summary
+                                  Text(
+                                    "Summary:",
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                  ..._comparisonResult!.summary.map((item) =>
+                                    Text("• $item")
+                                  ),
+
+                                  // Detailed results
+                                  if (_comparisonResult!.structureComparison != null) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Structure Comparison:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    Text("PDF 1: ${_comparisonResult!.structureComparison!.pageCount1} pages"),
+                                    Text("PDF 2: ${_comparisonResult!.structureComparison!.pageCount2} pages"),
+                                    Text("Page count equal: ${_comparisonResult!.structureComparison!.pageCountEqual}"),
+                                    if (_comparisonResult!.structureComparison!.differences.isNotEmpty)
+                                      ..._comparisonResult!.structureComparison!.differences.map((diff) =>
+                                        Text("• $diff", style: TextStyle(color: Colors.red))
+                                      ),
+                                  ],
+
+                                  if (_comparisonResult!.metadataComparison != null) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Metadata Differences:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    if (_comparisonResult!.metadataComparison!.differences.isEmpty)
+                                      const Text("• No metadata differences found")
+                                    else
+                                      ..._comparisonResult!.metadataComparison!.differences.map((diff) =>
+                                        Text("• ${diff.field}: '${diff.value1}' vs '${diff.value2}'",
+                                             style: TextStyle(color: Colors.orange))
+                                      ),
+                                  ],
+
+                                  if (_comparisonResult!.textComparison != null) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Text Comparison:",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    Text("Text similarity: ${(_comparisonResult!.textComparison!.similarity * 100).toInt()}%"),
+                                    Text("Differences found: ${_comparisonResult!.textComparison!.differences.length}"),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
                 "Add Digital Signature to PDF",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -2047,6 +2805,108 @@ class _MyHomePageState extends State<MyHomePage> {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
                             "Signed PDF: ${_signedPdfPath!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Add Annotations to PDF",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick PDF file to annotate',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForAnnotations = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Add Annotations to PDF',
+                          onPressed: _pickedFilePathForAnnotations == null
+                              ? null
+                              : () async {
+                                  final params = PDFAnnotationsParams(
+                                    pdfPath: _pickedFilePathForAnnotations!,
+                                    annotations: [
+                                      // Text annotation (sticky note)
+                                      TextAnnotation(
+                                        pageNumber: 1,
+                                        rect: [100, 200, 200, 250],
+                                        contents: "This is a sample note",
+                                        title: "Sample Note",
+                                        color: [1.0, 1.0, 0.0], // Yellow
+                                      ),
+                                      // Highlight annotation
+                                      HighlightAnnotation(
+                                        pageNumber: 1,
+                                        rect: [50, 150, 300, 170],
+                                        quads: [
+                                          [50, 170, 300, 170, 50, 150, 300, 150]
+                                        ],
+                                        contents: "Highlighted text",
+                                        color: [1.0, 1.0, 0.0], // Yellow
+                                      ),
+                                      // Link annotation
+                                      LinkAnnotation(
+                                        pageNumber: 1,
+                                        rect: [150, 100, 250, 120],
+                                        url: "https://flutter.dev",
+                                        contents: "Flutter Website",
+                                      ),
+                                    ],
+                                  );
+
+                                  String? result = await _pdfAnnotations(params);
+
+                                  if (result != null) {
+                                    setState(() {
+                                      _annotatedPdfPath = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result != null
+                                            ? "Annotations added successfully"
+                                            : "Failed to add annotations");
+                                  }
+                                }),
+                      if (_annotatedPdfPath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Annotated PDF: ${_annotatedPdfPath!.split('/').last}",
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
