@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -2326,11 +2328,11 @@ class PDFRepairStatus {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'completed': json['completed'],
-      'contentRecovered': json['contentRecovered'],
-      'fullyFunctional': json['fullyFunctional'],
-      'repairMethod': json['repairMethod'],
-      'repairInfo': json['repairInfo'],
+      'completed': completed,
+      'contentRecovered': contentRecovered,
+      'fullyFunctional': fullyFunctional,
+      'repairMethod': repairMethod,
+      'repairInfo': repairInfo,
     };
   }
 }
