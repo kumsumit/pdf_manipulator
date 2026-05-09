@@ -85,9 +85,49 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
 
   /// Extracts images from the provided PDF file.
   ///
-  /// Returns a list of byte arrays representing the extracted images.
+  /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
-  Future<void> extractImagesFromPdf({ExtractImageFromPDFParams? params}) {
+  Future<List<String>?> extractImagesFromPdf({ExtractImageFromPDFParams? params}) {
      throw UnimplementedError('extractImagesFromPdf() has not been implemented.');
+  }
+
+  /// Converts PDF pages to images.
+  ///
+  /// Returns a list of paths to the generated images.
+  /// Throws exception on error.
+  Future<List<String>?> pdfToImages({PDFToImagesParams? params}) {
+     throw UnimplementedError('pdfToImages() has not been implemented.');
+  }
+
+  /// Extracts text from PDF pages.
+  ///
+  /// Returns PDFTextExtractionResult containing page-wise and full text.
+  /// Throws exception on error.
+  Future<PDFTextExtractionResult?> pdfTextExtraction({PDFTextExtractionParams? params}) {
+     throw UnimplementedError('pdfTextExtraction() has not been implemented.');
+  }
+
+  /// Performs OCR on PDF pages using Google ML Kit.
+  ///
+  /// Returns PDFOCRResult containing recognized text and confidence scores.
+  /// Throws exception on error.
+  Future<PDFOCRResult?> pdfOcr({PDFOCRParams? params}) {
+     throw UnimplementedError('pdfOcr() has not been implemented.');
+  }
+
+  /// Adds a digital signature to PDF using certificate.
+  ///
+  /// Returns the path to the signed PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfDigitalSignature({PDFDigitalSignatureParams? params}) {
+     throw UnimplementedError('pdfDigitalSignature() has not been implemented.');
+  }
+
+  /// Adds annotations to PDF.
+  ///
+  /// Returns the path to the annotated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfAnnotations({PDFAnnotationsParams? params}) {
+     throw UnimplementedError('pdfAnnotations() has not been implemented.');
   }
 }

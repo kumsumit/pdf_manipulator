@@ -88,6 +88,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String? _pickedFilePathForExtractImageFromPDF;
 
+  String? _pickedFilePathForPdfToImages;
+  List<String>? _pdfToImagesPaths;
+  ImageFormat _imageFormat = ImageFormat.png;
+  int _imageQuality = 90;
+  double _imageScale = 1.0;
+
+  String? _pickedFilePathForTextExtraction;
+  PDFTextExtractionResult? _textExtractionResult;
+
+  String? _pickedFilePathForOcr;
+  PDFOCRResult? _ocrResult;
+  String _ocrLanguageCode = 'en';
+
+  String? _pickedFilePathForDigitalSignature;
+  String? _pickedCertificatePath;
+  String? _signedPdfPath;
+  String _certificatePassword = 'password';
+
+  String? _pickedFilePathForAnnotations;
+  String? _annotatedPdfPath;
+
   Future<String?> _cancelTask() async {
     String? result;
     try {
@@ -267,13 +288,73 @@ class _MyHomePageState extends State<MyHomePage> {
     // List<String>? result;
     try {
        await _pdfManipulatorPlugin
-          .extractImageFromPDF(params: params);
+          .extractImagesFromPdf(params: params);
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
       log(e.toString());
     }
     // return result;
+  }
+
+  Future<List<String>?> _pdfToImages(PDFToImagesParams params) async {
+    List<String>? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfToImages(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFTextExtractionResult?> _pdfTextExtraction(PDFTextExtractionParams params) async {
+    PDFTextExtractionResult? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfTextExtraction(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<PDFOCRResult?> _pdfOcr(PDFOCRParams params) async {
+    PDFOCRResult? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfOcr(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _pdfDigitalSignature(PDFDigitalSignatureParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfDigitalSignature(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
+  Future<String?> _pdfAnnotations(PDFAnnotationsParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfAnnotations(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
   }
 
   @override
@@ -1397,8 +1478,376 @@ class _MyHomePageState extends State<MyHomePage> {
                                             context: context,
                                             text: "Image Extracted");
                                       }
-                                    }),
-                                      
+                                     }),
+
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Convert PDF to Images",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick single PDF file',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForPdfToImages = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Convert PDF to Images',
+                          onPressed: _pickedFilePathForPdfToImages == null
+                              ? null
+                              : () async {
+                                  final params = PDFToImagesParams(
+                                    pdfPath: _pickedFilePathForPdfToImages!,
+                                    imageFormat: _imageFormat,
+                                    quality: _imageQuality,
+                                    scale: _imageScale,
+                                  );
+
+                                  List<String>? result = await _pdfToImages(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pdfToImagesPaths = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: "Generated ${result?.length ?? 0} images");
+                                  }
+                                }),
+                      Text(
+                        "Format: $_imageFormat, Quality: $_imageQuality, Scale: $_imageScale",
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Extract Text from PDF",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick single PDF file',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForTextExtraction = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Extract Text from PDF',
+                          onPressed: _pickedFilePathForTextExtraction == null
+                              ? null
+                              : () async {
+                                  final params = PDFTextExtractionParams(
+                                    pdfPath: _pickedFilePathForTextExtraction!,
+                                  );
+
+                                  PDFTextExtractionResult? result = await _pdfTextExtraction(params);
+
+                                  if (result != null) {
+                                    setState(() {
+                                      _textExtractionResult = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: "Extracted text from ${result?.pageTexts.length ?? 0} pages");
+                                  }
+                                }),
+                      if (_textExtractionResult != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Full Text (first 200 chars):",
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              Text(
+                                _textExtractionResult!.fullText.length > 200
+                                    ? "${_textExtractionResult!.fullText.substring(0, 200)}..."
+                                    : _textExtractionResult!.fullText,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Perform OCR on PDF",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick single PDF file',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForOcr = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Perform OCR on PDF',
+                          onPressed: _pickedFilePathForOcr == null
+                              ? null
+                              : () async {
+                                  final params = PDFOCRParams(
+                                    pdfPath: _pickedFilePathForOcr!,
+                                    languageCode: _ocrLanguageCode,
+                                  );
+
+                                  PDFOCRResult? result = await _pdfOcr(params);
+
+                                  if (result != null) {
+                                    setState(() {
+                                      _ocrResult = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: "OCR completed on ${result?.pageResults.length ?? 0} pages");
+                                  }
+                                }),
+                      Text(
+                        "Language: $_ocrLanguageCode",
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      if (_ocrResult != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Full OCR Text (first 200 chars):",
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              Text(
+                                _ocrResult!.fullText.length > 200
+                                    ? "${_ocrResult!.fullText.substring(0, 200)}..."
+                                    : _ocrResult!.fullText,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Average Confidence: ${(_ocrResult!.pageResults.values.map((r) => r.confidence).reduce((a, b) => a + b) / _ocrResult!.pageResults.length * 100).toStringAsFixed(1)}%",
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Add Digital Signature to PDF",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                          buttonText: 'Pick PDF file to sign',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/pdf"],
+                                    allowedExtensions: [".pdf"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedFilePathForDigitalSignature = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Pick certificate file (.p12/.pfx)',
+                          onPressed: _isBusy
+                              ? null
+                              : () async {
+                                  final params = FilePickerParams(
+                                    localOnly: _localOnly,
+                                    getCachedFilePath: isSelected[1],
+                                    mimeTypesFilter: ["application/x-pkcs12"],
+                                    allowedExtensions: [".p12", ".pfx"],
+                                  );
+
+                                  List<String>? result =
+                                      await _filePicker(params);
+
+                                  if (result != null && result.isNotEmpty) {
+                                    setState(() {
+                                      _pickedCertificatePath = result[0];
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result.toString());
+                                  }
+                                }),
+                      CustomButton(
+                          buttonText: 'Add Digital Signature',
+                          onPressed: _pickedFilePathForDigitalSignature == null ||
+                              _pickedCertificatePath == null
+                              ? null
+                              : () async {
+                                  final params = PDFDigitalSignatureParams(
+                                    pdfPath: _pickedFilePathForDigitalSignature!,
+                                    certificatePath: _pickedCertificatePath!,
+                                    certificatePassword: _certificatePassword,
+                                    reason: "Document approval",
+                                    location: "Test Location",
+                                    contact: "test@example.com",
+                                    appearance: SignatureAppearance(
+                                      text: "Test Signature\nApproved",
+                                      x: 100,
+                                      y: 100,
+                                      width: 200,
+                                      height: 100,
+                                      pageNumber: 1,
+                                    ),
+                                  );
+
+                                  String? result = await _pdfDigitalSignature(params);
+
+                                  if (result != null) {
+                                    setState(() {
+                                      _signedPdfPath = result;
+                                    });
+                                  }
+
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                        context: context,
+                                        text: result != null ? "PDF signed successfully" : "Failed to sign PDF");
+                                  }
+                                }),
+                      Text(
+                        "Certificate password: $_certificatePassword",
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      if (_signedPdfPath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            "Signed PDF: ${_signedPdfPath!.split('/').last}",
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
                     ],
                   ),
                 ),

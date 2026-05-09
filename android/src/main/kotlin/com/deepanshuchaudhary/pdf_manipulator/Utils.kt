@@ -129,6 +129,12 @@ class Utils {
         resultCallback?.success(result)
     }
 
+    fun finishSuccessfullyWithMap(
+        result: Map<String, Any>?, resultCallback: MethodChannel.Result?
+    ) {
+        resultCallback?.success(result)
+    }
+
     fun finishWithError(
         errorCode: String,
         errorMessage: String?,

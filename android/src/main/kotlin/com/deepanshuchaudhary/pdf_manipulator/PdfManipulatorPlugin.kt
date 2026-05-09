@@ -121,9 +121,49 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         }
         when (call.method) {
             "extractImagesFromPdf" -> pdfManipulator!!.extractImagesFromPdf(
+                result,
                 context,
                 call.argument<String>("pdfPath").toString(),
                 call.argument<String>("outputDir").toString(),
+            )
+            "pdfToImages" -> pdfManipulator!!.pdfToImages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<String>("imageFormat").toString(),
+                call.argument<Int>("quality") ?: 90,
+                call.argument<Double>("scale")?.toFloat() ?: 1.0f,
+            )
+            "pdfTextExtraction" -> pdfManipulator!!.pdfTextExtraction(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "pdfOcr" -> pdfManipulator!!.pdfOcr(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<String>("languageCode").toString(),
+            )
+            "pdfDigitalSignature" -> pdfManipulator!!.pdfDigitalSignature(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("certificatePath").toString(),
+                call.argument<String>("certificatePassword").toString(),
+                call.argument<String>("reason"),
+                call.argument<String>("location"),
+                call.argument<String>("contact"),
+                call.argument<Map<String, Any>>("appearance"),
+            )
+            "pdfAnnotations" -> pdfManipulator!!.pdfAnnotations(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<List<Map<String, Any>>>("annotations") ?: listOf(),
             )
             "mergePDFs" -> pdfManipulator!!.mergePdfs(
                 result,

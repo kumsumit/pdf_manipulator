@@ -77,9 +77,55 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.pdfPagesSize(params: params);
   }
 
-  Future<void> extractImageFromPDF({ ExtractImageFromPDFParams? params}){
-return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
+  /// Extracts images from the provided PDF file.
+  ///
+  /// Returns a list of paths to the extracted images.
+  /// Throws exception on error.
+  Future<List<String>?> extractImagesFromPdf({required ExtractImageFromPDFParams params}) {
+    return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
   }
+
+  /// Converts PDF pages to images.
+  ///
+  /// Returns a list of paths to the generated images.
+  /// Throws exception on error.
+  Future<List<String>?> pdfToImages({required PDFToImagesParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToImages(params: params);
+  }
+
+  /// Extracts text from PDF pages.
+  ///
+  /// Returns PDFTextExtractionResult containing page-wise and full text.
+  /// Throws exception on error.
+  Future<PDFTextExtractionResult?> pdfTextExtraction({required PDFTextExtractionParams params}) {
+    return PdfManipulatorPlatform.instance.pdfTextExtraction(params: params);
+  }
+
+  /// Performs OCR on PDF pages using Google ML Kit.
+  ///
+  /// Returns PDFOCRResult containing recognized text and confidence scores.
+  /// Throws exception on error.
+  Future<PDFOCRResult?> pdfOcr({required PDFOCRParams params}) {
+    return PdfManipulatorPlatform.instance.pdfOcr(params: params);
+  }
+
+  /// Adds a digital signature to PDF using certificate.
+  ///
+  /// Returns the path to the signed PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfDigitalSignature({required PDFDigitalSignatureParams params}) {
+    return PdfManipulatorPlatform.instance.pdfDigitalSignature(params: params);
+  }
+
+  /// Adds annotations to PDF.
+  ///
+  /// Returns the path to the annotated PDF file.
+  /// Throws exception on error.
+  Future<String?> pdfAnnotations({required PDFAnnotationsParams params}) {
+    return PdfManipulatorPlatform.instance.pdfAnnotations(params: params);
+  }
+
+
 
 
   /// Provides pdf file validity and protection info.
@@ -116,17 +162,10 @@ return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
     return PdfManipulatorPlatform.instance.imagesToPdfs(params: params);
   }
 
-  /// Cancels running manipulations.
-  ///
-  /// Returns the cancelling message.
-  Future<String?> cancelManipulations() {
-    return PdfManipulatorPlatform.instance.cancelManipulations();
-  }
-   /// Extracts images from the provided PDF file.
-  ///
-  /// Returns a list of byte arrays representing the extracted images.
-  /// Throws exception on error.
-  Future<void> extractImagesFromPdf({required ExtractImageFromPDFParams params}) {
-    return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
-  }
+   /// Cancels running manipulations.
+   ///
+   /// Returns the cancelling message.
+   Future<String?> cancelManipulations() {
+     return PdfManipulatorPlatform.instance.cancelManipulations();
+   }
 }

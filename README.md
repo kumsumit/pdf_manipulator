@@ -29,6 +29,11 @@ A flutter plugin for doing various manipulations such as merge, split, compress 
 - Supports converting images to PDF.
 - Supports getting PDF validity and protection info.
 - Supports getting PDF page size info.
+- Supports converting PDF pages to images.
+- Supports extracting text from PDF pages.
+- Supports OCR (Optical Character Recognition) on PDF pages.
+- Supports adding digital signatures to PDFs.
+- Supports adding annotations to PDFs (text, highlight, underline, etc.).
 
 **Note:** To use it in realease mode you will need to create a file named proguard-rules.pro in your project Android->App->proguard-rules.pro. In that file you need to add the below block of text at the end of the file.
 ```
@@ -254,6 +259,109 @@ double? heightOfPage = pdfPagesSizeInfo[0]?.heightOfPage;
 
 **Note:** If you only want to get page size then I suggest to use [pdf_bitmaps](https://pub.dev/packages/pdf_bitmaps) as that is fast and requires less memory.
 
+### Converting PDF pages to images
+
+```dart
+List<String>? imagePaths = await PdfManipulator().pdfToImages(
+  params: PDFToImagesParams(
+      pdfPath: pdfPath,
+      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
+      imageFormat: ImageFormat.png, // Optional: png, jpeg, webp
+      quality: 90, // Optional: JPEG/WebP quality (1-100)
+      scale: 1.0, // Optional: scale factor (0.1-5.0)
+);
+```
+
+Supported image formats: PNG, JPEG, WebP.
+
+### Extracting text from PDF
+
+```dart
+PDFTextExtractionResult? textResult = await PdfManipulator().pdfTextExtraction(
+  params: PDFTextExtractionParams(
+      pdfPath: pdfPath,
+      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
+);
+ 
+/// Getting extracted text
+String? fullText = textResult?.fullText; // All text concatenated
+Map<int, String>? pageTexts = textResult?.pageTexts; // Text per page
+String? page1Text = pageTexts?[1]; // Text from page 1
+```
+
+### Performing OCR on PDF
+
+```dart
+PDFOCRResult? ocrResult = await PdfManipulator().pdfOcr(
+  params: PDFOCRParams(
+      pdfPath: pdfPath,
+      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
+      languageCode: 'en', // Optional: language code, default 'en'
+);
+ 
+/// Getting OCR results
+String? fullOcrText = ocrResult?.fullText; // All OCR text concatenated
+Map<int, OCRPageResult>? pageOcrResults = ocrResult?.pageResults; // OCR results per page
+OCRPageResult? page1Result = pageOcrResults?[1]; // OCR result for page 1
+String? page1Text = page1Result?.text; // Recognized text
+double? page1Confidence = page1Result?.confidence; // Confidence score (0.0-1.0)
+```
+
+### Adding digital signatures to PDF
+
+```dart
+String? signedPdfPath = await PdfManipulator().pdfDigitalSignature(
+  params: PDFDigitalSignatureParams(
+      pdfPath: pdfPath,
+      certificatePath: certificatePath, // Path to .p12 or .pfx certificate file
+      certificatePassword: "certificate_password",
+      reason: "Document approval", // Optional
+      location: "New York", // Optional
+      contact: "john@example.com", // Optional
+      appearance: SignatureAppearance( // Optional
+        text: "John Doe\nApproved",
+        x: 100,
+        y: 100,
+        width: 200,
+        height: 100,
+        pageNumber: 1,
+      ),
+);
+```
+
+### Adding annotations to PDF
+
+```dart
+String? annotatedPdfPath = await PdfManipulator().pdfAnnotations(
+  params: PDFAnnotationsParams(
+      pdfPath: pdfPath,
+      annotations: [
+        // Text annotation (sticky note)
+        TextAnnotation(
+          pageNumber: 1,
+          rect: [100, 200, 200, 250], // x, y, width, height
+          contents: "This is a note",
+          title: "Note",
+          color: [1.0, 1.0, 0.0], // Yellow
+        ),
+        // Highlight annotation
+        HighlightAnnotation(
+          pageNumber: 1,
+          rect: [50, 150, 300, 170],
+          quads: [[50, 170, 300, 170, 50, 150, 300, 150]], // Highlight area
+          contents: "Important text",
+          color: [1.0, 1.0, 0.0], // Yellow
+        ),
+        // Link annotation
+        LinkAnnotation(
+          pageNumber: 1,
+          rect: [150, 100, 250, 120],
+          url: "https://example.com",
+          contents: "Click here",
+        ),
+      ],
+);
+```
 
 Note: To try the demos shown in below images run the example included in this plugin.
 

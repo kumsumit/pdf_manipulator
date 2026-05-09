@@ -132,13 +132,102 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
 
   /// Extracts images from the provided PDF file.
   ///
-  /// Returns a list of byte arrays representing the extracted images.
+  /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
   @override
-  Future<void> extractImagesFromPdf(
+  Future<List<String>?> extractImagesFromPdf(
       {ExtractImageFromPDFParams? params}) async{
-     await methodChannel.invokeMethod<List?>(
-        'extractImagesFromPdf', params?.toJson());
+    final List? paths =
+        await methodChannel.invokeMethod<List?>('extractImagesFromPdf', params?.toJson());
+    return paths?.cast<String>();
+  }
+
+  /// Converts PDF pages to images.
+  ///
+  /// Returns a list of paths to the generated images.
+  /// Throws exception on error.
+  @override
+  Future<List<String>?> pdfToImages({PDFToImagesParams? params}) async {
+    final List? paths =
+        await methodChannel.invokeMethod<List?>('pdfToImages', params?.toJson());
+    return paths?.cast<String>();
+  }
+
+  /// Extracts text from PDF pages.
+  ///
+  /// Returns PDFTextExtractionResult containing page-wise and full text.
+  /// Throws exception on error.
+  @override
+  Future<PDFTextExtractionResult?> pdfTextExtraction({PDFTextExtractionParams? params}) async {
+    final Map? result =
+        await methodChannel.invokeMethod<Map?>('pdfTextExtraction', params?.toJson());
+
+    if (result == null) return null;
+
+    final Map<int, String> pageTexts = {};
+    result['pageTexts']?.forEach((key, value) {
+      if (key is String && value is String) {
+        pageTexts[int.parse(key)] = value;
+      }
+    });
+
+    return PDFTextExtractionResult(
+      pageTexts: pageTexts,
+      fullText: result['fullText'] as String? ?? '',
+    );
+  }
+
+  /// Performs OCR on PDF pages using Google ML Kit.
+  ///
+  /// Returns PDFOCRResult containing recognized text and confidence scores.
+  /// Throws exception on error.
+  @override
+  Future<PDFOCRResult?> pdfOcr({PDFOCRParams? params}) async {
+    final Map? result =
+        await methodChannel.invokeMethod<Map?>('pdfOcr', params?.toJson());
+
+    if (result == null) return null;
+
+    final Map<int, OCRPageResult> pageResults = {};
+    final Map<String, dynamic> pageResultsMap = result['pageResults'] as Map<String, dynamic>? ?? {};
+
+    pageResultsMap.forEach((key, value) {
+      if (value is Map) {
+        final pageNum = int.parse(key);
+        final pageResult = OCRPageResult(
+          text: value['text'] as String? ?? '',
+          confidence: (value['confidence'] as num?)?.toDouble() ?? 0.0,
+        );
+        pageResults[pageNum] = pageResult;
+      }
+    });
+
+    return PDFOCRResult(
+      pageResults: pageResults,
+      fullText: result['fullText'] as String? ?? '',
+    );
+  }
+
+  /// Adds a digital signature to PDF using certificate.
+  ///
+  /// Returns the path to the signed PDF file.
+  /// Throws exception on error.
+  @override
+  Future<String?> pdfDigitalSignature({PDFDigitalSignatureParams? params}) async {
+    final String? result =
+        await methodChannel.invokeMethod<String?>('pdfDigitalSignature', params?.toJson());
+    return result;
+  }
+
+  /// Adds annotations to PDF.
+  ///
+  /// Returns the path to the annotated PDF file.
+  /// Throws exception on error.
+  @override
+  Future<String?> pdfAnnotations({PDFAnnotationsParams? params}) async {
+    final String? result =
+        await methodChannel.invokeMethod<String?>('pdfAnnotations', params?.toJson());
+    return result;
   }
 }
 
@@ -416,6 +505,8 @@ enum PositionType {
   custom
 }
 
+enum ImageFormat { png, jpeg, webp }
+
 /// Parameters for the [pdfWatermark] method.
 class PDFWatermarkParams {
   /// Provide path of pdf file which should be compressed.
@@ -477,7 +568,7 @@ class PDFWatermarkParams {
       'watermarkLayer': watermarkLayer.toString(),
       'opacity': opacity,
       'rotationAngle': rotationAngle,
-      'watermarkColor': '#${watermarkColor.value.toRadixString(16)}',
+      'watermarkColor': '#${watermarkColor.toARGB32().toRadixString(16)}',
       'positionType': positionType.toString(),
     };
   }
@@ -777,6 +868,502 @@ class ImagesToPDFsParams {
     return <String, dynamic>{
       'imagesPaths': imagesPaths,
       'createSinglePdf': createSinglePdf,
+    };
+  }
+}
+
+/// Parameters for the [pdfToImages] method.
+class PDFToImagesParams {
+  /// Provide path of pdf file to convert to images.
+  final String pdfPath;
+
+  /// Provide the page numbers to convert. If empty, all pages will be converted.
+  final List<int>? pages;
+
+  /// Provide the image format. Default is PNG.
+  final ImageFormat imageFormat;
+
+  /// Provide image quality for JPEG format (1-100). Default is 90.
+  final int? quality;
+
+  /// Provide scale factor for image size (0.1-5.0). Default is 1.0.
+  final double? scale;
+
+  /// Create parameters for the [pdfToImages] method.
+  const PDFToImagesParams({
+    required this.pdfPath,
+    this.pages,
+    this.imageFormat = ImageFormat.png,
+    this.quality = 90,
+    this.scale = 1.0,
+  }) : assert(scale == null || (scale >= 0.1 && scale <= 5.0),
+            'scale should be between 0.1 and 5.0'),
+       assert(quality == null || (quality >= 1 && quality <= 100),
+            'quality should be between 1 and 100');
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'pages': pages,
+      'imageFormat': imageFormat.toString(),
+      'quality': quality,
+      'scale': scale,
+    };
+  }
+}
+
+/// Parameters for the [pdfTextExtraction] method.
+class PDFTextExtractionParams {
+  /// Provide path of pdf file to extract text from.
+  final String pdfPath;
+
+  /// Provide the page numbers to extract text from. If empty, all pages will be processed.
+  final List<int>? pages;
+
+  /// Create parameters for the [pdfTextExtraction] method.
+  const PDFTextExtractionParams({
+    required this.pdfPath,
+    this.pages,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'pages': pages,
+    };
+  }
+}
+
+/// Result class for text extraction containing page-wise text.
+class PDFTextExtractionResult {
+  /// Map of page numbers to extracted text content.
+  final Map<int, String> pageTexts;
+
+  /// Full text content from all pages concatenated.
+  final String fullText;
+
+  PDFTextExtractionResult({
+    required this.pageTexts,
+    required this.fullText,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pageTexts': pageTexts,
+      'fullText': fullText,
+    };
+  }
+}
+
+/// Parameters for the [pdfOcr] method.
+class PDFOCRParams {
+  /// Provide path of pdf file to perform OCR on.
+  final String pdfPath;
+
+  /// Provide the page numbers to perform OCR on. If empty, all pages will be processed.
+  final List<int>? pages;
+
+  /// Provide the language code for OCR (e.g., 'en', 'es', 'fr'). Default is 'en'.
+  final String languageCode;
+
+  /// Create parameters for the [pdfOcr] method.
+  const PDFOCRParams({
+    required this.pdfPath,
+    this.pages,
+    this.languageCode = 'en',
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'pages': pages,
+      'languageCode': languageCode,
+    };
+  }
+}
+
+/// Result class for OCR containing recognized text and confidence.
+class PDFOCRResult {
+  /// Map of page numbers to OCR text results.
+  final Map<int, OCRPageResult> pageResults;
+
+  /// Full OCR text content from all pages concatenated.
+  final String fullText;
+
+  PDFOCRResult({
+    required this.pageResults,
+    required this.fullText,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pageResults': pageResults.map((key, value) => MapEntry(key.toString(), value.toJson())),
+      'fullText': fullText,
+    };
+  }
+}
+
+/// OCR result for a single page.
+class OCRPageResult {
+  /// Recognized text from the page.
+  final String text;
+
+  /// Confidence score of the OCR recognition (0.0 to 1.0).
+  final double confidence;
+
+  OCRPageResult({
+    required this.text,
+    required this.confidence,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'text': text,
+      'confidence': confidence,
+    };
+  }
+}
+
+/// Signature appearance options.
+class SignatureAppearance {
+  /// Text to display in the signature field.
+  final String? text;
+
+  /// Font size for the signature text.
+  final double fontSize;
+
+  /// X coordinate of the signature field (in points).
+  final double x;
+
+  /// Y coordinate of the signature field (in points).
+  final double y;
+
+  /// Width of the signature field (in points).
+  final double width;
+
+  /// Height of the signature field (in points).
+  final double height;
+
+  /// Page number to place the signature on.
+  final int pageNumber;
+
+  SignatureAppearance({
+    this.text,
+    this.fontSize = 12.0,
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    this.pageNumber = 1,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'text': text,
+      'fontSize': fontSize,
+      'x': x,
+      'y': y,
+      'width': width,
+      'height': height,
+      'pageNumber': pageNumber,
+    };
+  }
+}
+
+/// Parameters for the [pdfDigitalSignature] method.
+class PDFDigitalSignatureParams {
+  /// Provide path of pdf file to sign.
+  final String pdfPath;
+
+  /// Provide path to the certificate file (.p12 or .pfx).
+  final String certificatePath;
+
+  /// Provide the password for the certificate.
+  final String certificatePassword;
+
+  /// Provide the reason for signing.
+  final String? reason;
+
+  /// Provide the location of signing.
+  final String? location;
+
+  /// Provide the contact information.
+  final String? contact;
+
+  /// Provide signature appearance options.
+  final SignatureAppearance? appearance;
+
+  /// Create parameters for the [pdfDigitalSignature] method.
+  const PDFDigitalSignatureParams({
+    required this.pdfPath,
+    required this.certificatePath,
+    required this.certificatePassword,
+    this.reason,
+    this.location,
+    this.contact,
+    this.appearance,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'certificatePath': certificatePath,
+      'certificatePassword': certificatePassword,
+      'reason': reason,
+      'location': location,
+      'contact': contact,
+      'appearance': appearance?.toJson(),
+    };
+  }
+}
+
+/// Base class for PDF annotations.
+abstract class PDFAnnotation {
+  /// Page number where the annotation appears.
+  final int pageNumber;
+
+  /// Rectangle defining the annotation's position and size (x, y, width, height).
+  final List<double> rect;
+
+  /// Optional title/author of the annotation.
+  final String? title;
+
+  /// Optional contents/text of the annotation.
+  final String? contents;
+
+  /// Optional color of the annotation (RGB values 0-1).
+  final List<double>? color;
+
+  PDFAnnotation({
+    required this.pageNumber,
+    required this.rect,
+    this.title,
+    this.contents,
+    this.color,
+  });
+
+  Map<String, dynamic> toJson();
+}
+
+/// Text annotation (sticky note).
+class TextAnnotation extends PDFAnnotation {
+  /// Icon name for the annotation ('Comment', 'Help', 'Insert', 'Key', 'NewParagraph', 'Note', 'Paragraph').
+  final String? iconName;
+
+  /// Whether the annotation should be initially open.
+  final bool isOpen;
+
+  TextAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    super.title,
+    super.contents,
+    super.color,
+    this.iconName,
+    this.isOpen = false,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'text',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'title': title,
+      'contents': contents,
+      'color': color,
+      'iconName': iconName,
+      'isOpen': isOpen,
+    };
+  }
+}
+
+/// Highlight annotation.
+class HighlightAnnotation extends PDFAnnotation {
+  /// List of quadrilaterals defining the highlighted area.
+  final List<List<double>> quads;
+
+  HighlightAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.quads,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'highlight',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'quads': quads,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Underline annotation.
+class UnderlineAnnotation extends PDFAnnotation {
+  /// List of quadrilaterals defining the underlined area.
+  final List<List<double>> quads;
+
+  UnderlineAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.quads,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'underline',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'quads': quads,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Strike-through annotation.
+class StrikeThroughAnnotation extends PDFAnnotation {
+  /// List of quadrilaterals defining the strike-through area.
+  final List<List<double>> quads;
+
+  StrikeThroughAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.quads,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'strikeThrough',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'quads': quads,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Squiggly underline annotation.
+class SquigglyAnnotation extends PDFAnnotation {
+  /// List of quadrilaterals defining the squiggly area.
+  final List<List<double>> quads;
+
+  SquigglyAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.quads,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'squiggly',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'quads': quads,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Link annotation.
+class LinkAnnotation extends PDFAnnotation {
+  /// URL or named destination for the link.
+  final String url;
+
+  LinkAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.url,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'link',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'url': url,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Ink annotation (freehand drawing).
+class InkAnnotation extends PDFAnnotation {
+  /// List of ink strokes, each stroke is a list of points [x1,y1,x2,y2,...].
+  final List<List<double>> inkList;
+
+  InkAnnotation({
+    required super.pageNumber,
+    required super.rect,
+    required this.inkList,
+    super.title,
+    super.contents,
+    super.color,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'type': 'ink',
+      'pageNumber': pageNumber,
+      'rect': rect,
+      'inkList': inkList,
+      'title': title,
+      'contents': contents,
+      'color': color,
+    };
+  }
+}
+
+/// Parameters for the [pdfAnnotations] method.
+class PDFAnnotationsParams {
+  /// Provide path of pdf file to annotate.
+  final String pdfPath;
+
+  /// List of annotations to add to the PDF.
+  final List<PDFAnnotation> annotations;
+
+  /// Create parameters for the [pdfAnnotations] method.
+  const PDFAnnotationsParams({
+    required this.pdfPath,
+    required this.annotations,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'annotations': annotations.map((a) => a.toJson()).toList(),
     };
   }
 }
