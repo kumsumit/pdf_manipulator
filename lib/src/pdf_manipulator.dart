@@ -62,6 +62,14 @@ class PdfManipulator {
         .pdfCompressor(params: params, onProgress: onProgress);
   }
 
+  /// Optimizes provided pdf file to reduce size without quality loss.
+  ///
+  /// Returns the path or uri of the resultant optimized file or null if operation was cancelled.
+  /// Throws exception on error.
+  Future<String?> pdfOptimizer({PDFOptimizerParams? params}) {
+    return PdfManipulatorPlatform.instance.pdfOptimizer(params: params);
+  }
+
   /// Watermarks provided pdf file.
   ///
   /// Returns the path or uri of the resultant file or null if operation was cancelled.

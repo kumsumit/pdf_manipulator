@@ -353,6 +353,45 @@ class PdfManipulator(
         Log.d(LOG_TAG, "pdfCompressor - OUT")
     }
 
+    // For optimizing pdf (reduce size without quality loss).
+    fun pdfOptimizer(
+        resultCallback: Result,
+        sourceFilePath: String?,
+        removeMetadata: Boolean?,
+        removeUnusedObjects: Boolean?,
+        mergeDuplicateObjects: Boolean?,
+        optimizeStructure: Boolean?,
+    ) {
+        Log.d(
+            LOG_TAG, "pdfOptimizer - IN, sourceFilePath=$sourceFilePath"
+        )
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val resultPDFPath: String? = getOptimizedPDFPath(
+                    sourceFilePath!!,
+                    removeMetadata ?: false,
+                    removeUnusedObjects ?: true,
+                    mergeDuplicateObjects ?: true,
+                    optimizeStructure ?: true,
+                    activity
+                )
+
+                utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "pdfOptimizer_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "pdfOptimizer_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "pdfOptimizer - OUT")
+    }
+
     // For compressing pdf.
     fun watermarkPdf(
         resultCallback: Result,

@@ -18,6 +18,7 @@ void main() {
         'mergePDFs' => '/tmp/merged.pdf',
         'splitPDF' => <String>['/tmp/page-1.pdf', '/tmp/page-2.pdf'],
         'pdfCompressor' => '/tmp/compressed.pdf',
+        'pdfOptimizer' => '/tmp/optimized.pdf',
         'pdfToImages' => <String>['/tmp/page-1.webp'],
         'pdfCertificateEncryption' => '/tmp/certificate-encrypted.pdf',
         'cancelManipulations' => 'Canceled operation: op-1',
@@ -66,6 +67,26 @@ void main() {
     expect(calls.single.method, 'pdfCompressor');
     expect(calls.single.arguments, containsPair('pdfPath', '/tmp/a.pdf'));
     expect(calls.single.arguments, contains('operationId'));
+  });
+
+  test('pdfOptimizer forwards parameters to the method channel', () async {
+    final result = await PdfManipulator().pdfOptimizer(
+      params: const PDFOptimizerParams(
+        pdfPath: '/tmp/a.pdf',
+        removeMetadata: true,
+        mergeDuplicateObjects: true,
+      ),
+    );
+
+    expect(result, '/tmp/optimized.pdf');
+    expect(calls.single.method, 'pdfOptimizer');
+    expect(calls.single.arguments, {
+      'pdfPath': '/tmp/a.pdf',
+      'removeMetadata': true,
+      'removeUnusedObjects': true,
+      'mergeDuplicateObjects': true,
+      'optimizeStructure': true,
+    });
   });
 
   test('pdfToImages serializes image format as native token', () async {

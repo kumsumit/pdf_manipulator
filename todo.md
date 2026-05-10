@@ -41,6 +41,10 @@ Recover damaged documents
 13. Advanced Compression Options
 Beyond basic image quality/scale compression
 Font optimization, structure optimization
+✓ PDF Optimization (implemented in v0.5.9)
+Lossless PDF size reduction through structure optimization
+Remove unused objects, merge duplicates, clean metadata
+No quality loss while reducing file size
 14. Batch Processing
 Process multiple PDFs in a single operation
 Queue management for large batches

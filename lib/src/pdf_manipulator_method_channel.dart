@@ -79,6 +79,13 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   }
 
   @override
+  Future<String?> pdfOptimizer({PDFOptimizerParams? params}) async {
+    final String? path = await methodChannel.invokeMethod<String?>(
+        'pdfOptimizer', params?.toJson());
+    return path;
+  }
+
+  @override
   Future<String?> pdfWatermark({PDFWatermarkParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
         'pdfWatermark', params?.toJson());
@@ -701,6 +708,43 @@ class PDFAdvancedCompressionOptions {
       'compressStreams': compressStreams,
       'flattenFormFields': flattenFormFields,
       'cleanNamedDestinations': cleanNamedDestinations,
+    };
+  }
+}
+
+/// Parameters for the [pdfOptimizer] method.
+class PDFOptimizerParams {
+  /// Provide path of pdf file which should be optimized.
+  final String pdfPath;
+
+  /// Remove metadata (title, author, subject, etc.) to reduce file size.
+  final bool removeMetadata;
+
+  /// Remove unused objects from the PDF structure.
+  final bool removeUnusedObjects;
+
+  /// Merge duplicate objects to reduce file size.
+  final bool mergeDuplicateObjects;
+
+  /// Optimize the overall PDF structure.
+  final bool optimizeStructure;
+
+  /// Create parameters for the [pdfOptimizer] method.
+  const PDFOptimizerParams({
+    required this.pdfPath,
+    this.removeMetadata = false,
+    this.removeUnusedObjects = true,
+    this.mergeDuplicateObjects = true,
+    this.optimizeStructure = true,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'removeMetadata': removeMetadata,
+      'removeUnusedObjects': removeUnusedObjects,
+      'mergeDuplicateObjects': mergeDuplicateObjects,
+      'optimizeStructure': optimizeStructure,
     };
   }
 }

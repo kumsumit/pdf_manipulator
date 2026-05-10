@@ -282,6 +282,14 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 unEmbedFonts = call.argument("unEmbedFonts"),
                 advancedOptions = call.argument<Map<String, Any>>("advancedOptions"),
             )
+            "pdfOptimizer" -> pdfManipulator!!.pdfOptimizer(
+                result,
+                sourceFilePath = call.argument("pdfPath"),
+                removeMetadata = call.argument("removeMetadata"),
+                removeUnusedObjects = call.argument("removeUnusedObjects"),
+                mergeDuplicateObjects = call.argument("mergeDuplicateObjects"),
+                optimizeStructure = call.argument("optimizeStructure"),
+            )
             "pdfWatermark" -> pdfManipulator!!.watermarkPdf(
                 result,
                 sourceFilePath = call.argument("pdfPath"),
