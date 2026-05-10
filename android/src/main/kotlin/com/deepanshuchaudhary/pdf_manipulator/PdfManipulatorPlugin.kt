@@ -275,6 +275,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             )
             "pdfCompressor" -> pdfManipulator!!.pdfCompressor(
                 result,
+                operationId = call.argument<String>("operationId") ?: "",
                 sourceFilePath = call.argument("pdfPath"),
                 imageQuality = call.argument("imageQuality"),
                 imageScale = call.argument("imageScale"),
@@ -285,6 +286,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 result,
                 sourceFilePath = call.argument("pdfPath"),
                 text = call.argument("text"),
+                imagePath = call.argument("imagePath"),
                 fontSize = call.argument("fontSize"),
                 watermarkLayer = parseMethodCallWatermarkLayerTypeArgument(call)
                     ?: WatermarkLayer.OverContent,
@@ -299,6 +301,8 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 customPositionYCoordinatesList = parseMethodCallArrayOfDoubleArgument(
                     call, "customPositionYCoordinatesList"
                 ),
+                imageWidth = call.argument("imageWidth"),
+                imageHeight = call.argument("imageHeight"),
             )
             "pdfPagesSize" -> pdfManipulator!!.pdfPagesSize(
                 result,
@@ -340,7 +344,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 ),
                 createSinglePdf = call.argument("createSinglePdf"),
             )
-            "cancelManipulations" -> pdfManipulator!!.cancelManipulations()
+            "cancelManipulations" -> pdfManipulator!!.cancelManipulations(call.argument<String>("operationId"))
             else -> result.notImplemented()
         }
     }
@@ -351,7 +355,8 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         var pdfManipulator: PdfManipulator? = null
         if (activityBinding != null) {
             pdfManipulator = PdfManipulator(
-                activity = activityBinding!!.activity
+                activity = activityBinding!!.activity,
+                methodChannel = channel
             )
         }
         this.pdfManipulator = pdfManipulator

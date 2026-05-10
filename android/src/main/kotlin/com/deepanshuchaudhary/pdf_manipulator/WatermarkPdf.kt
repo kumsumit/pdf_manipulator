@@ -2,10 +2,12 @@ package com.deepanshuchaudhary.pdf_manipulator
 
 import android.app.Activity
 import android.content.ContentResolver
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
 import androidx.core.net.toUri
 import com.itextpdf.io.font.constants.StandardFonts
+import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.colors.DeviceRgb
 import com.itextpdf.kernel.font.PdfFontFactory
 import com.itextpdf.kernel.geom.Rectangle
@@ -13,11 +15,14 @@ import com.itextpdf.kernel.pdf.*
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas
 import com.itextpdf.kernel.pdf.extgstate.PdfExtGState
 import com.itextpdf.layout.Canvas
+import com.itextpdf.layout.element.Image
 import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.properties.HorizontalAlignment
 import com.itextpdf.layout.properties.TextAlignment
 import com.itextpdf.layout.properties.VerticalAlignment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import java.io.File
 
 
@@ -32,7 +37,8 @@ enum class PositionType {
 // For compressing pdf.
 suspend fun getWatermarkedPDFPath(
     sourceFilePath: String,
-    text: String,
+    text: String?,
+    imagePath: String?,
     fontSize: Double,
     watermarkLayer: WatermarkLayer,
     opacity: Double,
@@ -41,6 +47,8 @@ suspend fun getWatermarkedPDFPath(
     positionType: PositionType,
     customPositionXCoordinatesList: List<Double>,
     customPositionYCoordinatesList: List<Double>,
+    imageWidth: Double?,
+    imageHeight: Double?,
     context: Activity,
 ): String? {
 
@@ -75,23 +83,10 @@ suspend fun getWatermarkedPDFPath(
 
         val pdfDocument = PdfDocument(pdfReader, pdfWriter)
 
+        val memoryManager = MemoryManager()
+        memoryManager.logMemoryUsage("Watermark start")
+
         fun watermark() {
-
-            val font = PdfFontFactory.createFont(StandardFonts.HELVETICA)
-            val paragraph = Paragraph(text).setFont(font).setFontSize(fontSize.toFloat())
-
-            val color = try {
-                Color.parseColor(watermarkColor)
-            } catch (e: Exception) {
-                Log.e("Parse", "Error parsing watermarkColor $watermarkColor. $e")
-                Color.BLACK
-            }
-
-            val red = Color.red(color)
-            val green = Color.green(color)
-            val blue = Color.blue(color)
-
-            var layer: PdfCanvas
 
             var position: PositionType = positionType
 
@@ -105,30 +100,46 @@ suspend fun getWatermarkedPDFPath(
                 }
             }
 
-            // Implement transformation matrix usage in order to scale image
-            for (i in 1..pdfDocument.numberOfPages) {
+            // Determine if we're using text or image watermark
+            val isImageWatermark = !imagePath.isNullOrEmpty()
 
-                val pdfPage: PdfPage = pdfDocument.getPage(i)
-                val pageSize: Rectangle = pdfPage.pageSizeWithRotation
+            // Process pages in chunks for memory efficiency
+            val totalPages = pdfDocument.numberOfPages
+            val chunkSize = memoryManager.getOptimalChunkSize(totalPages)
 
-                // When "true": in case the page has a rotation, then new content will be automatically rotated in the
-                // opposite direction. On the rotated page this would look as if new content ignores page rotation.
-                pdfPage.isIgnorePageRotationForContent = true
+            Log.d("MemoryManager", "Processing $totalPages pages in chunks of $chunkSize")
 
-                layer = if (watermarkLayer == WatermarkLayer.UnderContent) {
-                    PdfCanvas(
-                        pdfPage.newContentStreamBefore(), PdfResources(), pdfDocument
-                    )
-                } else {
-                    PdfCanvas(pdfPage)
-                }
+            (1..totalPages step chunkSize).forEach { startPage ->
+                val endPage = min(startPage + chunkSize - 1, totalPages)
+                memoryManager.logMemoryUsage("Processing pages $startPage-$endPage")
 
-                layer.setFillColor(DeviceRgb(red, green, blue))
-                layer.saveState()
-                // Creating a dictionary that maps resource names to graphics state parameter dictionaries
-                val gs1 = PdfExtGState()
-                gs1.fillOpacity = opacity.toFloat()
-                layer.setExtGState(gs1)
+                for (i in startPage..endPage) {
+                    yield()
+
+                    // Check memory before processing each page
+                    memoryManager.forceGarbageCollectionIfNeeded()
+
+                    try {
+                        val pdfPage: PdfPage = pdfDocument.getPage(i)
+                        val pageSize: Rectangle = pdfPage.pageSizeWithRotation
+
+                        // When "true": in case the page has a rotation, then new content will be automatically rotated in the
+                        // opposite direction. On the rotated page this would look as if new content ignores page rotation.
+                        pdfPage.isIgnorePageRotationForContent = true
+
+                        val layer = if (watermarkLayer == WatermarkLayer.UnderContent) {
+                            PdfCanvas(
+                                pdfPage.newContentStreamBefore(), PdfResources(), pdfDocument
+                            )
+                        } else {
+                            PdfCanvas(pdfPage)
+                        }
+
+                        layer.saveState()
+                        // Creating a dictionary that maps resource names to graphics state parameter dictionaries
+                        val gs1 = PdfExtGState()
+                        gs1.fillOpacity = opacity.toFloat()
+                        layer.setExtGState(gs1)
 
                 val x: Float
                 val y: Float
@@ -171,35 +182,131 @@ suspend fun getWatermarkedPDFPath(
                         y = (0).toFloat()
                     }
                     else -> {
-                        x = customPositionXCoordinatesList[i].toFloat()
-                        y = customPositionYCoordinatesList[i].toFloat()
+                        x = customPositionXCoordinatesList[i - 1].toFloat()
+                        y = customPositionYCoordinatesList[i - 1].toFloat()
                     }
                 }
 
+                val canvas = Canvas(layer, pdfDocument.defaultPageSize)
 
-                val canvasWatermark = Canvas(layer, pdfDocument.defaultPageSize).showTextAligned(
-                    paragraph,
-                    x,
-                    y,
-                    i,
-                    TextAlignment.CENTER,
-                    VerticalAlignment.TOP,
-                    rotationAngle.toFloat()
-                )
-                canvasWatermark.close()
+                if (isImageWatermark) {
+                    // Handle image watermark
+                    try {
+                        val imageData = ImageDataFactory.create(imagePath!!)
+                        val image = Image(imageData)
 
+                        // Set image size if specified
+                        if (imageWidth != null && imageHeight != null) {
+                            image.setWidth(imageWidth.toFloat())
+                            image.setHeight(imageHeight.toFloat())
+                        } else if (imageWidth != null) {
+                            image.setWidth(imageWidth.toFloat())
+                            image.setAutoScaleHeight(true)
+                        } else if (imageHeight != null) {
+                            image.setHeight(imageHeight.toFloat())
+                            image.setAutoScaleWidth(true)
+                        }
+
+                        // Center the image on the calculated position
+                        val imageWidthActual = image.imageWidth
+                        val imageHeightActual = image.imageHeight
+
+                        val adjustedX = x - imageWidthActual / 2
+                        val adjustedY = y - imageHeightActual / 2
+
+                        canvas.showTextAligned(
+                            image,
+                            adjustedX,
+                            adjustedY,
+                            i,
+                            HorizontalAlignment.LEFT,
+                            VerticalAlignment.TOP,
+                            rotationAngle.toFloat()
+                        )
+                    } catch (e: Exception) {
+                        Log.e("Watermark", "Error loading image watermark: $e")
+                        // Fallback to text watermark if image fails
+                        if (!text.isNullOrEmpty()) {
+                            addTextWatermark(canvas, text!!, fontSize, watermarkColor, x, y, i, rotationAngle.toFloat())
+                        }
+                    }
+                } else {
+                    // Handle text watermark
+                    if (!text.isNullOrEmpty()) {
+                        addTextWatermark(canvas, text, fontSize, watermarkColor, x, y, i, rotationAngle.toFloat())
+                    }
+                }
+
+                canvas.close()
                 layer.restoreState()
-
             }
         }
 
+        fun addTextWatermark(
+            canvas: Canvas,
+            text: String,
+            fontSize: Double,
+            watermarkColor: String,
+            x: Float,
+            y: Float,
+            pageIndex: Int,
+            rotationAngle: Float
+        ) {
+            val font = PdfFontFactory.createFont(StandardFonts.HELVETICA)
+            val paragraph = Paragraph(text).setFont(font).setFontSize(fontSize.toFloat())
+
+            val color = try {
+                Color.parseColor(watermarkColor)
+            } catch (e: Exception) {
+                Log.e("Parse", "Error parsing watermarkColor $watermarkColor. $e")
+                Color.BLACK
+            }
+
+            val red = Color.red(color)
+            val green = Color.green(color)
+            val blue = Color.blue(color)
+
+            // Set text color
+            val deviceRgb = DeviceRgb(red, green, blue)
+            paragraph.setFontColor(deviceRgb)
+
+                        canvas.showTextAligned(
+                            paragraph,
+                            x,
+                            y,
+                            i,
+                            TextAlignment.CENTER,
+                            VerticalAlignment.TOP,
+                            rotationAngle.toFloat()
+                        )
+                        } catch (e: OutOfMemoryError) {
+                            Log.e("MemoryManager", "Out of memory processing page $i, skipping", e)
+                            continue
+                        } catch (e: Exception) {
+                            Log.w("MemoryManager", "Error processing page $i: ${e.message}")
+                            continue
+                        }
+
+                        canvas.close()
+                        layer.restoreState()
+                    }
+                }
+
+                // Force cleanup after each chunk
+                memoryManager.forceGarbageCollectionIfNeeded()
+            }
+
         watermark()
 
+        memoryManager.logMemoryUsage("After watermarking")
+        memoryManager.forceGarbageCollectionIfNeeded()
+
         pdfDocument.close()
+
         pdfReader.close()
         pdfWriter.close()
 
-        utils.deleteTempFiles(listOfTempFiles = listOf(pdfReaderFile))
+        utils.safeDeleteTempFiles(listOfTempFiles = listOf(pdfReaderFile))
 
         val end = System.nanoTime()
         println("Elapsed time in nanoseconds: ${end - begin}")

@@ -12,7 +12,31 @@ class Utils {
 
     fun deleteTempFiles(listOfTempFiles: List<File>) {
         listOfTempFiles.forEach { tempFile ->
-            tempFile.delete()
+            try {
+                tempFile.delete()
+            } catch (e: Exception) {
+                Log.w("Utils", "Failed to delete temp file: ${tempFile.absolutePath}", e)
+            }
+        }
+    }
+
+    /**
+     * Memory-safe file deletion with retry
+     */
+    fun safeDeleteTempFiles(listOfTempFiles: List<File>) {
+        listOfTempFiles.forEach { tempFile ->
+            try {
+                if (tempFile.exists()) {
+                    val deleted = tempFile.delete()
+                    if (!deleted) {
+                        Log.w("Utils", "Failed to delete temp file: ${tempFile.absolutePath}")
+                        // Try force delete on exit
+                        tempFile.deleteOnExit()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("Utils", "Exception deleting temp file: ${tempFile.absolutePath}", e)
+            }
         }
     }
 

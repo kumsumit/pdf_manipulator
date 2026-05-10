@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -55,10 +53,26 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   }
 
   @override
-  Future<String?> pdfCompressor({PDFCompressorParams? params}) async {
-    final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfCompressor', params?.toJson());
-    return path;
+  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) async {
+    final operationId = DateTime.now().millisecondsSinceEpoch.toString();
+    final Map<String, dynamic> args = {'operationId': operationId};
+    if (params != null) {
+      args.addAll(params.toJson());
+    }
+
+    if (onProgress != null) {
+      // Set up progress callback listener
+      methodChannel.setMethodCallHandler((call) async {
+        if (call.method == 'onProgress' && call.arguments['operationId'] == operationId) {
+          final progress = call.arguments['progress'] as double;
+          final message = call.arguments['message'] as String;
+          onProgress(progress, message);
+        }
+      });
+    }
+
+    final String? path = await methodChannel.invokeMethod<String?>('pdfCompressor', args);
+    return OperationResult(result: path, operationId: operationId);
   }
 
   @override
@@ -126,9 +140,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   }
 
   @override
-  Future<String?> cancelManipulations() async {
-    final String? result =
-        await methodChannel.invokeMethod<String?>('cancelManipulations');
+  Future<String?> cancelManipulations({String? operationId}) async {
+    final String? result = await methodChannel.invokeMethod<String?>(
+        'cancelManipulations', {'operationId': operationId});
     return result;
   }
 
@@ -701,25 +715,28 @@ class PDFWatermarkParams {
   /// Provide path of pdf file which should be compressed.
   final String pdfPath;
 
-  /// Provide watermark text.
-  final String text;
+  /// Provide watermark text. Ignored if imagePath is provided.
+  final String? text;
 
-  /// Provide watermark text font size.
+  /// Provide watermark image path. If provided, text watermark is ignored.
+  final String? imagePath;
+
+  /// Provide watermark text font size. Ignored for image watermarks.
   final double fontSize;
 
   /// Provide layer for watermark printing like over or under content.
   final WatermarkLayer watermarkLayer;
 
-  /// Provide watermark text opacity.
+  /// Provide watermark opacity.
   final double opacity;
 
-  /// Provide watermark text rotation Angle.
+  /// Provide watermark rotation Angle.
   final double rotationAngle;
 
-  /// Provide watermark text color.
+  /// Provide watermark text color. Ignored for image watermarks.
   final Color watermarkColor;
 
-  /// Provide position of text.
+  /// Provide position of watermark.
   final PositionType positionType;
 
   /// Provide custom PositionType X coordinates list.
@@ -728,10 +745,17 @@ class PDFWatermarkParams {
   /// Provide custom PositionType Y coordinates list.
   final List<double>? customPositionYCoordinatesList;
 
+  /// Provide watermark image width. If null, uses original image width.
+  final double? imageWidth;
+
+  /// Provide watermark image height. If null, uses original image height.
+  final double? imageHeight;
+
   /// Create parameters for the [pdfWatermark] method.
-  const PDFWatermarkParams({
+  PDFWatermarkParams({
     required this.pdfPath,
-    required this.text,
+    this.text,
+    this.imagePath,
     this.fontSize = 30,
     this.watermarkLayer = WatermarkLayer.overContent,
     this.opacity = 0.5,
@@ -740,25 +764,31 @@ class PDFWatermarkParams {
     this.positionType = PositionType.center,
     this.customPositionXCoordinatesList,
     this.customPositionYCoordinatesList,
-  }) : assert(
-            positionType == PositionType.custom
-                ? (customPositionXCoordinatesList != null &&
-                        customPositionXCoordinatesList.length != 0) &&
-                    (customPositionYCoordinatesList != null &&
-                        customPositionYCoordinatesList.length != 0)
-                : true,
-            'if positionType == PositionType.custom then customPositionXCoordinatesList and customPositionYCoordinatesList can\'t be null or empty');
+    this.imageWidth,
+    this.imageHeight,
+  })  : assert(text != null || imagePath != null, 'Either text or imagePath must be provided'),
+        assert(
+            positionType != PositionType.custom ||
+            (customPositionXCoordinatesList != null && customPositionXCoordinatesList.isNotEmpty &&
+             customPositionYCoordinatesList != null && customPositionYCoordinatesList.isNotEmpty),
+            'If positionType is custom, both customPositionXCoordinatesList and customPositionYCoordinatesList must be provided and non-empty'
+        );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'pdfPath': pdfPath,
       'text': text,
+      'imagePath': imagePath,
       'fontSize': fontSize,
       'watermarkLayer': watermarkLayer.toString(),
       'opacity': opacity,
       'rotationAngle': rotationAngle,
       'watermarkColor': '#${watermarkColor.toARGB32().toRadixString(16)}',
       'positionType': positionType.toString(),
+      'customPositionXCoordinatesList': customPositionXCoordinatesList,
+      'customPositionYCoordinatesList': customPositionYCoordinatesList,
+      'imageWidth': imageWidth,
+      'imageHeight': imageHeight,
     };
   }
 }

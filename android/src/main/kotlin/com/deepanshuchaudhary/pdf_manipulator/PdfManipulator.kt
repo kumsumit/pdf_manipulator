@@ -55,11 +55,19 @@ import java.util.HashMap
 
 private const val LOG_TAG = "PdfManipulator"
 
+data class OperationInfo(
+    val operationId: String,
+    val job: Job,
+    val methodChannel: MethodChannel
+)
+
 class PdfManipulator(
-    private val activity: Activity
+    private val activity: Activity,
+    private val methodChannel: MethodChannel
 ) {
 
-    private var job: Job? = null
+    private val runningOperations = mutableMapOf<String, OperationInfo>()
+    private val operationLock = Any()
 
     private val utils = Utils()
 
@@ -291,6 +299,7 @@ class PdfManipulator(
     // For compressing pdf.
     fun pdfCompressor(
         resultCallback: Result,
+        operationId: String,
         sourceFilePath: String?,
         imageQuality: Int?,
         imageScale: Double?,
@@ -298,22 +307,40 @@ class PdfManipulator(
         advancedOptions: Map<String, Any>?,
     ) {
         Log.d(
-            LOG_TAG, "pdfCompressor - IN, sourceFilePath=$sourceFilePath"
+            LOG_TAG, "pdfCompressor - IN, operationId=$operationId, sourceFilePath=$sourceFilePath"
         )
 
         val uiScope = CoroutineScope(Dispatchers.Main)
-        job = uiScope.launch {
+        val job = uiScope.launch {
             try {
-                val resultPDFPath: String? = getCompressedPDFPath(
-                    sourceFilePath!!, imageQuality!!, imageScale!!, unEmbedFonts!!, advancedOptions, activity
+                // Register the operation
+                synchronized(operationLock) {
+                    runningOperations[operationId] = OperationInfo(operationId, job, methodChannel)
+                }
+
+                val resultPDFPath: String? = getCompressedPDFPathWithProgress(
+                    sourceFilePath!!, imageQuality!!, imageScale!!, unEmbedFonts!!, advancedOptions, activity, operationId, methodChannel
                 )
+
+                // Remove the operation from tracking
+                synchronized(operationLock) {
+                    runningOperations.remove(operationId)
+                }
 
                 utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
             } catch (e: Exception) {
+                // Remove the operation from tracking on error
+                synchronized(operationLock) {
+                    runningOperations.remove(operationId)
+                }
                 utils.finishWithError(
                     "pdfCompressor_exception", e.stackTraceToString(), null, resultCallback
                 )
             } catch (e: OutOfMemoryError) {
+                // Remove the operation from tracking on error
+                synchronized(operationLock) {
+                    runningOperations.remove(operationId)
+                }
                 utils.finishWithError(
                     "pdfCompressor_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
                 )
@@ -327,6 +354,7 @@ class PdfManipulator(
         resultCallback: Result,
         sourceFilePath: String?,
         text: String?,
+        imagePath: String?,
         fontSize: Double?,
         watermarkLayer: WatermarkLayer?,
         opacity: Double?,
@@ -335,6 +363,8 @@ class PdfManipulator(
         positionType: PositionType?,
         customPositionXCoordinatesList: List<Double>?,
         customPositionYCoordinatesList: List<Double>?,
+        imageWidth: Double?,
+        imageHeight: Double?,
     ) {
         Log.d(
             LOG_TAG, "pdfCompressor - IN, sourceFilePath=$sourceFilePath"
@@ -345,7 +375,8 @@ class PdfManipulator(
             try {
                 val resultPDFPath: String? = getWatermarkedPDFPath(
                     sourceFilePath!!,
-                    text!!,
+                    text,
+                    imagePath,
                     fontSize!!,
                     watermarkLayer!!,
                     opacity!!,
@@ -354,6 +385,8 @@ class PdfManipulator(
                     positionType!!,
                     customPositionXCoordinatesList ?: listOf(),
                     customPositionYCoordinatesList ?: listOf(),
+                    imageWidth,
+                    imageHeight,
                     activity
                 )
 
@@ -574,10 +607,30 @@ class PdfManipulator(
         Log.d(LOG_TAG, "imagesToPdfs - OUT")
     }
 
-    fun cancelManipulations(
-    ) {
-        job?.cancel()
-        Log.d(LOG_TAG, "Canceled Manipulations")
+    fun cancelManipulations(operationId: String?) {
+        if (operationId != null) {
+            // Cancel specific operation
+            synchronized(operationLock) {
+                val operationInfo = runningOperations[operationId]
+                if (operationInfo != null) {
+                    operationInfo.job.cancel()
+                    runningOperations.remove(operationId)
+                    Log.d(LOG_TAG, "Canceled operation: $operationId")
+                } else {
+                    Log.w(LOG_TAG, "Operation not found: $operationId")
+                }
+            }
+        } else {
+            // Cancel all operations
+            synchronized(operationLock) {
+                for ((id, operationInfo) in runningOperations) {
+                    operationInfo.job.cancel()
+                    Log.d(LOG_TAG, "Canceled operation: $id")
+                }
+                runningOperations.clear()
+            }
+            Log.d(LOG_TAG, "Canceled all manipulations")
+        }
     }
 
 

@@ -264,7 +264,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<String?> _pdfCompressor(PDFCompressorParams params) async {
     String? result;
     try {
-      result = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      result = operationResult.result;
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -527,7 +528,8 @@ class _MyHomePageState extends State<MyHomePage> {
       PDFCompressorParams params) async {
     String? result;
     try {
-      result = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      result = operationResult.result;
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {

@@ -2,6 +2,17 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'pdf_manipulator_method_channel.dart';
 
+/// Callback for reporting operation progress
+typedef ProgressCallback = void Function(double progress, String message);
+
+/// Result containing operation ID for tracking and cancellation
+class OperationResult<T> {
+  final T result;
+  final String operationId;
+
+  OperationResult({required this.result, required this.operationId});
+}
+
 abstract class PdfManipulatorPlatform extends PlatformInterface {
   /// Constructs a PdfManipulatorPlatform.
   PdfManipulatorPlatform() : super(token: _token);
@@ -49,7 +60,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
         'pdfPageRotatorDeleterReorder() has not been implemented.');
   }
 
-  Future<String?> pdfCompressor({PDFCompressorParams? params}) {
+  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) {
     throw UnimplementedError('pdfCompressor() has not been implemented.');
   }
 
@@ -79,7 +90,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     throw UnimplementedError('imagesToPdfs() has not been implemented.');
   }
 
-  Future<String?> cancelManipulations() {
+  Future<String?> cancelManipulations({String? operationId}) {
     throw UnimplementedError('cancelManipulations() has not been implemented.');
   }
 

@@ -54,10 +54,10 @@ class PdfManipulator {
 
   /// Compresses provided pdf file.
   ///
-  /// Returns the path or uri of the resultant file or null if operation was cancelled.
+  /// Returns OperationResult containing the path or uri of the resultant file or null if operation was cancelled.
   /// Throws exception on error.
-  Future<String?> pdfCompressor({PDFCompressorParams? params}) {
-    return PdfManipulatorPlatform.instance.pdfCompressor(params: params);
+  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) {
+    return PdfManipulatorPlatform.instance.pdfCompressor(params: params, onProgress: onProgress);
   }
 
   /// Watermarks provided pdf file.
@@ -182,8 +182,8 @@ class PdfManipulator {
   /// Cancels running manipulations.
   ///
   /// Returns the cancelling message.
-  Future<String?> cancelManipulations() {
-    return PdfManipulatorPlatform.instance.cancelManipulations();
+  Future<String?> cancelManipulations({String? operationId}) {
+    return PdfManipulatorPlatform.instance.cancelManipulations(operationId: operationId);
   }
 
   /// Reads PDF metadata (title, author, subject, keywords, etc.).
