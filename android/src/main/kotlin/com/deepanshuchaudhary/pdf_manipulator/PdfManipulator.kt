@@ -611,7 +611,7 @@ class PdfManipulator(
         Log.d(LOG_TAG, "imagesToPdfs - OUT")
     }
 
-    fun cancelManipulations(operationId: String?) {
+    fun cancelManipulations(operationId: String?): String {
         if (operationId != null) {
             // Cancel specific operation
             synchronized(operationLock) {
@@ -620,13 +620,17 @@ class PdfManipulator(
                     operationInfo.job.cancel()
                     runningOperations.remove(operationId)
                     Log.d(LOG_TAG, "Canceled operation: $operationId")
+                    return "Canceled operation: $operationId"
                 } else {
                     Log.w(LOG_TAG, "Operation not found: $operationId")
+                    return "Operation not found: $operationId"
                 }
             }
         } else {
             // Cancel all operations
+            val canceledCount: Int
             synchronized(operationLock) {
+                canceledCount = runningOperations.size
                 for ((id, operationInfo) in runningOperations) {
                     operationInfo.job.cancel()
                     Log.d(LOG_TAG, "Canceled operation: $id")
@@ -634,6 +638,7 @@ class PdfManipulator(
                 runningOperations.clear()
             }
             Log.d(LOG_TAG, "Canceled all manipulations")
+            return "Canceled $canceledCount operation(s)"
         }
     }
 
@@ -650,7 +655,7 @@ class PdfManipulator(
         val uiScope = CoroutineScope(Dispatchers.Main)
         job = uiScope.launch {
             try {
-                val pdfUri = Uri.parse(pdfPath)
+                val pdfUri = utils.getURI(pdfPath)
                 val inputStream = context.contentResolver.openInputStream(pdfUri)
                 val pdfBytes = inputStream?.readBytes()
                 inputStream?.close()
@@ -950,7 +955,7 @@ class PdfManipulator(
         val imagePaths = mutableListOf<String>()
 
         try {
-            val pdfUri = Uri.parse(pdfPath)
+            val pdfUri = utils.getURI(pdfPath)
             val parcelFileDescriptor = context.contentResolver.openFileDescriptor(pdfUri, "r")
                 ?: throw IOException("Cannot open PDF file")
 
@@ -1024,7 +1029,7 @@ class PdfManipulator(
         val fullText = StringBuilder()
 
         try {
-            val pdfUri = Uri.parse(pdfPath)
+            val pdfUri = utils.getURI(pdfPath)
             val inputStream = context.contentResolver.openInputStream(pdfUri)
                 ?: throw IOException("Cannot open PDF file")
 
@@ -1072,7 +1077,7 @@ class PdfManipulator(
     ): Map<String, Any> = withContext(Dispatchers.IO) {
         val pageResults = mutableMapOf<String, Map<String, Any>>()
         val fullText = StringBuilder()
-        val pdfUri = Uri.parse(pdfPath)
+        val pdfUri = utils.getURI(pdfPath)
         val parcelFileDescriptor = context.contentResolver.openFileDescriptor(pdfUri, "r")
             ?: throw IOException("Cannot open PDF file")
         val pdfRenderer = PdfRenderer(parcelFileDescriptor)
@@ -1270,7 +1275,7 @@ class PdfManipulator(
         val outputFile = File(outputDir, "${inputFileName}_annotated.pdf")
 
         // Load PDF and create stamper
-        val pdfUri = Uri.parse(pdfPath)
+        val pdfUri = utils.getURI(pdfPath)
         val inputStream = context.contentResolver.openInputStream(pdfUri)
             ?: throw IOException("Cannot open PDF file")
 
@@ -1429,7 +1434,7 @@ class PdfManipulator(
 
         // Load certificate and private key
         val keyStore = KeyStore.getInstance("PKCS12")
-        val certUri = Uri.parse(certificatePath)
+        val certUri = utils.getURI(certificatePath)
         context.contentResolver.openInputStream(certUri)?.use { certStream ->
             keyStore.load(certStream, certificatePassword.toCharArray())
         } ?: throw IOException("Cannot open certificate file")
@@ -1443,7 +1448,7 @@ class PdfManipulator(
         val outputFile = File(outputDir, "${inputFileName}_signed.pdf")
 
         // Load PDF and create stamper
-        val pdfUri = Uri.parse(pdfPath)
+        val pdfUri = utils.getURI(pdfPath)
         val inputStream = context.contentResolver.openInputStream(pdfUri)
             ?: throw IOException("Cannot open PDF file")
 
@@ -2233,4 +2238,3 @@ class PdfManipulator(
         )
     }
 }
-

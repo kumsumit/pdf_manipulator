@@ -18,6 +18,8 @@ void main() {
         'mergePDFs' => '/tmp/merged.pdf',
         'splitPDF' => <String>['/tmp/page-1.pdf', '/tmp/page-2.pdf'],
         'pdfCompressor' => '/tmp/compressed.pdf',
+        'pdfToImages' => <String>['/tmp/page-1.webp'],
+        'cancelManipulations' => 'Canceled operation: op-1',
         _ => null,
       };
     });
@@ -65,7 +67,40 @@ void main() {
     expect(calls.single.arguments, contains('operationId'));
   });
 
-  test('batchProcess runs operations sequentially and reports progress', () async {
+  test('pdfToImages serializes image format as native token', () async {
+    final result = await PdfManipulator().pdfToImages(
+      params: const PDFToImagesParams(
+        pdfPath: '/tmp/a.pdf',
+        pages: [0],
+        imageFormat: ImageFormat.webp,
+        quality: 75,
+        scale: 2,
+      ),
+    );
+
+    expect(result, ['/tmp/page-1.webp']);
+    expect(calls.single.method, 'pdfToImages');
+    expect(calls.single.arguments, {
+      'pdfPath': '/tmp/a.pdf',
+      'pages': [0],
+      'imageFormat': 'webp',
+      'quality': 75,
+      'scale': 2.0,
+    });
+  });
+
+  test('cancelManipulations forwards operation id', () async {
+    final result = await PdfManipulator().cancelManipulations(
+      operationId: 'op-1',
+    );
+
+    expect(result, 'Canceled operation: op-1');
+    expect(calls.single.method, 'cancelManipulations');
+    expect(calls.single.arguments, {'operationId': 'op-1'});
+  });
+
+  test('batchProcess runs operations sequentially and reports progress',
+      () async {
     final progress = <String>[];
 
     final result = await PdfManipulator().batchProcess(

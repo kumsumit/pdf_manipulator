@@ -53,7 +53,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   }
 
   @override
-  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) async {
+  Future<OperationResult<String?>> pdfCompressor(
+      {PDFCompressorParams? params, ProgressCallback? onProgress}) async {
     final operationId = DateTime.now().millisecondsSinceEpoch.toString();
     final Map<String, dynamic> args = {'operationId': operationId};
     if (params != null) {
@@ -63,7 +64,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     if (onProgress != null) {
       // Set up progress callback listener
       methodChannel.setMethodCallHandler((call) async {
-        if (call.method == 'onProgress' && call.arguments['operationId'] == operationId) {
+        if (call.method == 'onProgress' &&
+            call.arguments['operationId'] == operationId) {
           final progress = call.arguments['progress'] as double;
           final message = call.arguments['message'] as String;
           onProgress(progress, message);
@@ -71,7 +73,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
       });
     }
 
-    final String? path = await methodChannel.invokeMethod<String?>('pdfCompressor', args);
+    final String? path =
+        await methodChannel.invokeMethod<String?>('pdfCompressor', args);
     return OperationResult(result: path, operationId: operationId);
   }
 
@@ -358,8 +361,8 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   Future<PDFRepairResult?> pdfRepair({
     PDFRepairParams? params,
   }) async {
-    final Map? result = await methodChannel.invokeMethod<Map?>(
-        'pdfRepair', params?.toJson());
+    final Map? result =
+        await methodChannel.invokeMethod<Map?>('pdfRepair', params?.toJson());
 
     if (result == null) return null;
 
@@ -615,7 +618,7 @@ class PDFCompressorParams {
     required this.imageScale,
     this.unEmbedFonts = false,
     this.advancedOptions,
-  }) : assert(imageScale > 0 || imageScale <= 5,
+  })  : assert(imageScale > 0 || imageScale <= 5,
             'imageScale should be greater than 0 and less tan or equal to 5'),
         assert(imageQuality > 0 || imageQuality <= 100,
             'imageQuality should be greater than 0 and less tan or equal to 100');
@@ -766,13 +769,15 @@ class PDFWatermarkParams {
     this.customPositionYCoordinatesList,
     this.imageWidth,
     this.imageHeight,
-  })  : assert(text != null || imagePath != null, 'Either text or imagePath must be provided'),
+  })  : assert(text != null || imagePath != null,
+            'Either text or imagePath must be provided'),
         assert(
             positionType != PositionType.custom ||
-            (customPositionXCoordinatesList != null && customPositionXCoordinatesList.isNotEmpty &&
-             customPositionYCoordinatesList != null && customPositionYCoordinatesList.isNotEmpty),
-            'If positionType is custom, both customPositionXCoordinatesList and customPositionYCoordinatesList must be provided and non-empty'
-        );
+                (customPositionXCoordinatesList != null &&
+                    customPositionXCoordinatesList.isNotEmpty &&
+                    customPositionYCoordinatesList != null &&
+                    customPositionYCoordinatesList.isNotEmpty),
+            'If positionType is custom, both customPositionXCoordinatesList and customPositionYCoordinatesList must be provided and non-empty');
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -1124,7 +1129,7 @@ class PDFToImagesParams {
     return <String, dynamic>{
       'pdfPath': pdfPath,
       'pages': pages,
-      'imageFormat': imageFormat.toString(),
+      'imageFormat': imageFormat.name,
       'quality': quality,
       'scale': scale,
     };
@@ -1904,8 +1909,9 @@ class PDFBookmark {
 
   factory PDFBookmark.fromJson(Map<dynamic, dynamic> json) {
     final childrenJson = json['children'] as List? ?? [];
-    final children = childrenJson.map((child) =>
-        PDFBookmark.fromJson(Map<dynamic, dynamic>.from(child))).toList();
+    final children = childrenJson
+        .map((child) => PDFBookmark.fromJson(Map<dynamic, dynamic>.from(child)))
+        .toList();
 
     return PDFBookmark(
       title: json['title'] as String? ?? '',
@@ -1942,8 +1948,10 @@ class PDFBookmarkData {
 
   factory PDFBookmarkData.fromJson(Map<dynamic, dynamic> json) {
     final bookmarksJson = json['bookmarks'] as List? ?? [];
-    final bookmarks = bookmarksJson.map((bookmark) =>
-        PDFBookmark.fromJson(Map<dynamic, dynamic>.from(bookmark))).toList();
+    final bookmarks = bookmarksJson
+        .map((bookmark) =>
+            PDFBookmark.fromJson(Map<dynamic, dynamic>.from(bookmark)))
+        .toList();
 
     return PDFBookmarkData(bookmarks: bookmarks);
   }
@@ -2037,8 +2045,10 @@ class PDFTextComparison {
 
   factory PDFTextComparison.fromJson(Map<dynamic, dynamic> json) {
     final differencesJson = json['differences'] as List? ?? [];
-    final differences = differencesJson.map((diff) =>
-        TextDifference.fromJson(Map<dynamic, dynamic>.from(diff))).toList();
+    final differences = differencesJson
+        .map(
+            (diff) => TextDifference.fromJson(Map<dynamic, dynamic>.from(diff)))
+        .toList();
 
     return PDFTextComparison(
       text1: json['text1'] as String? ?? '',
@@ -2123,12 +2133,16 @@ class PDFMetadataComparison {
 
   factory PDFMetadataComparison.fromJson(Map<dynamic, dynamic> json) {
     final differencesJson = json['differences'] as List? ?? [];
-    final differences = differencesJson.map((diff) =>
-        MetadataDifference.fromJson(Map<dynamic, dynamic>.from(diff))).toList();
+    final differences = differencesJson
+        .map((diff) =>
+            MetadataDifference.fromJson(Map<dynamic, dynamic>.from(diff)))
+        .toList();
 
     return PDFMetadataComparison(
-      metadata1: PDFMetadataResult.fromJson(Map<dynamic, dynamic>.from(json['metadata1'])),
-      metadata2: PDFMetadataResult.fromJson(Map<dynamic, dynamic>.from(json['metadata2'])),
+      metadata1: PDFMetadataResult.fromJson(
+          Map<dynamic, dynamic>.from(json['metadata1'])),
+      metadata2: PDFMetadataResult.fromJson(
+          Map<dynamic, dynamic>.from(json['metadata2'])),
       differences: differences,
     );
   }
@@ -2247,16 +2261,20 @@ class PDFComparisonResult {
   factory PDFComparisonResult.fromJson(Map<dynamic, dynamic> json) {
     return PDFComparisonResult(
       textComparison: json['textComparison'] != null
-          ? PDFTextComparison.fromJson(Map<dynamic, dynamic>.from(json['textComparison']))
+          ? PDFTextComparison.fromJson(
+              Map<dynamic, dynamic>.from(json['textComparison']))
           : null,
       metadataComparison: json['metadataComparison'] != null
-          ? PDFMetadataComparison.fromJson(Map<dynamic, dynamic>.from(json['metadataComparison']))
+          ? PDFMetadataComparison.fromJson(
+              Map<dynamic, dynamic>.from(json['metadataComparison']))
           : null,
       structureComparison: json['structureComparison'] != null
-          ? PDFStructureComparison.fromJson(Map<dynamic, dynamic>.from(json['structureComparison']))
+          ? PDFStructureComparison.fromJson(
+              Map<dynamic, dynamic>.from(json['structureComparison']))
           : null,
       overallSimilarity: (json['overallSimilarity'] as num?)?.toDouble() ?? 0.0,
-      summary: (json['summary'] as List?)?.map((s) => s.toString()).toList() ?? [],
+      summary:
+          (json['summary'] as List?)?.map((s) => s.toString()).toList() ?? [],
     );
   }
 
@@ -2321,11 +2339,17 @@ class PDFRepairResult {
     return PDFRepairResult(
       wasRepaired: json['wasRepaired'] as bool? ?? false,
       repairedPdfPath: json['repairedPdfPath'] as String?,
-      originalStatus: PDFCorruptionStatus.fromJson(Map<dynamic, dynamic>.from(json['originalStatus'])),
-      repairStatus: PDFRepairStatus.fromJson(Map<dynamic, dynamic>.from(json['repairStatus'])),
-      issues: (json['issues'] as List?)?.map((issue) => issue.toString()).toList() ?? [],
+      originalStatus: PDFCorruptionStatus.fromJson(
+          Map<dynamic, dynamic>.from(json['originalStatus'])),
+      repairStatus: PDFRepairStatus.fromJson(
+          Map<dynamic, dynamic>.from(json['repairStatus'])),
+      issues: (json['issues'] as List?)
+              ?.map((issue) => issue.toString())
+              .toList() ??
+          [],
       recoveredContent: json['recoveredContent'] != null
-          ? PDFRecoveredContent.fromJson(Map<dynamic, dynamic>.from(json['recoveredContent']))
+          ? PDFRecoveredContent.fromJson(
+              Map<dynamic, dynamic>.from(json['recoveredContent']))
           : null,
     );
   }
@@ -2373,7 +2397,10 @@ class PDFCorruptionStatus {
       hasValidStructure: json['hasValidStructure'] as bool? ?? false,
       hasReadableContent: json['hasReadableContent'] as bool? ?? false,
       corruptionLevel: (json['corruptionLevel'] as num?)?.toDouble() ?? 0.0,
-      detectedIssues: (json['detectedIssues'] as List?)?.map((issue) => issue.toString()).toList() ?? [],
+      detectedIssues: (json['detectedIssues'] as List?)
+              ?.map((issue) => issue.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -2419,7 +2446,10 @@ class PDFRepairStatus {
       contentRecovered: json['contentRecovered'] as bool? ?? false,
       fullyFunctional: json['fullyFunctional'] as bool? ?? false,
       repairMethod: json['repairMethod'] as String? ?? '',
-      repairInfo: (json['repairInfo'] as List?)?.map((info) => info.toString()).toList() ?? [],
+      repairInfo: (json['repairInfo'] as List?)
+              ?.map((info) => info.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -2465,7 +2495,10 @@ class PDFRecoveredContent {
       textContentLength: json['textContentLength'] as int? ?? 0,
       imagesRecovered: json['imagesRecovered'] as int? ?? 0,
       metadataPreserved: json['metadataPreserved'] as bool? ?? false,
-      recoveredElements: (json['recoveredElements'] as List?)?.map((element) => element.toString()).toList() ?? [],
+      recoveredElements: (json['recoveredElements'] as List?)
+              ?.map((element) => element.toString())
+              .toList() ??
+          [],
     );
   }
 

@@ -344,7 +344,9 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 ),
                 createSinglePdf = call.argument("createSinglePdf"),
             )
-            "cancelManipulations" -> pdfManipulator!!.cancelManipulations(call.argument<String>("operationId"))
+            "cancelManipulations" -> result.success(
+                pdfManipulator!!.cancelManipulations(call.argument<String>("operationId"))
+            )
             else -> result.notImplemented()
         }
     }
