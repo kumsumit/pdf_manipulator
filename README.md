@@ -189,7 +189,7 @@ String? encryptedPdfPath = await PdfManipulator().pdfEncryption(
       pdfPath: pdfPath,
       ownerPassword: "ownerpw",
       userPassword: "userpw",
-      encryptionAES256: true // Set true to enable encryptionAES256 encryption.
+      encryptionAES256: true), // Set true to enable encryptionAES256 encryption.
 );
 ```
 
@@ -209,6 +209,26 @@ String? encryptedPdfPath = await PdfManipulator().pdfEncryption(
 - `bool doNotEncryptMetadata = false` Set true to not encrypt metadata.
 
 **Note:** Please be aware that the passed encryption types may override permissions.
+
+### Certificate-based PDF encryption
+
+```dart
+String? encryptedPdfPath = await PdfManipulator().pdfCertificateEncryption(
+  params: PDFCertificateEncryptionParams(
+    pdfPath: pdfPath,
+    recipients: [
+      PDFCertificateEncryptionRecipient(
+        certificatePath: certificatePath,
+        allowPrinting: true,
+        allowCopy: true,
+      ),
+    ],
+    encryptionAES256: true,
+  ),
+);
+```
+
+`certificatePath` should point to an X.509 public certificate file. Each recipient can receive different permissions by setting the same permission flags used by password encryption.
 
 ### Decrypting PDF
 

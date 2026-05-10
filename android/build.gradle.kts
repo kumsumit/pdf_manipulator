@@ -45,15 +45,15 @@ android {
 }
 
 dependencies {
-    implementation("com.itextpdf:kernel:7.2.5")
-    implementation("com.itextpdf:layout:7.2.5")
-    implementation("com.itextpdf:io:7.2.5")
-    implementation("com.itextpdf:itextpdf:5.5.13.3")
-    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+    implementation("com.itextpdf:kernel:9.6.0")
+    implementation("com.itextpdf:layout:9.6.0")
+    implementation("com.itextpdf:io:9.6.0")
+    implementation("com.itextpdf:itextpdf:5.5.13.5")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.84")
     implementation("com.github.bumptech.glide:gifencoder-integration:5.0.7")
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
-    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     testImplementation(kotlin("test"))
     testImplementation("org.mockito:mockito-core:5.23.0")

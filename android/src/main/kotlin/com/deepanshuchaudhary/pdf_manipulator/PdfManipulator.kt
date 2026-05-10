@@ -528,6 +528,7 @@ class PdfManipulator(
         standardEncryptionAES40: Boolean,
         standardEncryptionAES128: Boolean,
         encryptionAES128: Boolean,
+        encryptionAES256: Boolean,
         encryptEmbeddedFilesOnly: Boolean,
         doNotEncryptMetadata: Boolean,
     ) {
@@ -553,6 +554,7 @@ class PdfManipulator(
                     standardEncryptionAES40,
                     standardEncryptionAES128,
                     encryptionAES128,
+                    encryptionAES256,
                     encryptEmbeddedFilesOnly,
                     doNotEncryptMetadata,
                     activity
@@ -571,6 +573,52 @@ class PdfManipulator(
             }
         }
         Log.d(LOG_TAG, "pdfEncryption - OUT")
+    }
+
+    // For certificate-based pdf encryption.
+    fun pdfCertificateEncryption(
+        resultCallback: Result,
+        sourceFilePath: String?,
+        recipients: List<Map<String, Any>>,
+        standardEncryptionAES40: Boolean,
+        standardEncryptionAES128: Boolean,
+        encryptionAES128: Boolean,
+        encryptionAES256: Boolean,
+        encryptEmbeddedFilesOnly: Boolean,
+        doNotEncryptMetadata: Boolean,
+    ) {
+        Log.d(
+            LOG_TAG, "pdfCertificateEncryption - IN, sourceFilePath=$sourceFilePath"
+        )
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val pdfPath: String? = getPdfCertificateEncrypted(
+                    sourceFilePath!!,
+                    recipients,
+                    standardEncryptionAES40,
+                    standardEncryptionAES128,
+                    encryptionAES128,
+                    encryptionAES256,
+                    encryptEmbeddedFilesOnly,
+                    doNotEncryptMetadata,
+                    activity
+                )
+
+                utils.finishSuccessfullyWithString(pdfPath, resultCallback)
+
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "pdfCertificateEncryption_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "pdfCertificateEncryption_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "pdfCertificateEncryption - OUT")
     }
 
     // For converting images to pdfs.

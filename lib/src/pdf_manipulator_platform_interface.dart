@@ -60,7 +60,8 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
         'pdfPageRotatorDeleterReorder() has not been implemented.');
   }
 
-  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) {
+  Future<OperationResult<String?>> pdfCompressor(
+      {PDFCompressorParams? params, ProgressCallback? onProgress}) {
     throw UnimplementedError('pdfCompressor() has not been implemented.');
   }
 
@@ -84,6 +85,13 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
 
   Future<String?> pdfEncryption({PDFEncryptionParams? params}) {
     throw UnimplementedError('pdfEncryption() has not been implemented.');
+  }
+
+  Future<String?> pdfCertificateEncryption({
+    PDFCertificateEncryptionParams? params,
+  }) {
+    throw UnimplementedError(
+        'pdfCertificateEncryption() has not been implemented.');
   }
 
   Future<List<String>?> imagesToPdfs({ImagesToPDFsParams? params}) {

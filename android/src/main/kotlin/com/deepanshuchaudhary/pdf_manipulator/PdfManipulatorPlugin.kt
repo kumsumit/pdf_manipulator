@@ -334,6 +334,18 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 standardEncryptionAES40 = call.argument<Boolean>("standardEncryptionAES40") == true,
                 standardEncryptionAES128 = call.argument<Boolean>("standardEncryptionAES128") == true,
                 encryptionAES128 = call.argument<Boolean>("encryptionAES128") == true,
+                encryptionAES256 = call.argument<Boolean>("encryptionAES256") == true,
+                encryptEmbeddedFilesOnly = call.argument<Boolean>("encryptEmbeddedFilesOnly") == true,
+                doNotEncryptMetadata = call.argument<Boolean>("doNotEncryptMetadata") == true,
+            )
+            "pdfCertificateEncryption" -> pdfManipulator!!.pdfCertificateEncryption(
+                result,
+                sourceFilePath = call.argument("pdfPath"),
+                recipients = call.argument<List<Map<String, Any>>>("recipients") ?: listOf(),
+                standardEncryptionAES40 = call.argument<Boolean>("standardEncryptionAES40") == true,
+                standardEncryptionAES128 = call.argument<Boolean>("standardEncryptionAES128") == true,
+                encryptionAES128 = call.argument<Boolean>("encryptionAES128") == true,
+                encryptionAES256 = call.argument<Boolean>("encryptionAES256") != false,
                 encryptEmbeddedFilesOnly = call.argument<Boolean>("encryptEmbeddedFilesOnly") == true,
                 doNotEncryptMetadata = call.argument<Boolean>("doNotEncryptMetadata") == true,
             )

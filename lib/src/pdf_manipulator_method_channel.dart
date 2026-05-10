@@ -136,6 +136,15 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   }
 
   @override
+  Future<String?> pdfCertificateEncryption({
+    PDFCertificateEncryptionParams? params,
+  }) async {
+    final String? path = await methodChannel.invokeMethod<String?>(
+        'pdfCertificateEncryption', params?.toJson());
+    return path;
+  }
+
+  @override
   Future<List<String>?> imagesToPdfs({ImagesToPDFsParams? params}) async {
     final List? paths = await methodChannel.invokeMethod<List?>(
         'imagesToPdfs', params?.toJson());
@@ -1069,6 +1078,123 @@ class PDFEncryptionParams {
       'standardEncryptionAES40': standardEncryptionAES40,
       'standardEncryptionAES128': standardEncryptionAES128,
       'encryptionAES128': encryptionAES128,
+      'encryptionAES256': encryptionAES256,
+      'encryptEmbeddedFilesOnly': encryptEmbeddedFilesOnly,
+      'doNotEncryptMetadata': doNotEncryptMetadata,
+    };
+  }
+}
+
+/// Recipient certificate and permissions for certificate-based encryption.
+class PDFCertificateEncryptionRecipient {
+  /// Path or URI to an X.509 public certificate file.
+  final String certificatePath;
+
+  /// Set true to allow printing permission for this recipient.
+  final bool allowPrinting;
+
+  /// Set true to allow modify permission for this recipient.
+  final bool allowModifyContents;
+
+  /// Set true to allow copy permission for this recipient.
+  final bool allowCopy;
+
+  /// Set true to allow modifying annotations permission for this recipient.
+  final bool allowModifyAnnotations;
+
+  /// Set true to allow fill in permission for this recipient.
+  final bool allowFillIn;
+
+  /// Set true to allow screen readers permission for this recipient.
+  final bool allowScreenReaders;
+
+  /// Set true to allow assembly permission for this recipient.
+  final bool allowAssembly;
+
+  /// Set true to allow degraded printing permission for this recipient.
+  final bool allowDegradedPrinting;
+
+  /// Create parameters for a certificate encryption recipient.
+  const PDFCertificateEncryptionRecipient({
+    required this.certificatePath,
+    this.allowPrinting = false,
+    this.allowModifyContents = false,
+    this.allowCopy = false,
+    this.allowModifyAnnotations = false,
+    this.allowFillIn = false,
+    this.allowScreenReaders = false,
+    this.allowAssembly = false,
+    this.allowDegradedPrinting = false,
+  });
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'certificatePath': certificatePath,
+      'allowPrinting': allowPrinting,
+      'allowModifyContents': allowModifyContents,
+      'allowCopy': allowCopy,
+      'allowModifyAnnotations': allowModifyAnnotations,
+      'allowFillIn': allowFillIn,
+      'allowScreenReaders': allowScreenReaders,
+      'allowAssembly': allowAssembly,
+      'allowDegradedPrinting': allowDegradedPrinting,
+    };
+  }
+}
+
+/// Parameters for the [pdfCertificateEncryption] method.
+class PDFCertificateEncryptionParams {
+  /// Provide path of pdf file which you want encrypted.
+  final String pdfPath;
+
+  /// Recipient certificates and their permissions.
+  final List<PDFCertificateEncryptionRecipient> recipients;
+
+  /// Set true to enable StandardEncryptionAES40 encryption.
+  final bool standardEncryptionAES40;
+
+  /// Set true to enable StandardEncryptionAES128 encryption.
+  final bool standardEncryptionAES128;
+
+  /// Set true to enable encryptionAES128 encryption.
+  final bool encryptionAES128;
+
+  /// Set true to enable encryptionAES256 encryption.
+  final bool encryptionAES256;
+
+  /// Set true to encrypt embedded files only.
+  final bool encryptEmbeddedFilesOnly;
+
+  /// Set true to not encrypt metadata.
+  final bool doNotEncryptMetadata;
+
+  /// Create parameters for certificate-based PDF encryption.
+  const PDFCertificateEncryptionParams({
+    required this.pdfPath,
+    required this.recipients,
+    this.standardEncryptionAES40 = false,
+    this.standardEncryptionAES128 = false,
+    this.encryptionAES128 = false,
+    this.encryptionAES256 = true,
+    this.encryptEmbeddedFilesOnly = false,
+    this.doNotEncryptMetadata = false,
+  })  : assert(recipients.length > 0, 'provide at least 1 recipient'),
+        assert(
+            (standardEncryptionAES40 ? 1 : 0) +
+                    (standardEncryptionAES128 ? 1 : 0) +
+                    (encryptionAES128 ? 1 : 0) +
+                    (encryptionAES256 ? 1 : 0) ==
+                1,
+            'Set exactly one encryption type true');
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'pdfPath': pdfPath,
+      'recipients': recipients.map((recipient) => recipient.toJson()).toList(),
+      'standardEncryptionAES40': standardEncryptionAES40,
+      'standardEncryptionAES128': standardEncryptionAES128,
+      'encryptionAES128': encryptionAES128,
+      'encryptionAES256': encryptionAES256,
       'encryptEmbeddedFilesOnly': encryptEmbeddedFilesOnly,
       'doNotEncryptMetadata': doNotEncryptMetadata,
     };
@@ -2527,6 +2653,7 @@ enum PDFBatchOperationType {
   validityAndProtection,
   decrypt,
   encrypt,
+  certificateEncrypt,
   imagesToPdfs,
   extractImages,
   pdfToImages,

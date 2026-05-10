@@ -19,6 +19,7 @@ void main() {
         'splitPDF' => <String>['/tmp/page-1.pdf', '/tmp/page-2.pdf'],
         'pdfCompressor' => '/tmp/compressed.pdf',
         'pdfToImages' => <String>['/tmp/page-1.webp'],
+        'pdfCertificateEncryption' => '/tmp/certificate-encrypted.pdf',
         'cancelManipulations' => 'Canceled operation: op-1',
         _ => null,
       };
@@ -97,6 +98,48 @@ void main() {
     expect(result, 'Canceled operation: op-1');
     expect(calls.single.method, 'cancelManipulations');
     expect(calls.single.arguments, {'operationId': 'op-1'});
+  });
+
+  test('pdfCertificateEncryption forwards recipients and options', () async {
+    final result = await PdfManipulator().pdfCertificateEncryption(
+      params: PDFCertificateEncryptionParams(
+        pdfPath: '/tmp/a.pdf',
+        recipients: [
+          const PDFCertificateEncryptionRecipient(
+            certificatePath: '/tmp/recipient.cer',
+            allowPrinting: true,
+            allowCopy: true,
+          ),
+        ],
+        encryptionAES256: true,
+        doNotEncryptMetadata: true,
+      ),
+    );
+
+    expect(result, '/tmp/certificate-encrypted.pdf');
+    expect(calls.single.method, 'pdfCertificateEncryption');
+    expect(calls.single.arguments, {
+      'pdfPath': '/tmp/a.pdf',
+      'recipients': [
+        {
+          'certificatePath': '/tmp/recipient.cer',
+          'allowPrinting': true,
+          'allowModifyContents': false,
+          'allowCopy': true,
+          'allowModifyAnnotations': false,
+          'allowFillIn': false,
+          'allowScreenReaders': false,
+          'allowAssembly': false,
+          'allowDegradedPrinting': false,
+        },
+      ],
+      'standardEncryptionAES40': false,
+      'standardEncryptionAES128': false,
+      'encryptionAES128': false,
+      'encryptionAES256': true,
+      'encryptEmbeddedFilesOnly': false,
+      'doNotEncryptMetadata': true,
+    });
   });
 
   test('batchProcess runs operations sequentially and reports progress',

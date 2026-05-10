@@ -56,8 +56,10 @@ class PdfManipulator {
   ///
   /// Returns OperationResult containing the path or uri of the resultant file or null if operation was cancelled.
   /// Throws exception on error.
-  Future<OperationResult<String?>> pdfCompressor({PDFCompressorParams? params, ProgressCallback? onProgress}) {
-    return PdfManipulatorPlatform.instance.pdfCompressor(params: params, onProgress: onProgress);
+  Future<OperationResult<String?>> pdfCompressor(
+      {PDFCompressorParams? params, ProgressCallback? onProgress}) {
+    return PdfManipulatorPlatform.instance
+        .pdfCompressor(params: params, onProgress: onProgress);
   }
 
   /// Watermarks provided pdf file.
@@ -171,6 +173,17 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.pdfEncryption(params: params);
   }
 
+  /// Provides pdf file for certificate-based encryption.
+  ///
+  /// Returns the path or uri of the resultant file or null if operation was cancelled.
+  /// Throws exception on error.
+  Future<String?> pdfCertificateEncryption({
+    required PDFCertificateEncryptionParams params,
+  }) {
+    return PdfManipulatorPlatform.instance
+        .pdfCertificateEncryption(params: params);
+  }
+
   /// Provide images to convert to pdfs.
   ///
   /// Returns the paths or uris of pdf files or null if operation was cancelled.
@@ -183,7 +196,8 @@ class PdfManipulator {
   ///
   /// Returns the cancelling message.
   Future<String?> cancelManipulations({String? operationId}) {
-    return PdfManipulatorPlatform.instance.cancelManipulations(operationId: operationId);
+    return PdfManipulatorPlatform.instance
+        .cancelManipulations(operationId: operationId);
   }
 
   /// Reads PDF metadata (title, author, subject, keywords, etc.).
@@ -319,6 +333,10 @@ class PdfManipulator {
         return pdfDecryption(params: operation.params as PDFDecryptionParams);
       case PDFBatchOperationType.encrypt:
         return pdfEncryption(params: operation.params as PDFEncryptionParams);
+      case PDFBatchOperationType.certificateEncrypt:
+        return pdfCertificateEncryption(
+          params: operation.params as PDFCertificateEncryptionParams,
+        );
       case PDFBatchOperationType.imagesToPdfs:
         return imagesToPdfs(params: operation.params as ImagesToPDFsParams);
       case PDFBatchOperationType.extractImages:
