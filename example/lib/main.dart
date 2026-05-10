@@ -90,21 +90,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String? _pickedFilePathForPdfToImages;
   List<String>? _pdfToImagesPaths;
-  ImageFormat _imageFormat = ImageFormat.png;
-  int _imageQuality = 90;
-  double _imageScale = 1.0;
+  final ImageFormat _imageFormat = ImageFormat.png;
+  final int _imageQuality = 90;
+  final double _imageScale = 1.0;
 
   String? _pickedFilePathForTextExtraction;
   PDFTextExtractionResult? _textExtractionResult;
 
   String? _pickedFilePathForOcr;
   PDFOCRResult? _ocrResult;
-  String _ocrLanguageCode = 'en';
+  final String _ocrLanguageCode = 'en';
 
   String? _pickedFilePathForDigitalSignature;
   String? _pickedCertificatePath;
   String? _signedPdfPath;
-  String _certificatePassword = 'password';
+  final String _certificatePassword = 'password';
 
   String? _pickedFilePathForAnnotations;
   String? _annotatedPdfPath;
@@ -166,9 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _pickedFilePathForComparison1;
   String? _pickedFilePathForComparison2;
   PDFComparisonResult? _comparisonResult;
-
-  String? _pickedFilePathForRepair;
-  PDFRepairResult? _repairResult;
 
   String? _pickedFilePathForAdvancedCompression;
   String? _advancedCompressedPdfPath;
@@ -503,19 +500,6 @@ class _MyHomePageState extends State<MyHomePage> {
     PDFComparisonResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfComparison(params: params);
-    } on PlatformException catch (e) {
-      log(e.toString());
-    } catch (e) {
-      log(e.toString());
-    }
-    return result;
-  }
-
-  Future<PDFRepairResult?> _pdfRepair(
-      PDFRepairParams params) async {
-    PDFRepairResult? result;
-    try {
-      result = await _pdfManipulatorPlugin.pdfRepair(params: params);
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -1752,6 +1736,11 @@ class _MyHomePageState extends State<MyHomePage> {
                         "Format: $_imageFormat, Quality: $_imageQuality, Scale: $_imageScale",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
+                      if (_pdfToImagesPaths != null)
+                        Text(
+                          "Generated images: ${_pdfToImagesPaths!.length}",
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
                     ],
                   ),
                 ),
@@ -2668,7 +2657,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Text("Page count equal: ${_comparisonResult!.structureComparison!.pageCountEqual}"),
                                     if (_comparisonResult!.structureComparison!.differences.isNotEmpty)
                                       ..._comparisonResult!.structureComparison!.differences.map((diff) =>
-                                        Text("• $diff", style: TextStyle(color: Colors.red))
+                                        Text("• $diff", style: const TextStyle(color: Colors.red))
                                       ),
                                   ],
 
@@ -2683,7 +2672,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     else
                                       ..._comparisonResult!.metadataComparison!.differences.map((diff) =>
                                         Text("• ${diff.field}: '${diff.value1}' vs '${diff.value2}'",
-                                             style: TextStyle(color: Colors.orange))
+                                             style: const TextStyle(color: Colors.orange))
                                       ),
                                   ],
 
@@ -2762,7 +2751,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     imageQuality: 85,
                                     imageScale: 0.9,
                                     unEmbedFonts: true,
-                                    advancedOptions: PDFAdvancedCompressionOptions(
+                                    advancedOptions: const PDFAdvancedCompressionOptions(
                                       enableFontSubsetting: true,
                                       removeDuplicateFonts: true,
                                       compressFonts: true,
@@ -2830,9 +2819,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.blue.shade200),
                         ),
-                        child: Column(
+                        child: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               "Advanced Compression Features:",
                               style: TextStyle(fontWeight: FontWeight.bold),

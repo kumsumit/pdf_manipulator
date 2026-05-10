@@ -2,9 +2,11 @@ package com.deepanshuchaudhary.pdf_manipulator
 
 import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import io.flutter.plugin.common.MethodChannel
 import java.io.*
 
@@ -121,6 +123,16 @@ class Utils {
             }
         }
         return cleanupFileName(fileName)
+    }
+
+    fun getOutputFile(sourcePath: String, context: Context, suffix: String): File {
+        val outputDir = File(context.cacheDir, "pdf_manipulator").apply {
+            if (!exists()) mkdirs()
+        }
+        val baseName = cleanupFileName(File(getURI(sourcePath).path ?: sourcePath).nameWithoutExtension)
+            ?.takeIf { it.isNotBlank() }
+            ?: "document"
+        return File(outputDir, "${baseName}_${suffix}_${System.currentTimeMillis()}.pdf")
     }
 
     private fun cleanupFileName(fileName: String?): String? {

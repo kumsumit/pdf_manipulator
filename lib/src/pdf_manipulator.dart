@@ -245,4 +245,126 @@ class PdfManipulator {
   }) {
     return PdfManipulatorPlatform.instance.pdfRepair(params: params);
   }
+
+  /// Runs multiple PDF operations sequentially.
+  ///
+  /// Returns per-operation results. When [PDFBatchProcessorParams.stopOnError]
+  /// is true, processing stops after the first failed operation.
+  Future<PDFBatchProcessorResult> batchProcess({
+    required PDFBatchProcessorParams params,
+    BatchProgressCallback? onProgress,
+  }) async {
+    final results = <PDFBatchOperationResult>[];
+    final total = params.operations.length;
+
+    for (var index = 0; index < total; index++) {
+      final operation = params.operations[index];
+
+      try {
+        final result = await _runBatchOperation(operation);
+        results.add(PDFBatchOperationResult(
+          type: operation.type,
+          id: operation.id,
+          success: true,
+          result: result,
+        ));
+      } catch (error) {
+        results.add(PDFBatchOperationResult(
+          type: operation.type,
+          id: operation.id,
+          success: false,
+          error: error.toString(),
+        ));
+
+        onProgress?.call(index + 1, total, operation);
+        if (params.stopOnError) {
+          break;
+        }
+        continue;
+      }
+
+      onProgress?.call(index + 1, total, operation);
+    }
+
+    return PDFBatchProcessorResult(results: results);
+  }
+
+  Future<Object?> _runBatchOperation(PDFBatchOperation operation) {
+    switch (operation.type) {
+      case PDFBatchOperationType.merge:
+        return mergePDFs(params: operation.params as PDFMergerParams);
+      case PDFBatchOperationType.split:
+        return splitPDF(params: operation.params as PDFSplitterParams);
+      case PDFBatchOperationType.deletePages:
+        return pdfPageDeleter(params: operation.params as PDFPageDeleterParams);
+      case PDFBatchOperationType.reorderPages:
+        return pdfPageReorder(params: operation.params as PDFPageReorderParams);
+      case PDFBatchOperationType.rotatePages:
+        return pdfPageRotator(params: operation.params as PDFPageRotatorParams);
+      case PDFBatchOperationType.rotateDeleteReorderPages:
+        return pdfPageRotatorDeleterReorder(
+          params: operation.params as PDFPageRotatorDeleterReorderParams,
+        );
+      case PDFBatchOperationType.compress:
+        return pdfCompressor(params: operation.params as PDFCompressorParams);
+      case PDFBatchOperationType.watermark:
+        return pdfWatermark(params: operation.params as PDFWatermarkParams);
+      case PDFBatchOperationType.pagesSize:
+        return pdfPagesSize(params: operation.params as PDFPagesSizeParams);
+      case PDFBatchOperationType.validityAndProtection:
+        return pdfValidityAndProtection(
+          params: operation.params as PDFValidityAndProtectionParams,
+        );
+      case PDFBatchOperationType.decrypt:
+        return pdfDecryption(params: operation.params as PDFDecryptionParams);
+      case PDFBatchOperationType.encrypt:
+        return pdfEncryption(params: operation.params as PDFEncryptionParams);
+      case PDFBatchOperationType.imagesToPdfs:
+        return imagesToPdfs(params: operation.params as ImagesToPDFsParams);
+      case PDFBatchOperationType.extractImages:
+        return extractImagesFromPdf(
+          params: operation.params as ExtractImageFromPDFParams,
+        );
+      case PDFBatchOperationType.pdfToImages:
+        return pdfToImages(params: operation.params as PDFToImagesParams);
+      case PDFBatchOperationType.textExtraction:
+        return pdfTextExtraction(
+          params: operation.params as PDFTextExtractionParams,
+        );
+      case PDFBatchOperationType.ocr:
+        return pdfOcr(params: operation.params as PDFOCRParams);
+      case PDFBatchOperationType.digitalSignature:
+        return pdfDigitalSignature(
+          params: operation.params as PDFDigitalSignatureParams,
+        );
+      case PDFBatchOperationType.annotations:
+        return pdfAnnotations(params: operation.params as PDFAnnotationsParams);
+      case PDFBatchOperationType.fillFormFields:
+        return fillFormFields(params: operation.params as PDFFormFillParams);
+      case PDFBatchOperationType.extractFormFieldData:
+        return extractFormFieldData(
+          params: operation.params as PDFFormFieldDataParams,
+        );
+      case PDFBatchOperationType.metadataReader:
+        return pdfMetadataReader(
+          params: operation.params as PDFMetadataReaderParams,
+        );
+      case PDFBatchOperationType.metadataWriter:
+        return pdfMetadataWriter(
+          params: operation.params as PDFMetadataWriterParams,
+        );
+      case PDFBatchOperationType.bookmarkReader:
+        return pdfBookmarkReader(
+          params: operation.params as PDFBookmarkReaderParams,
+        );
+      case PDFBatchOperationType.bookmarkWriter:
+        return pdfBookmarkWriter(
+          params: operation.params as PDFBookmarkWriterParams,
+        );
+      case PDFBatchOperationType.comparison:
+        return pdfComparison(params: operation.params as PDFComparisonParams);
+      case PDFBatchOperationType.repair:
+        return pdfRepair(params: operation.params as PDFRepairParams);
+    }
+  }
 }

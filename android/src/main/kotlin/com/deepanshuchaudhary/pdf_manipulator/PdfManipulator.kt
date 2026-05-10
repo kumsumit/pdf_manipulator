@@ -6,8 +6,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import android.content.Context
 import android.net.Uri
@@ -17,15 +17,15 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.ParcelFileDescriptor
 import com.google.mlkit.vision.common.InputImage
+import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.itextpdf.text.Document
 import com.itextpdf.text.Rectangle
 import com.itextpdf.text.pdf.AcroFields
-import com.itextpdf.text.Document
 import com.itextpdf.text.pdf.PdfAnnotation
 import com.itextpdf.text.pdf.PdfArray
+import com.itextpdf.text.pdf.PdfCopy
 import com.itextpdf.text.pdf.PdfImportedPage
 import com.itextpdf.text.pdf.PdfName
 import com.itextpdf.text.pdf.PdfReader
@@ -68,8 +68,11 @@ class PdfManipulator(
 
     private val runningOperations = mutableMapOf<String, OperationInfo>()
     private val operationLock = Any()
+    private var job: Job? = null
 
     private val utils = Utils()
+
+    private data class LocalPdfFile(val file: File, val shouldDelete: Boolean)
 
     // For merging multiple pdf files.
     fun mergePdfs(
@@ -311,11 +314,12 @@ class PdfManipulator(
         )
 
         val uiScope = CoroutineScope(Dispatchers.Main)
-        val job = uiScope.launch {
+        lateinit var compressionJob: Job
+        compressionJob = uiScope.launch {
             try {
                 // Register the operation
                 synchronized(operationLock) {
-                    runningOperations[operationId] = OperationInfo(operationId, job, methodChannel)
+                    runningOperations[operationId] = OperationInfo(operationId, compressionJob, methodChannel)
                 }
 
                 val resultPDFPath: String? = getCompressedPDFPathWithProgress(
@@ -1060,6 +1064,62 @@ class PdfManipulator(
         )
     }
 
+    private suspend fun performOcrOnPdf(
+        context: Context,
+        pdfPath: String,
+        pages: List<Int>?,
+        languageCode: String
+    ): Map<String, Any> = withContext(Dispatchers.IO) {
+        val pageResults = mutableMapOf<String, Map<String, Any>>()
+        val fullText = StringBuilder()
+        val pdfUri = Uri.parse(pdfPath)
+        val parcelFileDescriptor = context.contentResolver.openFileDescriptor(pdfUri, "r")
+            ?: throw IOException("Cannot open PDF file")
+        val pdfRenderer = PdfRenderer(parcelFileDescriptor)
+        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
+        try {
+            val selectedPages = pages?.takeIf { it.isNotEmpty() }
+                ?: (1..pdfRenderer.pageCount).toList()
+
+            for (pageNumber in selectedPages) {
+                val pageIndex = pageNumber - 1
+                if (pageIndex !in 0 until pdfRenderer.pageCount) continue
+
+                val page = pdfRenderer.openPage(pageIndex)
+                val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                try {
+                    val canvas = Canvas(bitmap)
+                    canvas.drawColor(Color.WHITE)
+                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+                    val visionText = Tasks.await(recognizer.process(InputImage.fromBitmap(bitmap, 0)))
+                    val confidence = calculateAverageConfidence(visionText)
+                    pageResults[pageNumber.toString()] = mapOf(
+                        "text" to visionText.text,
+                        "confidence" to confidence
+                    )
+
+                    if (fullText.isNotEmpty()) fullText.append("\n\n")
+                    fullText.append(visionText.text)
+                } finally {
+                    page.close()
+                    bitmap.recycle()
+                }
+            }
+        } finally {
+            recognizer.close()
+            pdfRenderer.close()
+            parcelFileDescriptor.close()
+        }
+
+        return@withContext mapOf(
+            "pageResults" to pageResults,
+            "fullText" to fullText.toString(),
+            "languageCode" to languageCode
+        )
+    }
+
     private suspend fun fillPdfFormFields(
         context: Context,
         pdfPath: String,
@@ -1266,10 +1326,10 @@ class PdfManipulator(
                     iconName
                 )
             }
-            "highlight" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.HIGHLIGHT)
-            "underline" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.UNDERLINE)
-            "strikeThrough" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.STRIKEOUT)
-            "squiggly" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.SQUIGGLY)
+            "highlight" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.MARKUP_HIGHLIGHT)
+            "underline" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.MARKUP_UNDERLINE)
+            "strikeThrough" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.MARKUP_STRIKEOUT)
+            "squiggly" -> createMarkupAnnotation(stamper, data, rect, PdfAnnotation.MARKUP_SQUIGGLY)
             "link" -> {
                 val url = data["url"] as? String ?: return null
                 PdfAnnotation.createLink(
@@ -1284,52 +1344,51 @@ class PdfManipulator(
         }
     }
 
-    private fun createMarkupAnnotation(stamper: PdfStamper, data: Map<String, Any>, rect: Rectangle, subtype: PdfName): PdfAnnotation? {
+    private fun createMarkupAnnotation(stamper: PdfStamper, data: Map<String, Any>, rect: Rectangle, subtype: Int): PdfAnnotation? {
         val quadsData = data["quads"] as? List<*> ?: return null
-        val title = data["title"] as? String ?: ""
         val contents = data["contents"] as? String ?: ""
 
-        val quads = PdfArray()
+        val quads = mutableListOf<Float>()
         for (quadData in quadsData) {
             if (quadData is List<*> && quadData.size >= 8) {
                 for (i in 0..7) {
-                    quads.add(PdfName((quadData[i] as Number).toFloat()))
+                    quads.add((quadData[i] as Number).toFloat())
                 }
             }
         }
+        if (quads.isEmpty()) return null
 
         return PdfAnnotation.createMarkup(
             stamper.writer,
             rect,
-            title,
             contents,
             subtype,
-            quads
+            quads.toFloatArray()
         )
     }
 
     private fun createInkAnnotation(stamper: PdfStamper, data: Map<String, Any>, rect: Rectangle): PdfAnnotation? {
         val inkListData = data["inkList"] as? List<*> ?: return null
-        val title = data["title"] as? String ?: ""
         val contents = data["contents"] as? String ?: ""
 
-        val inkList = PdfArray()
-        for (strokeData in inkListData) {
+        val inkList = inkListData.mapNotNull { strokeData ->
             if (strokeData is List<*>) {
-                val stroke = PdfArray()
+                val stroke = mutableListOf<Float>()
                 for (point in strokeData) {
                     if (point is Number) {
-                        stroke.add(PdfName(point.toFloat()))
+                        stroke.add(point.toFloat())
                     }
                 }
-                inkList.add(stroke)
+                stroke.toFloatArray()
+            } else {
+                null
             }
-        }
+        }.toTypedArray()
+        if (inkList.isEmpty()) return null
 
         return PdfAnnotation.createInk(
             stamper.writer,
             rect,
-            title,
             contents,
             inkList
         )
@@ -1415,8 +1474,6 @@ class PdfManipulator(
                 signatureAppearance.layer2Text = text
             }
 
-            val fontSize = (appearance["fontSize"] as? Number)?.toFloat() ?: 12f
-            signatureAppearance.layer2FontSize = fontSize
         } else {
             // Default signature position if no appearance specified
             val rect = Rectangle(36f, 36f, 236f, 136f)
@@ -1465,10 +1522,13 @@ class PdfManipulator(
         job = uiScope.launch {
             try {
                 val metadataResult = withContext(Dispatchers.IO) {
-                    readPDFMetadata(pdfPath)
+                    readPDFMetadata(context, pdfPath)
                 }
 
-                utils.finishSuccessfullyWithMap(metadataResult, resultCallback)
+                val metadataPayload = metadataResult.mapNotNull { (key, value) ->
+                    value?.let { key to it }
+                }.toMap()
+                utils.finishSuccessfullyWithMap(metadataPayload, resultCallback)
             } catch (e: Exception) {
                 utils.finishWithError(
                     "pdfMetadataReader_exception", e.stackTraceToString(), null, resultCallback
@@ -1530,27 +1590,26 @@ class PdfManipulator(
         Log.d(LOG_TAG, "pdfMetadataWriter - OUT")
     }
 
-    // Helper function to read PDF metadata
-    private fun readPDFMetadata(pdfPath: String): Map<String, String?> {
-        val reader = PdfReader(pdfPath)
-        val info = reader.info
+    private fun readPDFMetadata(context: Context, pdfPath: String): Map<String, String?> {
+        val localPdf = materializePdf(context, pdfPath, "metadata_read")
+        val reader = PdfReader(localPdf.file.absolutePath)
 
-        // Convert date strings to ISO 8601 format if present
-        val creationDate = info.get("CreationDate")
-        val modificationDate = info.get("ModDate")
-
-        val result = mutableMapOf<String, String?>()
-        result["title"] = info.get("Title")
-        result["author"] = info.get("Author")
-        result["subject"] = info.get("Subject")
-        result["keywords"] = info.get("Keywords")
-        result["creator"] = info.get("Creator")
-        result["producer"] = info.get("Producer")
-        result["creationDate"] = creationDate?.let { convertPDFDateToISO(it) }
-        result["modificationDate"] = modificationDate?.let { convertPDFDateToISO(it) }
-
-        reader.close()
-        return result
+        return try {
+            val info = reader.info
+            mapOf(
+                "title" to info["Title"],
+                "author" to info["Author"],
+                "subject" to info["Subject"],
+                "keywords" to info["Keywords"],
+                "creator" to info["Creator"],
+                "producer" to info["Producer"],
+                "creationDate" to info["CreationDate"]?.let { convertPDFDateToISO(it) },
+                "modificationDate" to info["ModDate"]?.let { convertPDFDateToISO(it) },
+            )
+        } finally {
+            reader.close()
+            deleteIfTemp(localPdf)
+        }
     }
 
     // Helper function to write PDF metadata
@@ -1566,36 +1625,33 @@ class PdfManipulator(
         modificationDate: String?,
         context: Context
     ): String {
-        val reader = PdfReader(pdfPath)
+        val localPdf = materializePdf(context, pdfPath, "metadata_write")
+        val reader = PdfReader(localPdf.file.absolutePath)
         val outputFile = utils.getOutputFile(pdfPath, context, "metadata")
 
         val stamper = PdfStamper(reader, FileOutputStream(outputFile))
 
-        // Create new info dictionary
-        val info = HashMap<String, String>()
+        try {
+            val info = HashMap<String, String>()
+            reader.info.forEach { (key, value) ->
+                if (value != null) info[key] = value
+            }
 
-        // Copy existing metadata
-        reader.info.forEach { (key, value) ->
-            info[key] = value
+            title?.let { info["Title"] = it }
+            author?.let { info["Author"] = it }
+            subject?.let { info["Subject"] = it }
+            keywords?.let { info["Keywords"] = it }
+            creator?.let { info["Creator"] = it }
+            producer?.let { info["Producer"] = it }
+            creationDate?.let { info["CreationDate"] = convertISOToPDFDate(it) }
+            modificationDate?.let { info["ModDate"] = convertISOToPDFDate(it) }
+
+            stamper.setMoreInfo(info)
+        } finally {
+            stamper.close()
+            reader.close()
+            deleteIfTemp(localPdf)
         }
-
-        // Update with new values
-        title?.let { info["Title"] = it }
-        author?.let { info["Author"] = it }
-        subject?.let { info["Subject"] = it }
-        keywords?.let { info["Keywords"] = it }
-        creator?.let { info["Creator"] = it }
-        producer?.let { info["Producer"] = it }
-
-        // Handle dates
-        creationDate?.let { info["CreationDate"] = convertISOToPDFDate(it) }
-        modificationDate?.let { info["ModDate"] = convertISOToPDFDate(it) }
-
-        // Set the updated metadata
-        stamper.setMoreInfo(info)
-
-        stamper.close()
-        reader.close()
 
         return outputFile.absolutePath
     }
@@ -1644,75 +1700,84 @@ class PdfManipulator(
         return isoDate // Return original if conversion fails
     }
 
-    // Helper function to read PDF bookmarks
-    private fun readPDFBookmarks(pdfPath: String): Map<String, Any> {
-        val reader = PdfReader(pdfPath)
-        val bookmarks = SimpleBookmark.getBookmark(reader)
+    private fun materializePdf(context: Context, pdfPath: String, prefix: String): LocalPdfFile {
+        val uri = utils.getURI(pdfPath)
+        if (uri.scheme.isNullOrEmpty() || uri.scheme == "file") {
+            val filePath = uri.path ?: pdfPath
+            return LocalPdfFile(File(filePath), false)
+        }
 
-        val processedBookmarks = processBookmarks(bookmarks)
+        val tempFile = File.createTempFile(prefix, ".pdf", context.cacheDir)
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(tempFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        } ?: throw IOException("Cannot open PDF file: $pdfPath")
 
-        reader.close()
-
-        return mapOf("bookmarks" to processedBookmarks)
+        return LocalPdfFile(tempFile, true)
     }
 
-    // Helper function to write PDF bookmarks
-    private fun writePDFBookmarks(
+    private fun deleteIfTemp(localPdf: LocalPdfFile) {
+        if (localPdf.shouldDelete) {
+            utils.safeDeleteTempFiles(listOf(localPdf.file))
+        }
+    }
+
+    fun pdfBookmarkReader(
+        resultCallback: Result,
+        context: Context,
+        pdfPath: String,
+    ) {
+        Log.d(LOG_TAG, "pdfBookmarkReader - IN, pdfPath=$pdfPath")
+
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val bookmarkResult = withContext(Dispatchers.IO) {
+                    readPDFBookmarks(context, pdfPath)
+                }
+                utils.finishSuccessfullyWithMap(bookmarkResult, resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "pdfBookmarkReader_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "pdfBookmarkReader_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "pdfBookmarkReader - OUT")
+    }
+
+    fun pdfBookmarkWriter(
+        resultCallback: Result,
+        context: Context,
         pdfPath: String,
         bookmarks: List<Map<String, Any>>,
-        context: Context
-    ): String {
-        val reader = PdfReader(pdfPath)
-        val outputFile = utils.getOutputFile(pdfPath, context, "bookmarks")
+    ) {
+        Log.d(LOG_TAG, "pdfBookmarkWriter - IN, pdfPath=$pdfPath")
 
-        val stamper = PdfStamper(reader, FileOutputStream(outputFile))
-
-        // Convert bookmark list to iText format
-        val bookmarkList = convertToITextBookmarks(bookmarks)
-
-        // Set the bookmarks
-        stamper.setOutlines(bookmarkList)
-
-        stamper.close()
-        reader.close()
-
-        return outputFile.absolutePath
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                val resultPDFPath = withContext(Dispatchers.IO) {
+                    writePDFBookmarks(pdfPath, bookmarks, context)
+                }
+                utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError(
+                    "pdfBookmarkWriter_exception", e.stackTraceToString(), null, resultCallback
+                )
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError(
+                    "pdfBookmarkWriter_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
+                )
+            }
+        }
+        Log.d(LOG_TAG, "pdfBookmarkWriter - OUT")
     }
 
-    // Helper function to process bookmarks from iText format to our format
-    private fun processBookmarks(bookmarks: List<Map<String, Any>>?): List<Map<String, Any>> {
-        if (bookmarks == null) return emptyList()
-
-        return bookmarks.map { bookmark ->
-            val processedBookmark = mutableMapOf<String, Any>()
-
-            // Extract title
-            processedBookmark["title"] = bookmark["Title"] as? String ?: ""
-
-            // Extract page information
-            val action = bookmark["Action"] as? Map<*, *>
-            if (action != null) {
-                val type = action["S"] as? PdfName
-                if (type?.toString() == "/GoTo") {
-                    val destination = action["D"] as? List<*>
-                    if (destination != null && destination.isNotEmpty()) {
-                        // Try to extract page number
-                        when (val pageRef = destination[0]) {
-                            is PdfArray -> {
-                                // Handle page reference
-                                processedBookmark["page"] = pageRef.toString()
-                            }
-                            is Int -> {
-                                processedBookmark["pageNumber"] = pageRef
-                            }
-                            is String -> {
-                                if (pageRef.startsWith("#page=")) {
-                                    val pageNum = pageRef.substring(6).toIntOrNull()
-                                    if (pageNum != null) {
-                                        processedBookmark["pageNumber"] = pageNum
-    }
-
-    // For comparing two PDFs
     fun pdfComparison(
         resultCallback: Result,
         context: Context,
@@ -1728,9 +1793,8 @@ class PdfManipulator(
         job = uiScope.launch {
             try {
                 val comparisonResult = withContext(Dispatchers.IO) {
-                    comparePDFs(pdfPath1, pdfPath2, compareText, compareMetadata, compareStructure)
+                    comparePDFs(context, pdfPath1, pdfPath2, compareText, compareMetadata, compareStructure)
                 }
-
                 utils.finishSuccessfullyWithMap(comparisonResult, resultCallback)
             } catch (e: Exception) {
                 utils.finishWithError(
@@ -1745,199 +1809,6 @@ class PdfManipulator(
         Log.d(LOG_TAG, "pdfComparison - OUT")
     }
 
-    // Helper function to compare two PDFs
-    private fun comparePDFs(
-        pdfPath1: String,
-        pdfPath2: String,
-        compareText: Boolean,
-        compareMetadata: Boolean,
-        compareStructure: Boolean
-    ): Map<String, Any> {
-        val result = mutableMapOf<String, Any>()
-        val summary = mutableListOf<String>()
-        var overallSimilarity = 1.0
-
-        // Structure comparison
-        var structureComparison: Map<String, Any>? = null
-        if (compareStructure) {
-            structureComparison = comparePDFStructure(pdfPath1, pdfPath2)
-            result["structureComparison"] = structureComparison
-            val pageCountEqual = structureComparison["pageCountEqual"] as Boolean
-            if (!pageCountEqual) {
-                summary.add("Page counts differ")
-                overallSimilarity *= 0.7
-            }
-        }
-
-        // Metadata comparison
-        var metadataComparison: Map<String, Any>? = null
-        if (compareMetadata) {
-            metadataComparison = comparePDFMetadata(pdfPath1, pdfPath2)
-            result["metadataComparison"] = metadataComparison
-            val differences = metadataComparison["differences"] as List<Map<String, Any>>
-            if (differences.isNotEmpty()) {
-                summary.add("${differences.size} metadata differences found")
-                overallSimilarity *= 0.9
-            }
-        }
-
-        // Text comparison
-        var textComparison: Map<String, Any>? = null
-        if (compareText) {
-            textComparison = comparePDFText(pdfPath1, pdfPath2)
-            result["textComparison"] = textComparison
-            val similarity = textComparison["similarity"] as Double
-            val differences = textComparison["differences"] as List<Map<String, Any>>
-
-            if (similarity < 1.0) {
-                summary.add("Text similarity: ${(similarity * 100).toInt()}%")
-                overallSimilarity *= similarity
-            }
-
-            if (differences.isNotEmpty()) {
-                summary.add("${differences.size} text differences found")
-            }
-        }
-
-        if (summary.isEmpty()) {
-            summary.add("PDFs are identical")
-        }
-
-        result["overallSimilarity"] = overallSimilarity
-        result["summary"] = summary
-
-        return result
-    }
-
-    // Helper function to compare PDF structure
-    private fun comparePDFStructure(pdfPath1: String, pdfPath2: String): Map<String, Any> {
-        val reader1 = PdfReader(pdfPath1)
-        val reader2 = PdfReader(pdfPath2)
-
-        val pageCount1 = reader1.numberOfPages
-        val pageCount2 = reader2.numberOfPages
-        val pageCountEqual = pageCount1 == pageCount2
-
-        val differences = mutableListOf<String>()
-
-        if (!pageCountEqual) {
-            differences.add("Page count: $pageCount1 vs $pageCount2")
-        }
-
-        // Compare file sizes
-        val file1 = File(pdfPath1)
-        val file2 = File(pdfPath2)
-        val size1 = file1.length()
-        val size2 = file2.length()
-
-        if (size1 != size2) {
-            differences.add("File size: ${size1}B vs ${size2}B")
-        }
-
-        reader1.close()
-        reader2.close()
-
-        return mapOf(
-            "pageCount1" to pageCount1,
-            "pageCount2" to pageCount2,
-            "pageCountEqual" to pageCountEqual,
-            "differences" to differences
-        )
-    }
-
-    // Helper function to compare PDF metadata
-    private fun comparePDFMetadata(pdfPath1: String, pdfPath2: String): Map<String, Any> {
-        val metadata1 = readPDFMetadata(pdfPath1)
-        val metadata2 = readPDFMetadata(pdfPath2)
-
-        val differences = mutableListOf<Map<String, Any>>()
-
-        val fields = listOf("title", "author", "subject", "keywords", "creator", "producer", "creationDate", "modificationDate")
-
-        for (field in fields) {
-            val value1 = metadata1[field] as? String
-            val value2 = metadata2[field] as? String
-
-            if (value1 != value2) {
-                differences.add(mapOf(
-                    "field" to field,
-                    "value1" to (value1 ?: ""),
-                    "value2" to (value2 ?: "")
-                ))
-            }
-        }
-
-        return mapOf(
-            "metadata1" to metadata1,
-            "metadata2" to metadata2,
-            "differences" to differences
-        )
-    }
-
-    // Helper function to compare PDF text content
-    private fun comparePDFText(pdfPath1: String, pdfPath2: String): Map<String, Any> {
-        val text1 = extractFullText(pdfPath1)
-        val text2 = extractFullText(pdfPath2)
-
-        val differences = mutableListOf<Map<String, Any>>()
-
-        // Simple text similarity calculation
-        val similarity = calculateTextSimilarity(text1, text2)
-
-        // Find basic differences (this is a simplified implementation)
-        if (text1 != text2) {
-            val maxLength = maxOf(text1.length, text2.length)
-            val minLength = minOf(text1.length, text2.length)
-
-            differences.add(mapOf(
-                "type" to "modified",
-                "position1" to 0,
-                "position2" to 0,
-                "length" to maxLength,
-                "content" to "Text content differs"
-            ))
-        }
-
-        return mapOf(
-            "text1" to text1,
-            "text2" to text2,
-            "similarity" to similarity,
-            "differences" to differences
-        )
-    }
-
-    // Helper function to extract full text from PDF
-    private fun extractFullText(pdfPath: String): String {
-        val reader = PdfReader(pdfPath)
-        val text = StringBuilder()
-
-        for (pageNum in 1..reader.numberOfPages) {
-            val pageText = PdfTextExtractor.getTextFromPage(reader, pageNum)
-            text.append(pageText).append("\n")
-        }
-
-        reader.close()
-        return text.toString()
-    }
-
-    // Helper function to calculate text similarity (simple implementation)
-    private fun calculateTextSimilarity(text1: String, text2: String): Double {
-        if (text1 == text2) return 1.0
-        if (text1.isEmpty() && text2.isEmpty()) return 1.0
-        if (text1.isEmpty() || text2.isEmpty()) return 0.0
-
-        // Simple similarity based on common words
-        val words1 = text1.lowercase().split(Regex("\\s+")).toSet()
-        val words2 = text2.lowercase().split(Regex("\\s+")).toSet()
-
-        val intersection = words1.intersect(words2).size.toDouble()
-        val union = words1.union(words2).size.toDouble()
-
-        return if (union > 0) intersection / union else 0.0
-    }
-    }
-
-    // For repairing corrupted PDFs
     fun pdfRepair(
         resultCallback: Result,
         context: Context,
@@ -1951,7 +1822,6 @@ class PdfManipulator(
                 val repairResult = withContext(Dispatchers.IO) {
                     attemptPDFRepair(pdfPath, context)
                 }
-
                 utils.finishSuccessfullyWithMap(repairResult, resultCallback)
             } catch (e: Exception) {
                 utils.finishWithError(
@@ -1966,375 +1836,401 @@ class PdfManipulator(
         Log.d(LOG_TAG, "pdfRepair - OUT")
     }
 
-    // Helper function to attempt PDF repair
-    private fun attemptPDFRepair(pdfPath: String, context: Context): Map<String, Any> {
-        val issues = mutableListOf<String>()
-        val recoveredElements = mutableListOf<String>()
+    private fun readPDFBookmarks(context: Context, pdfPath: String): Map<String, Any> {
+        val localPdf = materializePdf(context, pdfPath, "bookmarks_read")
+        val reader = PdfReader(localPdf.file.absolutePath)
 
-        // Analyze original PDF corruption status
-        val corruptionStatus = analyzePDFCorruption(pdfPath)
-        issues.addAll(corruptionStatus.detectedIssues)
-
-        var repairedPdfPath: String? = null
-        var repairStatus: Map<String, Any>
-        var recoveredContent: Map<String, Any>? = null
-
-        if (corruptionStatus.canOpen && corruptionStatus.corruptionLevel < 0.8) {
-            // Try gentle repair - just copy and validate
-            try {
-                val outputFile = utils.getOutputFile(pdfPath, context, "repaired")
-                File(pdfPath).copyTo(outputFile, overwrite = true)
-
-                // Validate the copy
-                val reader = PdfReader(outputFile.absolutePath)
-                reader.close()
-
-                repairedPdfPath = outputFile.absolutePath
-                repairStatus = mapOf(
-                    "completed" to true,
-                    "contentRecovered" to true,
-                    "fullyFunctional" to (corruptionStatus.corruptionLevel < 0.1),
-                    "repairMethod" to "validation_copy",
-                    "repairInfo" to listOf("PDF structure validated and copied")
-                )
-                recoveredContent = mapOf(
-                    "pagesRecovered" to corruptionStatus.pageCount,
-                    "textContentLength" to 0, // Would need full extraction
-                    "imagesRecovered" to 0,
-                    "metadataPreserved" to true,
-                    "recoveredElements" to recoveredElements
-                )
-            } catch (e: Exception) {
-                issues.add("Copy validation failed: ${e.message}")
-                repairStatus = mapOf(
-                    "completed" to false,
-                    "contentRecovered" to false,
-                    "fullyFunctional" to false,
-                    "repairMethod" to "failed_copy",
-                    "repairInfo" to listOf("Unable to create valid copy: ${e.message}")
-                )
-            }
-        } else if (corruptionStatus.canOpen && corruptionStatus.hasReadableContent) {
-            // Try content extraction and reconstruction
-            try {
-                val reconstructionResult = reconstructPDF(pdfPath, context)
-                if (reconstructionResult != null) {
-                    repairedPdfPath = reconstructionResult.first
-                    recoveredContent = reconstructionResult.second
-                    recoveredElements.addAll(recoveredContent["recoveredElements"] as List<String>)
-
-                    repairStatus = mapOf(
-                        "completed" to true,
-                        "contentRecovered" to true,
-                        "fullyFunctional" to (recoveredContent["pagesRecovered"] as Int > 0),
-                        "repairMethod" to "content_reconstruction",
-                        "repairInfo" to listOf("Content extracted and reconstructed into new PDF")
-                    )
-                } else {
-                    repairStatus = mapOf(
-                        "completed" to false,
-                        "contentRecovered" to false,
-                        "fullyFunctional" to false,
-                        "repairMethod" to "reconstruction_failed",
-                        "repairInfo" to listOf("Content reconstruction failed")
-                    )
-                }
-            } catch (e: Exception) {
-                issues.add("Reconstruction failed: ${e.message}")
-                repairStatus = mapOf(
-                    "completed" to false,
-                    "contentRecovered" to false,
-                    "fullyFunctional" to false,
-                    "repairMethod" to "reconstruction_error",
-                    "repairInfo" to listOf("Reconstruction error: ${e.message}")
-                )
-            }
-        } else {
-            // PDF is too corrupted for repair
-            repairStatus = mapOf(
-                "completed" to false,
-                "contentRecovered" to false,
-                "fullyFunctional" to false,
-                "repairMethod" to "unrepairable",
-                "repairInfo" to listOf("PDF corruption level too high for repair")
-            )
-            issues.add("PDF is too severely corrupted for repair")
+        return try {
+            mapOf("bookmarks" to processBookmarks(SimpleBookmark.getBookmark(reader)))
+        } finally {
+            reader.close()
+            deleteIfTemp(localPdf)
         }
-
-        return mapOf(
-            "wasRepaired" to (repairedPdfPath != null),
-            "repairedPdfPath" to repairedPdfPath,
-            "originalStatus" to corruptionStatus.toMap(),
-            "repairStatus" to repairStatus,
-            "issues" to issues,
-            "recoveredContent" to recoveredContent
-        )
     }
 
-    // Helper function to analyze PDF corruption
-    private fun analyzePDFCorruption(pdfPath: String): PDFCorruptionAnalysis {
-        val detectedIssues = mutableListOf<String>()
-        var canOpen = false
-        var hasValidStructure = false
-        var hasReadableContent = false
-        var pageCount = 0
-        var corruptionLevel = 0.0
+    private fun writePDFBookmarks(
+        pdfPath: String,
+        bookmarks: List<Map<String, Any>>,
+        context: Context
+    ): String {
+        val localPdf = materializePdf(context, pdfPath, "bookmarks_write")
+        val reader = PdfReader(localPdf.file.absolutePath)
+        val outputFile = utils.getOutputFile(pdfPath, context, "bookmarks")
+        val stamper = PdfStamper(reader, FileOutputStream(outputFile))
 
         try {
-            val reader = PdfReader(pdfPath)
-            canOpen = true
-            pageCount = reader.numberOfPages
-
-            // Check basic structure
-            try {
-                // Try to access pages
-                for (i in 1..minOf(pageCount, 5)) { // Check first 5 pages
-                    val page = reader.getPageN(i)
-                    if (page != null) {
-                        hasValidStructure = true
-                        hasReadableContent = true
-                        break
-                    }
-                }
-            } catch (e: Exception) {
-                detectedIssues.add("Page access error: ${e.message}")
-                corruptionLevel += 0.3
-            }
-
-            // Check if we can extract text from at least one page
-            if (hasValidStructure) {
-                try {
-                    val text = PdfTextExtractor.getTextFromPage(reader, 1)
-                    if (text.isNotEmpty()) {
-                        hasReadableContent = true
-                    } else {
-                        detectedIssues.add("No readable text content found")
-                        corruptionLevel += 0.2
-                    }
-                } catch (e: Exception) {
-                    detectedIssues.add("Text extraction error: ${e.message}")
-                    corruptionLevel += 0.3
-                }
-            }
-
-            // Check file size vs expected
-            val file = File(pdfPath)
-            val fileSizeKB = file.length() / 1024.0
-            if (fileSizeKB < 1.0) {
-                detectedIssues.add("Unusually small file size: ${fileSizeKB}KB")
-                corruptionLevel += 0.2
-            }
-
+            stamper.setOutlines(convertToITextBookmarks(bookmarks))
+        } finally {
+            stamper.close()
             reader.close()
-
-        } catch (e: Exception) {
-            detectedIssues.add("Cannot open PDF: ${e.message}")
-            corruptionLevel = 1.0
+            deleteIfTemp(localPdf)
         }
 
-        if (!canOpen) corruptionLevel = 1.0
-        else if (!hasValidStructure) corruptionLevel = minOf(corruptionLevel + 0.5, 1.0)
-        else if (!hasReadableContent) corruptionLevel = minOf(corruptionLevel + 0.3, 1.0)
-
-        return PDFCorruptionAnalysis(
-            canOpen = canOpen,
-            hasValidStructure = hasValidStructure,
-            hasReadableContent = hasReadableContent,
-            corruptionLevel = corruptionLevel,
-            detectedIssues = detectedIssues,
-            pageCount = pageCount
-        )
+        return outputFile.absolutePath
     }
 
-    // Helper function to reconstruct PDF from corrupted file
-    private fun reconstructPDF(pdfPath: String, context: Context): Pair<String, Map<String, Any>>? {
-        return try {
-            val outputFile = utils.getOutputFile(pdfPath, context, "reconstructed")
-            val document = Document()
-            val writer = PdfWriter.getInstance(document, FileOutputStream(outputFile))
+    private fun processBookmarks(bookmarks: List<*>?): List<Map<String, Any>> {
+        if (bookmarks == null) return emptyList()
 
-            document.open()
+        return bookmarks.mapNotNull { rawBookmark ->
+            val bookmark = rawBookmark as? Map<*, *> ?: return@mapNotNull null
+            val children = bookmark["Kids"] as? List<*>
+            val pageNumber = (bookmark["Page"] as? String)
+                ?.substringBefore(" ")
+                ?.toIntOrNull()
+                ?: 0
 
-            // Try to extract and reconstruct content
-            val reader = PdfReader(pdfPath)
-            val recoveredElements = mutableListOf<String>()
-            var pagesRecovered = 0
-            var textContentLength = 0
-            var imagesRecovered = 0
-
-            // Copy readable pages
-            for (pageNum in 1..reader.numberOfPages) {
-                try {
-                    val page = reader.getPageN(pageNum)
-                    if (page != null) {
-                        document.newPage()
-                        writer.getImportedPage(reader, pageNum)
-                        pagesRecovered++
-                        recoveredElements.add("Page $pageNum")
-
-                        // Try to extract text from this page
-                        try {
-                            val text = PdfTextExtractor.getTextFromPage(reader, pageNum)
-                            textContentLength += text.length
-                        } catch (e: Exception) {
-                            // Text extraction failed for this page
-                        }
-                    }
-                } catch (e: Exception) {
-                    // Skip corrupted page
-                    recoveredElements.add("Page $pageNum (corrupted, skipped)")
-                }
-            }
-
-            reader.close()
-            document.close()
-
-            val recoveredContent = mapOf(
-                "pagesRecovered" to pagesRecovered,
-                "textContentLength" to textContentLength,
-                "imagesRecovered" to imagesRecovered,
-                "metadataPreserved" to false, // We don't preserve metadata in reconstruction
-                "recoveredElements" to recoveredElements
-            )
-
-            Pair(outputFile.absolutePath, recoveredContent)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // Data class for PDF corruption analysis
-    private data class PDFCorruptionAnalysis(
-        val canOpen: Boolean,
-        val hasValidStructure: Boolean,
-        val hasReadableContent: Boolean,
-        val corruptionLevel: Double,
-        val detectedIssues: List<String>,
-        val pageCount: Int
-    ) {
-        fun toMap(): Map<String, Any> {
-            return mapOf(
-                "canOpen" to canOpen,
-                "hasValidStructure" to hasValidStructure,
-                "hasReadableContent" to hasReadableContent,
-                "corruptionLevel" to corruptionLevel,
-                "detectedIssues" to detectedIssues
+            mapOf(
+                "title" to (bookmark["Title"] as? String ?: ""),
+                "pageNumber" to pageNumber,
+                "children" to processBookmarks(children)
             )
         }
     }
-}
-                        }
 
-                        // Extract coordinates if available
-                        if (destination.size > 3) {
-                            processedBookmark["x"] = (destination[2] as? Number)?.toDouble() ?: 0.0
-                            processedBookmark["y"] = (destination[3] as? Number)?.toDouble() ?: 0.0
-                        }
-
-                        // Extract zoom if available
-                        if (destination.size > 4) {
-                            processedBookmark["zoom"] = (destination[4] as? Number)?.toDouble() ?: 0.0
-                        }
-                    }
-                }
-            }
-
-            // Process children recursively
-            val kids = bookmark["Kids"] as? List<Map<String, Any>>
-            if (kids != null) {
-                processedBookmark["children"] = processBookmarks(kids)
-            } else {
-                processedBookmark["children"] = emptyList<Map<String, Any>>()
-            }
-
-            processedBookmark
-        }
-    }
-
-    // Helper function to convert our bookmark format to iText format
-    private fun convertToITextBookmarks(bookmarks: List<Map<String, Any>>): List<Map<String, Any>> {
+    private fun convertToITextBookmarks(bookmarks: List<Map<String, Any>>): List<HashMap<String, Any>> {
         return bookmarks.map { bookmark ->
-            val iTextBookmark = mutableMapOf<String, Any>()
-
-            // Set title
+            val iTextBookmark = HashMap<String, Any>()
             iTextBookmark["Title"] = bookmark["title"] as? String ?: ""
 
-            // Create action for page navigation
-            val pageNumber = bookmark["pageNumber"] as? Int
-            if (pageNumber != null) {
-                val action = mutableMapOf<String, Any>()
-                action["S"] = PdfName("GoTo")
-
-                // Create destination array
-                val destination = mutableListOf<Any>()
-                destination.add(pageNumber) // Page number
-
-                // Add coordinates if provided
-                val x = bookmark["x"] as? Double ?: 0.0
-                val y = bookmark["y"] as? Double ?: 0.0
-                val zoom = bookmark["zoom"] as? Double ?: 0.0
-
-                destination.add(PdfName("XYZ"))
-                destination.add(x)
-                destination.add(y)
-                destination.add(zoom)
-
-                action["D"] = destination
-                iTextBookmark["Action"] = action
+            val pageNumber = (bookmark["pageNumber"] as? Number)?.toInt()
+            if (pageNumber != null && pageNumber > 0) {
+                iTextBookmark["Action"] = "GoTo"
+                iTextBookmark["Page"] = "$pageNumber Fit"
             }
 
-            // Process children recursively
-            val children = bookmark["children"] as? List<Map<String, Any>>
-            if (children != null && children.isNotEmpty()) {
+            val children = (bookmark["children"] as? List<*>)
+                ?.mapNotNull { child -> toStringAnyMap(child) }
+            if (!children.isNullOrEmpty()) {
                 iTextBookmark["Kids"] = convertToITextBookmarks(children)
             }
 
             iTextBookmark
         }
     }
-}
 
-                utils.finishSuccessfullyWithMap(bookmarkResult, resultCallback)
-            } catch (e: Exception) {
-                utils.finishWithError(
-                    "pdfBookmarkReader_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfBookmarkReader_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
-                )
+    private fun toStringAnyMap(value: Any?): Map<String, Any>? {
+        val source = value as? Map<*, *> ?: return null
+        val result = HashMap<String, Any>()
+        source.forEach { (key, mapValue) ->
+            if (key != null && mapValue != null) {
+                result[key.toString()] = mapValue
             }
         }
-        Log.d(LOG_TAG, "pdfBookmarkReader - OUT")
+        return result
     }
 
-    // For writing PDF bookmarks
-    fun pdfBookmarkWriter(
-        resultCallback: Result,
+    private fun comparePDFs(
         context: Context,
-        pdfPath: String,
-        bookmarks: List<Map<String, Any>>,
-    ) {
-        Log.d(LOG_TAG, "pdfBookmarkWriter - IN, pdfPath=$pdfPath")
+        pdfPath1: String,
+        pdfPath2: String,
+        compareText: Boolean,
+        compareMetadata: Boolean,
+        compareStructure: Boolean
+    ): Map<String, Any> {
+        val localPdf1 = materializePdf(context, pdfPath1, "compare_1")
+        val localPdf2 = materializePdf(context, pdfPath2, "compare_2")
+        val result = mutableMapOf<String, Any>()
+        val summary = mutableListOf<String>()
+        var overallSimilarity = 1.0
 
-        val uiScope = CoroutineScope(Dispatchers.Main)
-        job = uiScope.launch {
+        try {
+            if (compareStructure) {
+                val structureComparison = comparePDFStructure(localPdf1.file, localPdf2.file)
+                result["structureComparison"] = structureComparison
+                val differences = structureComparison["differences"] as List<*>
+                if (differences.isNotEmpty()) {
+                    summary.add("${differences.size} structural differences found")
+                    overallSimilarity *= 0.75
+                }
+            }
+
+            if (compareMetadata) {
+                val metadataComparison = comparePDFMetadata(context, localPdf1.file.absolutePath, localPdf2.file.absolutePath)
+                result["metadataComparison"] = metadataComparison
+                val differences = metadataComparison["differences"] as List<*>
+                if (differences.isNotEmpty()) {
+                    summary.add("${differences.size} metadata differences found")
+                    overallSimilarity *= 0.9
+                }
+            }
+
+            if (compareText) {
+                val textComparison = comparePDFText(localPdf1.file.absolutePath, localPdf2.file.absolutePath)
+                result["textComparison"] = textComparison
+                val similarity = textComparison["similarity"] as Double
+                val differences = textComparison["differences"] as List<*>
+                if (differences.isNotEmpty()) {
+                    summary.add("${differences.size} text differences found")
+                    summary.add("Text similarity: ${(similarity * 100).toInt()}%")
+                    overallSimilarity *= similarity
+                }
+            }
+
+            if (summary.isEmpty()) summary.add("PDFs are identical")
+
+            result["overallSimilarity"] = overallSimilarity.coerceIn(0.0, 1.0)
+            result["summary"] = summary
+            return result
+        } finally {
+            deleteIfTemp(localPdf1)
+            deleteIfTemp(localPdf2)
+        }
+    }
+
+    private fun comparePDFStructure(file1: File, file2: File): Map<String, Any> {
+        val reader1 = PdfReader(file1.absolutePath)
+        val reader2 = PdfReader(file2.absolutePath)
+        val pageCount1 = reader1.numberOfPages
+        val pageCount2 = reader2.numberOfPages
+        val differences = mutableListOf<String>()
+
+        try {
+            if (pageCount1 != pageCount2) {
+                differences.add("Page count: $pageCount1 vs $pageCount2")
+            }
+
+            if (file1.length() != file2.length()) {
+                differences.add("File size: ${file1.length()}B vs ${file2.length()}B")
+            }
+
+            val comparablePages = minOf(pageCount1, pageCount2)
+            for (pageNumber in 1..comparablePages) {
+                val size1 = reader1.getPageSizeWithRotation(pageNumber)
+                val size2 = reader2.getPageSizeWithRotation(pageNumber)
+                if (size1.width != size2.width || size1.height != size2.height || reader1.getPageRotation(pageNumber) != reader2.getPageRotation(pageNumber)) {
+                    differences.add(
+                        "Page $pageNumber geometry: ${size1.width}x${size1.height}@${reader1.getPageRotation(pageNumber)} vs ${size2.width}x${size2.height}@${reader2.getPageRotation(pageNumber)}"
+                    )
+                }
+            }
+        } finally {
+            reader1.close()
+            reader2.close()
+        }
+
+        return mapOf(
+            "pageCount1" to pageCount1,
+            "pageCount2" to pageCount2,
+            "pageCountEqual" to (pageCount1 == pageCount2),
+            "differences" to differences
+        )
+    }
+
+    private fun comparePDFMetadata(context: Context, pdfPath1: String, pdfPath2: String): Map<String, Any> {
+        val metadata1 = readPDFMetadata(context, pdfPath1)
+        val metadata2 = readPDFMetadata(context, pdfPath2)
+        val differences = mutableListOf<Map<String, Any>>()
+
+        listOf("title", "author", "subject", "keywords", "creator", "producer", "creationDate", "modificationDate").forEach { field ->
+            val value1 = metadata1[field]
+            val value2 = metadata2[field]
+            if (value1 != value2) {
+                differences.add(mapOf("field" to field, "value1" to (value1 ?: ""), "value2" to (value2 ?: "")))
+            }
+        }
+
+        return mapOf("metadata1" to metadata1, "metadata2" to metadata2, "differences" to differences)
+    }
+
+    private fun comparePDFText(pdfPath1: String, pdfPath2: String): Map<String, Any> {
+        val pageTexts1 = extractPageTexts(pdfPath1)
+        val pageTexts2 = extractPageTexts(pdfPath2)
+        val text1 = pageTexts1.joinToString("\n")
+        val text2 = pageTexts2.joinToString("\n")
+        val similarity = calculateTextSimilarity(text1, text2)
+        val differences = mutableListOf<Map<String, Any>>()
+        var offset1 = 0
+        var offset2 = 0
+        val maxPages = maxOf(pageTexts1.size, pageTexts2.size)
+
+        for (index in 0 until maxPages) {
+            val pageText1 = pageTexts1.getOrNull(index).orEmpty()
+            val pageText2 = pageTexts2.getOrNull(index).orEmpty()
+            if (pageText1 != pageText2) {
+                differences.add(createTextDifference(index + 1, offset1, offset2, pageText1, pageText2))
+            }
+            offset1 += pageText1.length + 1
+            offset2 += pageText2.length + 1
+        }
+
+        return mapOf("text1" to text1, "text2" to text2, "similarity" to similarity, "differences" to differences)
+    }
+
+    private fun extractPageTexts(pdfPath: String): List<String> {
+        val reader = PdfReader(pdfPath)
+        return try {
+            (1..reader.numberOfPages).map { pageNum ->
+                PdfTextExtractor.getTextFromPage(reader, pageNum).trim()
+            }
+        } finally {
+            reader.close()
+        }
+    }
+
+    private fun createTextDifference(
+        pageNumber: Int,
+        offset1: Int,
+        offset2: Int,
+        text1: String,
+        text2: String
+    ): Map<String, Any> {
+        var prefix = 0
+        val minLength = minOf(text1.length, text2.length)
+        while (prefix < minLength && text1[prefix] == text2[prefix]) {
+            prefix++
+        }
+
+        var suffix = 0
+        while (
+            suffix < minLength - prefix &&
+            text1[text1.length - 1 - suffix] == text2[text2.length - 1 - suffix]
+        ) {
+            suffix++
+        }
+
+        val changed1 = text1.substring(prefix, text1.length - suffix)
+        val changed2 = text2.substring(prefix, text2.length - suffix)
+        val type = when {
+            changed1.isEmpty() -> "added"
+            changed2.isEmpty() -> "removed"
+            else -> "modified"
+        }
+        val preview = when (type) {
+            "added" -> changed2
+            "removed" -> changed1
+            else -> "Page $pageNumber changed from '${changed1.take(80)}' to '${changed2.take(80)}'"
+        }
+
+        return mapOf(
+            "type" to type,
+            "position1" to offset1 + prefix,
+            "position2" to offset2 + prefix,
+            "length" to maxOf(changed1.length, changed2.length),
+            "content" to preview.take(240)
+        )
+    }
+
+    private fun extractFullText(pdfPath: String): String {
+        val reader = PdfReader(pdfPath)
+        val text = StringBuilder()
+        for (pageNum in 1..reader.numberOfPages) {
+            text.append(PdfTextExtractor.getTextFromPage(reader, pageNum)).append("\n")
+        }
+        reader.close()
+        return text.toString()
+    }
+
+    private fun calculateTextSimilarity(text1: String, text2: String): Double {
+        if (text1 == text2) return 1.0
+        if (text1.isEmpty() || text2.isEmpty()) return 0.0
+
+        val words1 = text1.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }.toSet()
+        val words2 = text2.lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }.toSet()
+        val union = words1.union(words2).size
+        return if (union == 0) 1.0 else words1.intersect(words2).size.toDouble() / union.toDouble()
+    }
+
+    private fun attemptPDFRepair(pdfPath: String, context: Context): Map<String, Any> {
+        val issues = mutableListOf<String>()
+        val recoveredElements = mutableListOf<String>()
+        val localPdf = materializePdf(context, pdfPath, "repair")
+        var repairedPdfPath = ""
+        var canOpen = false
+        var hasValidStructure = false
+        var hasReadableContent = false
+        var pageCount = 0
+        var pagesRecovered = 0
+        var textContentLength = 0
+        var repairMethod = "failed"
+
+        try {
+            val reader = PdfReader(localPdf.file.absolutePath)
+            canOpen = true
+            pageCount = reader.numberOfPages
+            val outputFile = utils.getOutputFile(pdfPath, context, "repaired")
+            val document = Document()
+            val copy = PdfCopy(document, FileOutputStream(outputFile))
+
             try {
-                val resultPDFPath = withContext(Dispatchers.IO) {
-                    writePDFBookmarks(pdfPath, bookmarks, context)
+                document.open()
+                reader.consolidateNamedDestinations()
+
+                for (pageNumber in 1..pageCount) {
+                    try {
+                        copy.addPage(copy.getImportedPage(reader, pageNumber))
+                        pagesRecovered++
+                        recoveredElements.add("Page $pageNumber")
+
+                        try {
+                            textContentLength += PdfTextExtractor.getTextFromPage(reader, pageNumber).length
+                            hasReadableContent = true
+                        } catch (textError: Exception) {
+                            issues.add("Page $pageNumber text extraction failed: ${textError.message}")
+                        }
+                    } catch (pageError: Exception) {
+                        issues.add("Page $pageNumber could not be recovered: ${pageError.message}")
+                    }
                 }
 
-                utils.finishSuccessfullyWithString(resultPDFPath, resultCallback)
-            } catch (e: Exception) {
-                utils.finishWithError(
-                    "pdfBookmarkWriter_exception", e.stackTraceToString(), null, resultCallback
-                )
-            } catch (e: OutOfMemoryError) {
-                utils.finishWithError(
-                    "pdfBookmarkWriter_OutOfMemoryError", e.stackTraceToString(), null, resultCallback
-                )
+                hasValidStructure = pagesRecovered > 0
+                if (pagesRecovered > 0) {
+                    repairedPdfPath = outputFile.absolutePath
+                    repairMethod = if (pagesRecovered == pageCount) "page_rebuild" else "partial_page_rebuild"
+                } else {
+                    issues.add("No readable pages could be copied into a repaired document")
+                    outputFile.delete()
+                }
+            } finally {
+                document.close()
+                copy.close()
+                reader.close()
             }
+        } catch (e: Exception) {
+            issues.add("Cannot repair PDF: ${e.message}")
+        } finally {
+            deleteIfTemp(localPdf)
         }
-        Log.d(LOG_TAG, "pdfBookmarkWriter - OUT")
+
+        val wasRepaired = repairedPdfPath.isNotEmpty()
+        val corruptionLevel = when {
+            !canOpen -> 1.0
+            pageCount == 0 -> 1.0
+            pagesRecovered == pageCount -> 0.0
+            pagesRecovered > 0 -> 1.0 - (pagesRecovered.toDouble() / pageCount.toDouble())
+            else -> 1.0
+        }
+
+        return mapOf(
+            "wasRepaired" to wasRepaired,
+            "repairedPdfPath" to repairedPdfPath,
+            "originalStatus" to mapOf(
+                "canOpen" to canOpen,
+                "hasValidStructure" to hasValidStructure,
+                "hasReadableContent" to hasReadableContent,
+                "corruptionLevel" to corruptionLevel,
+                "detectedIssues" to issues
+            ),
+            "repairStatus" to mapOf(
+                "completed" to wasRepaired,
+                "contentRecovered" to (pagesRecovered > 0),
+                "fullyFunctional" to (pageCount > 0 && pagesRecovered == pageCount),
+                "repairMethod" to repairMethod,
+                "repairInfo" to if (wasRepaired) {
+                    listOf("Recovered $pagesRecovered of $pageCount pages")
+                } else {
+                    issues
+                }
+            ),
+            "issues" to issues,
+            "recoveredContent" to mapOf(
+                "pagesRecovered" to pagesRecovered,
+                "textContentLength" to textContentLength,
+                "imagesRecovered" to 0,
+                "metadataPreserved" to false,
+                "recoveredElements" to recoveredElements
+            )
+        )
     }
 }
+

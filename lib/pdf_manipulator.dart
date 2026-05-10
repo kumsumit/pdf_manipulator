@@ -1,4 +1,5 @@
 export 'src/pdf_manipulator.dart' show PdfManipulator;
+export 'src/pdf_manipulator_platform_interface.dart' show OperationResult;
 
 export 'src/pdf_manipulator_method_channel.dart'
     show
@@ -62,4 +63,10 @@ export 'src/pdf_manipulator_method_channel.dart'
         PDFCorruptionStatus,
         PDFRepairStatus,
         PDFRecoveredContent,
-        PDFAdvancedCompressionOptions;
+        PDFAdvancedCompressionOptions,
+        PDFBatchOperationType,
+        PDFBatchOperation,
+        PDFBatchProcessorParams,
+        PDFBatchOperationResult,
+        PDFBatchProcessorResult,
+        BatchProgressCallback;

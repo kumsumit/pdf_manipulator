@@ -2479,3 +2479,110 @@ class PDFRecoveredContent {
     };
   }
 }
+
+/// Supported operations for [PDFBatchProcessorParams].
+enum PDFBatchOperationType {
+  merge,
+  split,
+  deletePages,
+  reorderPages,
+  rotatePages,
+  rotateDeleteReorderPages,
+  compress,
+  watermark,
+  pagesSize,
+  validityAndProtection,
+  decrypt,
+  encrypt,
+  imagesToPdfs,
+  extractImages,
+  pdfToImages,
+  textExtraction,
+  ocr,
+  digitalSignature,
+  annotations,
+  fillFormFields,
+  extractFormFieldData,
+  metadataReader,
+  metadataWriter,
+  bookmarkReader,
+  bookmarkWriter,
+  comparison,
+  repair,
+}
+
+/// A single item in a batch processing queue.
+class PDFBatchOperation {
+  /// Operation type to execute.
+  final PDFBatchOperationType type;
+
+  /// Parameters matching the selected [type].
+  final Object? params;
+
+  /// Optional caller-provided identifier for matching results.
+  final String? id;
+
+  const PDFBatchOperation({
+    required this.type,
+    this.params,
+    this.id,
+  });
+}
+
+/// Parameters for batch processing multiple PDF operations.
+class PDFBatchProcessorParams {
+  /// Operations to run sequentially.
+  final List<PDFBatchOperation> operations;
+
+  /// Stop running remaining operations after the first failure.
+  final bool stopOnError;
+
+  const PDFBatchProcessorParams({
+    required this.operations,
+    this.stopOnError = true,
+  }) : assert(operations.length > 0, 'provide at least 1 batch operation');
+}
+
+/// Result for a single batch operation.
+class PDFBatchOperationResult {
+  /// Operation type that was executed.
+  final PDFBatchOperationType type;
+
+  /// Optional caller-provided identifier from [PDFBatchOperation.id].
+  final String? id;
+
+  /// Whether the operation completed successfully.
+  final bool success;
+
+  /// Operation result. The type depends on [type].
+  final Object? result;
+
+  /// Error text when [success] is false.
+  final String? error;
+
+  const PDFBatchOperationResult({
+    required this.type,
+    required this.success,
+    this.id,
+    this.result,
+    this.error,
+  });
+}
+
+/// Result for a batch processing request.
+class PDFBatchProcessorResult {
+  /// Per-operation results in execution order.
+  final List<PDFBatchOperationResult> results;
+
+  const PDFBatchProcessorResult({required this.results});
+
+  /// True when all operations completed successfully.
+  bool get success => results.every((result) => result.success);
+}
+
+/// Callback for batch progress.
+typedef BatchProgressCallback = void Function(
+  int completed,
+  int total,
+  PDFBatchOperation operation,
+);

@@ -133,7 +133,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 parseMethodCallArrayOfIntArgument(call, "pages"),
                 call.argument<String>("imageFormat").toString(),
                 call.argument<Int>("quality") ?: 90,
-                call.argument<Double>("scale")?.toFloat() ?: 1.0f,
+                call.argument<Double>("scale") ?: 1.0,
             )
             "pdfTextExtraction" -> pdfManipulator!!.pdfTextExtraction(
                 result,
