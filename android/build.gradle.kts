@@ -12,7 +12,7 @@ repositories {
     mavenCentral()
 }
 
-android {
+extensions.configure<com.android.build.api.dsl.LibraryExtension>("android") {
     namespace = "com.deepanshuchaudhary.pdf_manipulator"
     compileSdk = 37
 
@@ -27,18 +27,18 @@ android {
 
     sourceSets {
         getByName("main") {
-            java.srcDirs("src/main/kotlin")
+            java.directories.add("src/main/kotlin")
         }
 
         getByName("test") {
-            java.srcDirs("src/test/kotlin")
+            java.directories.add("src/test/kotlin")
         }
     }
-}
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
 }
 
@@ -53,6 +53,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
-    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.3.21")
     testImplementation("org.mockito:mockito-core:5.23.0")
 }
