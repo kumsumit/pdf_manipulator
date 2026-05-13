@@ -1050,7 +1050,7 @@ class PdfManipulator(
             }
 
             for (pageIndex in pagesToConvert) {
-                if (pageIndex < 0 || pageIndex >= pageCount) continue
+                if (pageIndex !in 0..<pageCount) continue
 
                 val page = pdfRenderer.openPage(pageIndex)
 
@@ -1730,7 +1730,7 @@ class PdfManipulator(
             creationDate?.let { info["CreationDate"] = convertISOToPDFDate(it) }
             modificationDate?.let { info["ModDate"] = convertISOToPDFDate(it) }
 
-            stamper.setMoreInfo(info)
+            stamper.moreInfo = info
         } finally {
             stamper.close()
             reader.close()
@@ -2120,8 +2120,8 @@ class PdfManipulator(
     private fun comparePDFText(pdfPath1: String, pdfPath2: String): Map<String, Any> {
         val pageTexts1 = extractPageTexts(pdfPath1)
         val pageTexts2 = extractPageTexts(pdfPath2)
-        val text1 = pageTexts1.joinToString("\n")
-        val text2 = pageTexts2.joinToString("\n")
+        val text1 = extractFullText(pageTexts1)
+        val text2 = extractFullText(pageTexts2)
         val similarity = calculateTextSimilarity(text1, text2)
         val differences = mutableListOf<Map<String, Any>>()
         var offset1 = 0
@@ -2195,14 +2195,8 @@ class PdfManipulator(
         )
     }
 
-    private fun extractFullText(pdfPath: String): String {
-        val reader = PdfReader(pdfPath)
-        val text = StringBuilder()
-        for (pageNum in 1..reader.numberOfPages) {
-            text.append(PdfTextExtractor.getTextFromPage(reader, pageNum)).append("\n")
-        }
-        reader.close()
-        return text.toString()
+    private fun extractFullText(pageTexts: List<String>): String {
+        return pageTexts.joinToString("\n")
     }
 
     private fun calculateTextSimilarity(text1: String, text2: String): Double {
