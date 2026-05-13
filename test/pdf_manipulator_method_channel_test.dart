@@ -86,6 +86,7 @@ void main() {
       'removeUnusedObjects': true,
       'mergeDuplicateObjects': true,
       'optimizeStructure': true,
+      'isExternal': true,
     });
   });
 

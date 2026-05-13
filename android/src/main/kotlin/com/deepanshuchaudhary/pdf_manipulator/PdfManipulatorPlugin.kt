@@ -289,6 +289,7 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 removeUnusedObjects = call.argument("removeUnusedObjects"),
                 mergeDuplicateObjects = call.argument("mergeDuplicateObjects"),
                 optimizeStructure = call.argument("optimizeStructure"),
+                isExternal = call.argument("isExternal"),
             )
             "pdfWatermark" -> pdfManipulator!!.watermarkPdf(
                 result,

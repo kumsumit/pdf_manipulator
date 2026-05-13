@@ -361,9 +361,10 @@ class PdfManipulator(
         removeUnusedObjects: Boolean?,
         mergeDuplicateObjects: Boolean?,
         optimizeStructure: Boolean?,
+        isExternal: Boolean?,
     ) {
         Log.d(
-            LOG_TAG, "pdfOptimizer - IN, sourceFilePath=$sourceFilePath"
+            LOG_TAG, "pdfOptimizer - IN, sourceFilePath=$sourceFilePath, isExternal=$isExternal"
         )
 
         val uiScope = CoroutineScope(Dispatchers.Main)
@@ -375,7 +376,7 @@ class PdfManipulator(
                     removeUnusedObjects ?: true,
                     mergeDuplicateObjects ?: true,
                     optimizeStructure ?: true,
-                    true,
+                    isExternal ?: true,
                     activity
                 )
 

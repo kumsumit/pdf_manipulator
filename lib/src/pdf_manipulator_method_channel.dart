@@ -729,6 +729,9 @@ class PDFOptimizerParams {
   /// Optimize the overall PDF structure.
   final bool optimizeStructure;
 
+  /// Whether the output PDF should be saved externally.
+  final bool isExternal;
+
   /// Create parameters for the [pdfOptimizer] method.
   const PDFOptimizerParams({
     required this.pdfPath,
@@ -736,6 +739,7 @@ class PDFOptimizerParams {
     this.removeUnusedObjects = true,
     this.mergeDuplicateObjects = true,
     this.optimizeStructure = true,
+    this.isExternal = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -745,6 +749,7 @@ class PDFOptimizerParams {
       'removeUnusedObjects': removeUnusedObjects,
       'mergeDuplicateObjects': mergeDuplicateObjects,
       'optimizeStructure': optimizeStructure,
+      'isExternal': isExternal,
     };
   }
 }
