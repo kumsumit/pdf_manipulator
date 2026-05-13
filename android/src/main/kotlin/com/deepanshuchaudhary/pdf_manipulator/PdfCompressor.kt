@@ -5,26 +5,23 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.system.Os
 import android.util.Log
 import androidx.core.net.toUri
-import com.itextpdf.io.image.ImageDataFactory
-import com.itextpdf.kernel.pdf.*
-import com.itextpdf.kernel.pdf.canvas.PdfCanvas
-import com.itextpdf.kernel.pdf.extgstate.PdfExtGState
+import com.itextpdf.kernel.pdf.PdfDictionary
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfName
+import com.itextpdf.kernel.pdf.PdfNumber
+import com.itextpdf.kernel.pdf.PdfObject
+import com.itextpdf.kernel.pdf.PdfReader
+import com.itextpdf.kernel.pdf.PdfStream
+import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.kernel.pdf.xobject.PdfImageXObject
-import com.itextpdf.layout.Canvas
-import com.itextpdf.layout.element.Image
-import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.properties.TextAlignment
-import com.itextpdf.layout.properties.VerticalAlignment
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.lang.Runtime
 import kotlin.math.min
 
 
@@ -280,23 +277,7 @@ suspend fun getCompressedPDFPathWithProgress(
             }
         }
 
-        /**
-         * Calculate optimal inSampleSize for bitmap decoding to save memory
-         */
-        fun calculateInSampleSize(originalWidth: Int, originalHeight: Int, reqWidth: Int, reqHeight: Int): Int {
-            var inSampleSize = 1
 
-            if (originalHeight > reqHeight || originalWidth > reqWidth) {
-                val halfHeight = originalHeight / 2
-                val halfWidth = originalWidth / 2
-
-                while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
-                    inSampleSize *= 2
-                }
-            }
-
-            return inSampleSize
-        }
 
         try {
             reduceImagesSize(imageScale, imageQuality)
@@ -442,149 +423,7 @@ suspend fun streamingCopyFile(
     }
 }
 
-// For compressing pdf.
-suspend fun getCompressedPDFPath(
-    sourceFilePath: String,
-    imageQuality: Int,
-    imageScale: Double,
-    unEmbedFonts: Boolean,
-    advancedOptions: Map<String, Any>?,
-    context: Activity,
-): String? {
 
-    val resultPDFPath: String?
-
-    withContext(Dispatchers.IO) {
-
-        val utils = Utils()
-
-        val begin = System.nanoTime()
-
-        val contentResolver: ContentResolver = context.contentResolver
-
-        val uri = Utils().getURI(sourceFilePath)
-
-        val pdfReaderFile: File = File.createTempFile("readerTempFile", ".pdf")
-        utils.copyDataFromSourceToDestDocument(
-            sourceFileUri = uri,
-            destinationFileUri = pdfReaderFile.toUri(),
-            contentResolver = contentResolver
-        )
-
-        val pdfReader = PdfReader(pdfReaderFile).setUnethicalReading(true)
-        pdfReader.setMemorySavingMode(true)
-
-        val pdfWriterFile: File = File.createTempFile("writerTempFile", ".pdf")
-
-        val pdfWriter = PdfWriter(pdfWriterFile)
-
-        pdfWriter.setSmartMode(true)
-        pdfWriter.compressionLevel = 9
-
-        val pdfDocument = PdfDocument(pdfReader, pdfWriter)
-
-        suspend fun reduceImagesSize(scale: Double, quality: Int) {
-            val factor = scale.toFloat()
-            for (indRef in pdfDocument.listIndirectReferences()) {
-                yield()
-
-                // Get a direct object and try to resolve indirect chain.
-                // Note: If chain of references has length of more than 32,
-                // this method return 31st reference in chain.
-                val pdfObject: PdfObject? = indRef.refersTo
-                if ((pdfObject == null) || !pdfObject.isStream) {
-                    continue
-                }
-
-                val stream: PdfStream = pdfObject as PdfStream
-
-                if (PdfName.Image != stream.getAsName(PdfName.Subtype)) {
-                    continue
-                }
-                if (PdfName.DCTDecode != stream.getAsName(PdfName.Filter)) {
-                    continue
-                }
-                val image = PdfImageXObject(stream)
-                val width = (image.width * factor).toInt()
-                val height = (image.height * factor).toInt()
-                if (width <= 0 || height <= 0) {
-                    continue
-                }
-
-                val options: BitmapFactory.Options = BitmapFactory.Options()
-                options.inMutable = true
-                options.inPreferredConfig = Bitmap.Config.RGB_565
-                options.outWidth = width
-                options.outHeight = height
-
-                val bmp = BitmapFactory.decodeByteArray(
-                    image.imageBytes, 0, image.imageBytes.size, options
-                )
-
-                val matrix = Matrix()
-                matrix.postTranslate((-0).toFloat(), (-0).toFloat())
-
-                if (factor != 1.0f) matrix.postScale(factor, factor)
-
-                val scaledBitmap = Bitmap.createBitmap(
-                    bmp, 0, 0, bmp.width - 1, bmp.height - 1, matrix, true
-                )
-                bmp.recycle()
-                val scaledBitmapStream = ByteArrayOutputStream()
-                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, scaledBitmapStream)
-
-                scaledBitmap.recycle()
-                resetImageStream(
-                    stream,
-                    scaledBitmapStream.toByteArray(),
-                    image.width.toInt(),
-                    image.height.toInt()
-                )
-                scaledBitmapStream.close()
-            }
-        }
-
-        reduceImagesSize(imageScale, imageQuality)
-
-        suspend fun removeFont() {
-            for (i in 0 until pdfDocument.numberOfPdfObjects) {
-                yield()
-                val obj: PdfObject? = pdfDocument.getPdfObject(i)
-
-                // Skip all objects that aren't a dictionary
-                if ((obj == null) || !obj.isDictionary) {
-                    continue
-                }
-
-                // Process all dictionaries
-                unEmbedTTF((obj as PdfDictionary))
-            }
-        }
-
-        if (unEmbedFonts) {
-            removeFont()
-        }
-
-        // Apply advanced compression options
-        if (advancedOptions != null) {
-            applyAdvancedCompression(pdfDocument, pdfReader, advancedOptions)
-        }
-
-        pdfDocument.close()
-
-        pdfReader.close()
-        pdfWriter.close()
-
-        utils.deleteTempFiles(listOfTempFiles = listOf(pdfReaderFile))
-
-        val end = System.nanoTime()
-        println("Elapsed time in nanoseconds: ${end - begin}")
-
-        resultPDFPath = pdfWriterFile.path
-    }
-
-    return resultPDFPath
-}
 
 fun resetImageStream(
     stream: PdfStream, imgBytes: ByteArray, imgWidth: Int, imgHeight: Int

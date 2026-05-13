@@ -34,7 +34,7 @@ suspend fun getMergedPDFPath(
         val contentResolver: ContentResolver = context.contentResolver
 
         val tempListOfUrisForFilesToMerge: MutableList<Uri> = mutableListOf()
-        sourceFilesPaths.indices.map { index ->
+        sourceFilesPaths.indices.forEach { index ->
             yield()
             val uri = Utils().getURI(sourceFilesPaths.elementAt(index))
             tempListOfUrisForFilesToMerge.add(uri)

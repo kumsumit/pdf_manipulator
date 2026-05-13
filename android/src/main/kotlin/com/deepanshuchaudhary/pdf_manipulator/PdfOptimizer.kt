@@ -65,6 +65,10 @@ suspend fun getOptimizedPDFPath(
             }
         }
 
+        if (optimizeStructure) {
+            optimizeDocumentStructure(outputDocument)
+        }
+
         inputDocument.close()
         outputDocument.close()
         inputFile.delete()
