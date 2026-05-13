@@ -1,48 +1,39 @@
 package com.deepanshuchaudhary.pdf_manipulator
 
 import android.app.Activity
-import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.Result
 import android.content.Context
-import android.net.Uri
-import android.graphics.pdf.PdfRenderer
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.os.ParcelFileDescriptor
-import com.google.mlkit.vision.common.InputImage
+import android.graphics.pdf.PdfRenderer
+import android.util.Log
+import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import com.google.android.gms.tasks.Tasks
+import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.itextpdf.text.Document
 import com.itextpdf.text.Rectangle
 import com.itextpdf.text.pdf.AcroFields
 import com.itextpdf.text.pdf.PdfAnnotation
-import com.itextpdf.text.pdf.PdfArray
 import com.itextpdf.text.pdf.PdfCopy
-import com.itextpdf.text.pdf.PdfImportedPage
 import com.itextpdf.text.pdf.PdfName
 import com.itextpdf.text.pdf.PdfReader
 import com.itextpdf.text.pdf.PdfStamper
-import com.itextpdf.text.pdf.PdfSignatureAppearance
-import com.itextpdf.text.pdf.PdfWriter
 import com.itextpdf.text.pdf.SimpleBookmark
+import com.itextpdf.text.pdf.parser.PdfTextExtractor
 import com.itextpdf.text.pdf.security.BouncyCastleDigest
-import com.itextpdf.text.pdf.security.ExternalDigest
 import com.itextpdf.text.pdf.security.ExternalSignature
 import com.itextpdf.text.pdf.security.MakeSignature
 import com.itextpdf.text.pdf.security.PrivateKeySignature
-import com.itextpdf.text.pdf.parser.ImageRenderInfo
-import com.itextpdf.text.pdf.parser.PdfReaderContentParser
-import com.itextpdf.text.pdf.parser.RenderListener
-import com.itextpdf.text.pdf.parser.TextRenderInfo
-import com.itextpdf.text.pdf.parser.PdfTextExtractor
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.Result
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -50,7 +41,6 @@ import java.io.IOException
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.Certificate
-import java.util.HashMap
 
 
 private const val LOG_TAG = "PdfManipulator"
@@ -1069,7 +1059,7 @@ class PdfManipulator(
                 val height = (page.height * scale).toInt()
 
                 // Create bitmap with scaled dimensions
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val bitmap = createBitmap(width, height)
 
                 // Render page to bitmap
                 val canvas = Canvas(bitmap)
@@ -1181,7 +1171,7 @@ class PdfManipulator(
                 if (pageIndex !in 0 until pdfRenderer.pageCount) continue
 
                 val page = pdfRenderer.openPage(pageIndex)
-                val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                val bitmap = createBitmap(page.width, page.height)
                 try {
                     val canvas = Canvas(bitmap)
                     canvas.drawColor(Color.WHITE)
@@ -1291,7 +1281,7 @@ class PdfManipulator(
     }
 
     private fun openPdfInputStream(context: Context, pdfPath: String): FileInputStream {
-        val uri = Uri.parse(pdfPath)
+        val uri = pdfPath.toUri()
         if (uri.scheme == null || uri.scheme == "file") {
             val filePath = uri.path ?: pdfPath
             return FileInputStream(File(filePath))
@@ -1545,7 +1535,7 @@ class PdfManipulator(
         val stamper = PdfStamper(reader, FileOutputStream(outputFile))
 
         // Create signature appearance
-        val signatureAppearance = stamper.getSignatureAppearance()
+        val signatureAppearance = stamper.signatureAppearance
 
         // Configure signature appearance
         if (reason != null) signatureAppearance.reason = reason
@@ -2250,7 +2240,7 @@ class PdfManipulator(
                 document.open()
                 reader.consolidateNamedDestinations()
 
-                for (pageNumber in 1..pageCount) {
+                for (pageNumber in 1 downTo pageCount) {
                     try {
                         copy.addPage(copy.getImportedPage(reader, pageNumber))
                         pagesRecovered++
