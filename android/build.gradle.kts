@@ -40,7 +40,6 @@ android {
             java.srcDirs("src/test/kotlin")
         }
     }
-
 }
 
 dependencies {

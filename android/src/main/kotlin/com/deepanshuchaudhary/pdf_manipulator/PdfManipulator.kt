@@ -375,6 +375,7 @@ class PdfManipulator(
                     removeUnusedObjects ?: true,
                     mergeDuplicateObjects ?: true,
                     optimizeStructure ?: true,
+                    true,
                     activity
                 )
 

@@ -5,8 +5,6 @@ import android.content.ContentResolver
 import android.util.Log
 import androidx.core.net.toUri
 import com.itextpdf.kernel.pdf.*
-import com.itextpdf.kernel.pdf.canvas.parser.PdfDocumentContentParser
-import com.itextpdf.kernel.pdf.canvas.parser.listener.IEventListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,6 +20,7 @@ suspend fun getOptimizedPDFPath(
     removeUnusedObjects: Boolean,
     mergeDuplicateObjects: Boolean,
     optimizeStructure: Boolean,
+    isExternal: Boolean,
     context: Activity
 ): String? = withContext(Dispatchers.IO) {
 
@@ -31,10 +30,8 @@ suspend fun getOptimizedPDFPath(
     val contentResolver: ContentResolver = context.contentResolver
     val uri = utils.getURI(sourceFilePath)
 
-    // Create temp file for reading
     val inputFile: File = File.createTempFile("input_optimize", ".pdf")
 
-    // Copy source file to temp location
     try {
         streamingCopyFile(uri, inputFile.toUri(), contentResolver)
     } catch (e: Exception) {
@@ -42,67 +39,58 @@ suspend fun getOptimizedPDFPath(
         return@withContext null
     }
 
-    // Create output file
     val outputFile: File = File.createTempFile("optimized", ".pdf")
 
     try {
-        val reader = PdfReader(inputFile).setUnethicalReading(true)
-        reader.setMemorySavingMode(true)
+        val reader = PdfReader(inputFile)
 
-        // Use PdfSmartCopy for optimization
-        val smartCopy = PdfSmartCopy(reader, outputFile.outputStream())
+        val writerProperties = WriterProperties().apply {
+            if (mergeDuplicateObjects) useSmartMode()
+            if (optimizeStructure) setFullCompressionMode(true)
+        }
+        val writer = PdfWriter(outputFile.absolutePath, writerProperties)
 
         val inputDocument = PdfDocument(reader)
-        val outputDocument = PdfDocument(smartCopy)
+        val outputDocument = PdfDocument(writer)
 
-        // Copy all pages
-        for (i in 1..inputDocument.numberOfPages) {
-            val page = inputDocument.getPage(i)
-            outputDocument.addPage(page.copyTo(outputDocument))
-        }
+        inputDocument.copyPagesTo(1, inputDocument.numberOfPages, outputDocument)
 
-        // Apply optimization options
         if (removeMetadata) {
             removeDocumentMetadata(outputDocument)
         }
 
-        if (optimizeStructure) {
-            optimizeDocumentStructure(outputDocument)
+        if (removeUnusedObjects) {
+            for (i in 1..outputDocument.numberOfPages) {
+                outputDocument.getPage(i).flush()
+            }
         }
 
-        // Close documents
         inputDocument.close()
         outputDocument.close()
-        reader.close()
-        smartCopy.close()
-
-        // Clean up input file
         inputFile.delete()
 
-        val optimizedPath = utils.saveFileToAppDirectory(outputFile, context)
+        // FIX: pick save directory based on isExternal, then return absolutePath (String)
+        val saveDir = if (isExternal) context.getExternalFilesDir(null) else context.filesDir
+        val savedFile = File(saveDir, "optimized_${System.currentTimeMillis()}.pdf")
+        outputFile.copyTo(savedFile, overwrite = true)
         outputFile.delete()
 
         Log.d(LOG_TAG, "PDF optimization completed successfully")
-        return@withContext optimizedPath
+        return@withContext savedFile.absolutePath  // FIX: was returning File, must return String
 
     } catch (e: Exception) {
         Log.e(LOG_TAG, "PDF optimization failed", e)
-        // Clean up on error
         inputFile.delete()
         outputFile.delete()
         return@withContext null
     }
 }
-
 /**
  * Remove metadata from PDF document
  */
 private fun removeDocumentMetadata(document: PdfDocument) {
     try {
-        val catalog = document.catalog
         val info = document.documentInfo
-
-        // Remove standard metadata fields
         info.title = null
         info.author = null
         info.subject = null
@@ -110,11 +98,8 @@ private fun removeDocumentMetadata(document: PdfDocument) {
         info.creator = null
         info.producer = null
 
-        // Remove custom metadata
-        val metadata = catalog.getPdfObject()?.getAsDictionary(PdfName.Metadata)
-        if (metadata != null) {
-            catalog.getPdfObject()?.remove(PdfName.Metadata)
-        }
+        // Remove XMP metadata stream from the catalog dictionary
+        document.catalog.pdfObject.remove(PdfName.Metadata)
 
         Log.d(LOG_TAG, "Metadata removed from PDF")
     } catch (e: Exception) {
@@ -127,9 +112,10 @@ private fun removeDocumentMetadata(document: PdfDocument) {
  */
 private fun optimizeDocumentStructure(document: PdfDocument) {
     try {
-        // Force garbage collection of unused objects
-        document.writer.flush()
-        document.checkCompliance()
+        // iText 9: getWriter() is now public — can flush the writer buffer directly
+        // Full compression is already configured via WriterProperties; this
+        // ensures any buffered objects are written out before the document closes
+        document.getWriter().flush()
 
         Log.d(LOG_TAG, "Document structure optimized")
     } catch (e: Exception) {
