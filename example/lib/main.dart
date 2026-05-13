@@ -3097,7 +3097,7 @@ class CustomButton extends StatelessWidget {
   }
 }
 
-callSnackBar({required BuildContext context, required String text}) {
+void callSnackBar({required BuildContext context, required String text}) {
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     content: Text(text),

@@ -80,7 +80,7 @@ class PdfManipulator {
 
   /// Provides pdf file pages size info.
   ///
-  /// Returns List<PageSizeInfo> for pages size info or null if operation was cancelled.
+  /// Returns List`<PageSizeInfo>` for pages size info or null if operation was cancelled.
   /// Throws exception on error.
   Future<List<PageSizeInfo>?> pdfPagesSize({PDFPagesSizeParams? params}) {
     return PdfManipulatorPlatform.instance.pdfPagesSize(params: params);
