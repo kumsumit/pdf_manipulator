@@ -248,6 +248,65 @@ class PdfManipulator(
         }
     }
 
+    fun redactRegions(resultCallback: Result, context: Context, pdfPath: String, redactions: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "redactRegions") {
+            PdfSecurityFormsOperations.redactRegions(context, pdfPath, redactions)
+        }
+    }
+
+    fun redactSearch(resultCallback: Result, context: Context, pdfPath: String, terms: List<String>, caseSensitive: Boolean) {
+        launchEditorOperation(resultCallback, "redactSearch") {
+            PdfSecurityFormsOperations.redactSearch(context, pdfPath, terms, caseSensitive)
+        }
+    }
+
+    fun redactPatterns(resultCallback: Result, context: Context, pdfPath: String, patterns: List<String>) {
+        launchEditorOperation(resultCallback, "redactPatterns") {
+            PdfSecurityFormsOperations.redactPatterns(context, pdfPath, patterns)
+        }
+    }
+
+    fun sanitizePdf(resultCallback: Result, context: Context, pdfPath: String, options: Map<String, Any>) {
+        launchEditorOperation(resultCallback, "sanitizePdf") {
+            PdfSecurityFormsOperations.sanitize(context, pdfPath, options)
+        }
+    }
+
+    fun ocrToSearchablePdf(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?, options: Map<String, Any>) {
+        launchEditorOperation(resultCallback, "ocrToSearchablePdf") {
+            PdfSecurityFormsOperations.ocrToSearchablePdf(context, pdfPath, pages, options)
+        }
+    }
+
+    fun createFormFields(resultCallback: Result, context: Context, pdfPath: String, fields: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "createFormFields") {
+            PdfSecurityFormsOperations.createFormFields(context, pdfPath, fields)
+        }
+    }
+
+    fun editFormFields(resultCallback: Result, context: Context, pdfPath: String, values: Map<String, Any>, removeFields: List<String>) {
+        launchEditorOperation(resultCallback, "editFormFields") {
+            PdfSecurityFormsOperations.editFormFields(context, pdfPath, values, removeFields)
+        }
+    }
+
+    fun xfaInfo(resultCallback: Result, context: Context, pdfPath: String) {
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                utils.finishSuccessfullyWithMap(PdfSecurityFormsOperations.xfaInfo(context, pdfPath), resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError("xfaInfo_exception", e.stackTraceToString(), null, resultCallback)
+            }
+        }
+    }
+
+    fun removeXfa(resultCallback: Result, context: Context, pdfPath: String) {
+        launchEditorOperation(resultCallback, "removeXfa") {
+            PdfSecurityFormsOperations.removeXfa(context, pdfPath)
+        }
+    }
+
     private fun launchEditorOperation(resultCallback: Result, errorPrefix: String, operation: suspend () -> String) {
         val uiScope = CoroutineScope(Dispatchers.Main)
         job = uiScope.launch {

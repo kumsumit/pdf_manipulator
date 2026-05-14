@@ -429,6 +429,44 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.exportEmbeddedImages(params: params);
   }
 
+  Future<String?> redactRegions({required PDFRedactRegionsParams params}) {
+    return PdfManipulatorPlatform.instance.redactRegions(params: params);
+  }
+
+  Future<String?> redactSearch({required PDFRedactSearchParams params}) {
+    return PdfManipulatorPlatform.instance.redactSearch(params: params);
+  }
+
+  Future<String?> redactPatterns({required PDFRedactPatternsParams params}) {
+    return PdfManipulatorPlatform.instance.redactPatterns(params: params);
+  }
+
+  Future<String?> sanitizePdf({required PDFSanitizeParams params}) {
+    return PdfManipulatorPlatform.instance.sanitizePdf(params: params);
+  }
+
+  Future<String?> ocrToSearchablePdf({required PDFSearchableOCRParams params}) {
+    return PdfManipulatorPlatform.instance.ocrToSearchablePdf(params: params);
+  }
+
+  Future<String?> createFormFields({
+    required PDFCreateFormFieldsParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.createFormFields(params: params);
+  }
+
+  Future<String?> editFormFields({required PDFEditFormFieldsParams params}) {
+    return PdfManipulatorPlatform.instance.editFormFields(params: params);
+  }
+
+  Future<PDFXfaInfo?> xfaInfo({required PDFXfaParams params}) {
+    return PdfManipulatorPlatform.instance.xfaInfo(params: params);
+  }
+
+  Future<String?> removeXfa({required PDFXfaParams params}) {
+    return PdfManipulatorPlatform.instance.removeXfa(params: params);
+  }
+
   /// Runs multiple PDF operations sequentially.
   ///
   /// Returns per-operation results. When [PDFBatchProcessorParams.stopOnError]

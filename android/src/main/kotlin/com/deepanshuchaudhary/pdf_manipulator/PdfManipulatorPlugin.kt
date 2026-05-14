@@ -315,6 +315,61 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 parseMethodCallArrayOfIntArgument(call, "pages"),
                 call.argument<String>("format") ?: "original",
             )
+            "redactRegions" -> pdfManipulator!!.redactRegions(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "redactions") ?: listOf(),
+            )
+            "redactSearch" -> pdfManipulator!!.redactSearch(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfStringArgument(call, "terms") ?: listOf(),
+                call.argument<Boolean>("caseSensitive") ?: false,
+            )
+            "redactPatterns" -> pdfManipulator!!.redactPatterns(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfStringArgument(call, "patterns") ?: listOf(),
+            )
+            "sanitizePdf" -> pdfManipulator!!.sanitizePdf(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<Map<String, Any>>("options") ?: mapOf(),
+            )
+            "ocrToSearchablePdf" -> pdfManipulator!!.ocrToSearchablePdf(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<Map<String, Any>>("options") ?: mapOf(),
+            )
+            "createFormFields" -> pdfManipulator!!.createFormFields(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "fields") ?: listOf(),
+            )
+            "editFormFields" -> pdfManipulator!!.editFormFields(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<Map<String, Any>>("values") ?: mapOf(),
+                parseMethodCallArrayOfStringArgument(call, "removeFields") ?: listOf(),
+            )
+            "xfaInfo" -> pdfManipulator!!.xfaInfo(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "removeXfa" -> pdfManipulator!!.removeXfa(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
             "validatePageOrder" -> result.success(
                 PdfEditorOperations.validatePageOrder(
                     call.argument<Int>("pageCount") ?: 0,

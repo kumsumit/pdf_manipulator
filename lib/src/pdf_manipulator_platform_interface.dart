@@ -320,4 +320,24 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   }) => throw UnimplementedError(
     'exportEmbeddedImages() has not been implemented.',
   );
+  Future<String?> redactRegions({PDFRedactRegionsParams? params}) =>
+      throw UnimplementedError('redactRegions() has not been implemented.');
+  Future<String?> redactSearch({PDFRedactSearchParams? params}) =>
+      throw UnimplementedError('redactSearch() has not been implemented.');
+  Future<String?> redactPatterns({PDFRedactPatternsParams? params}) =>
+      throw UnimplementedError('redactPatterns() has not been implemented.');
+  Future<String?> sanitizePdf({PDFSanitizeParams? params}) =>
+      throw UnimplementedError('sanitizePdf() has not been implemented.');
+  Future<String?> ocrToSearchablePdf({PDFSearchableOCRParams? params}) =>
+      throw UnimplementedError(
+        'ocrToSearchablePdf() has not been implemented.',
+      );
+  Future<String?> createFormFields({PDFCreateFormFieldsParams? params}) =>
+      throw UnimplementedError('createFormFields() has not been implemented.');
+  Future<String?> editFormFields({PDFEditFormFieldsParams? params}) =>
+      throw UnimplementedError('editFormFields() has not been implemented.');
+  Future<PDFXfaInfo?> xfaInfo({PDFXfaParams? params}) =>
+      throw UnimplementedError('xfaInfo() has not been implemented.');
+  Future<String?> removeXfa({PDFXfaParams? params}) =>
+      throw UnimplementedError('removeXfa() has not been implemented.');
 }

@@ -621,6 +621,49 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
           );
   }
 
+  @override
+  Future<String?> redactRegions({PDFRedactRegionsParams? params}) =>
+      _invokeString('redactRegions', params?.toJson());
+
+  @override
+  Future<String?> redactSearch({PDFRedactSearchParams? params}) =>
+      _invokeString('redactSearch', params?.toJson());
+
+  @override
+  Future<String?> redactPatterns({PDFRedactPatternsParams? params}) =>
+      _invokeString('redactPatterns', params?.toJson());
+
+  @override
+  Future<String?> sanitizePdf({PDFSanitizeParams? params}) =>
+      _invokeString('sanitizePdf', params?.toJson());
+
+  @override
+  Future<String?> ocrToSearchablePdf({PDFSearchableOCRParams? params}) =>
+      _invokeString('ocrToSearchablePdf', params?.toJson());
+
+  @override
+  Future<String?> createFormFields({PDFCreateFormFieldsParams? params}) =>
+      _invokeString('createFormFields', params?.toJson());
+
+  @override
+  Future<String?> editFormFields({PDFEditFormFieldsParams? params}) =>
+      _invokeString('editFormFields', params?.toJson());
+
+  @override
+  Future<PDFXfaInfo?> xfaInfo({PDFXfaParams? params}) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'xfaInfo',
+      params?.toJson(),
+    );
+    return result == null
+        ? null
+        : PDFXfaInfo.fromJson(Map<dynamic, dynamic>.from(result));
+  }
+
+  @override
+  Future<String?> removeXfa({PDFXfaParams? params}) =>
+      _invokeString('removeXfa', params?.toJson());
+
   Future<String?> _invokeString(String method, Map<String, dynamic>? args) {
     return methodChannel.invokeMethod<String?>(method, args);
   }
@@ -3665,6 +3708,228 @@ class PDFEmbeddedImageInfo {
       bitsPerComponent: json['bitsPerComponent'] as int? ?? 0,
       filter: json['filter'] as String? ?? '',
       format: json['format'] as String? ?? '',
+    );
+  }
+}
+
+class PDFRedactionRegion {
+  final int page;
+  final double left;
+  final double bottom;
+  final double right;
+  final double top;
+
+  const PDFRedactionRegion({
+    required this.page,
+    required this.left,
+    required this.bottom,
+    required this.right,
+    required this.top,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'page': page,
+    'left': left,
+    'bottom': bottom,
+    'right': right,
+    'top': top,
+  };
+}
+
+class PDFRedactRegionsParams {
+  final String pdfPath;
+  final List<PDFRedactionRegion> redactions;
+
+  const PDFRedactRegionsParams({
+    required this.pdfPath,
+    required this.redactions,
+  }) : assert(redactions.length > 0, 'provide at least 1 redaction');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'redactions': redactions.map((region) => region.toJson()).toList(),
+  };
+}
+
+class PDFRedactSearchParams {
+  final String pdfPath;
+  final List<String> terms;
+  final bool caseSensitive;
+
+  const PDFRedactSearchParams({
+    required this.pdfPath,
+    required this.terms,
+    this.caseSensitive = false,
+  }) : assert(terms.length > 0, 'provide at least 1 search term');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'terms': terms,
+    'caseSensitive': caseSensitive,
+  };
+}
+
+class PDFRedactPatternsParams {
+  final String pdfPath;
+  final List<String> patterns;
+
+  const PDFRedactPatternsParams({
+    required this.pdfPath,
+    this.patterns = const ['emails', 'phones', 'ssn', 'accounts'],
+  });
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath, 'patterns': patterns};
+}
+
+class PDFSanitizeParams {
+  final String pdfPath;
+  final bool removeMetadata;
+  final bool removeHiddenInformation;
+  final bool removeEmbeddedFiles;
+  final bool removeJavaScript;
+  final bool removeComments;
+  final bool removeThumbnails;
+
+  const PDFSanitizeParams({
+    required this.pdfPath,
+    this.removeMetadata = true,
+    this.removeHiddenInformation = true,
+    this.removeEmbeddedFiles = true,
+    this.removeJavaScript = true,
+    this.removeComments = true,
+    this.removeThumbnails = true,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'options': {
+      'removeMetadata': removeMetadata,
+      'removeHiddenInformation': removeHiddenInformation,
+      'removeEmbeddedFiles': removeEmbeddedFiles,
+      'removeJavaScript': removeJavaScript,
+      'removeComments': removeComments,
+      'removeThumbnails': removeThumbnails,
+    },
+  };
+}
+
+class PDFSearchableOCRParams {
+  final String pdfPath;
+  final List<int>? pages;
+  final List<String> languageCodes;
+  final bool grayscale;
+  final double contrast;
+  final double brightness;
+
+  const PDFSearchableOCRParams({
+    required this.pdfPath,
+    this.pages,
+    this.languageCodes = const ['latin'],
+    this.grayscale = true,
+    this.contrast = 1.1,
+    this.brightness = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'pages': pages,
+    'options': {
+      'languageCodes': languageCodes,
+      'grayscale': grayscale,
+      'contrast': contrast,
+      'brightness': brightness,
+    },
+  };
+}
+
+class PDFFormFieldSpec {
+  final String name;
+  final String type;
+  final int page;
+  final double left;
+  final double bottom;
+  final double right;
+  final double top;
+  final String? value;
+  final List<String>? options;
+  final double fontSize;
+
+  const PDFFormFieldSpec({
+    required this.name,
+    required this.type,
+    required this.page,
+    required this.left,
+    required this.bottom,
+    required this.right,
+    required this.top,
+    this.value,
+    this.options,
+    this.fontSize = 12,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'type': type,
+    'page': page,
+    'left': left,
+    'bottom': bottom,
+    'right': right,
+    'top': top,
+    'value': value,
+    'options': options,
+    'fontSize': fontSize,
+  };
+}
+
+class PDFCreateFormFieldsParams {
+  final String pdfPath;
+  final List<PDFFormFieldSpec> fields;
+
+  const PDFCreateFormFieldsParams({required this.pdfPath, required this.fields})
+    : assert(fields.length > 0, 'provide at least 1 form field');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'fields': fields.map((field) => field.toJson()).toList(),
+  };
+}
+
+class PDFEditFormFieldsParams {
+  final String pdfPath;
+  final Map<String, Object?> values;
+  final List<String> removeFields;
+
+  const PDFEditFormFieldsParams({
+    required this.pdfPath,
+    this.values = const {},
+    this.removeFields = const [],
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'values': values,
+    'removeFields': removeFields,
+  };
+}
+
+class PDFXfaParams {
+  final String pdfPath;
+
+  const PDFXfaParams({required this.pdfPath});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath};
+}
+
+class PDFXfaInfo {
+  final bool hasXfa;
+  final bool isDynamicXfa;
+
+  const PDFXfaInfo({required this.hasXfa, required this.isDynamicXfa});
+
+  factory PDFXfaInfo.fromJson(Map<dynamic, dynamic> json) {
+    return PDFXfaInfo(
+      hasXfa: json['hasXfa'] as bool? ?? false,
+      isDynamicXfa: json['isDynamicXfa'] as bool? ?? false,
     );
   }
 }
