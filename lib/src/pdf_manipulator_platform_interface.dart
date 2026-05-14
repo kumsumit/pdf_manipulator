@@ -340,4 +340,13 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
       throw UnimplementedError('xfaInfo() has not been implemented.');
   Future<String?> removeXfa({PDFXfaParams? params}) =>
       throw UnimplementedError('removeXfa() has not been implemented.');
+  Future<Map<String, dynamic>?> advancedInfo({
+    required String method,
+    PDFAdvancedParams? params,
+  }) => throw UnimplementedError('advancedInfo() has not been implemented.');
+  Future<String?> advancedDocument({
+    required String method,
+    PDFAdvancedParams? params,
+  }) =>
+      throw UnimplementedError('advancedDocument() has not been implemented.');
 }

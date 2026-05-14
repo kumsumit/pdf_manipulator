@@ -467,6 +467,160 @@ class PdfManipulator {
     return PdfManipulatorPlatform.instance.removeXfa(params: params);
   }
 
+  Future<Map<String, dynamic>?> verifySignatures(String pdfPath) =>
+      _advancedInfo('verifySignatures', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> validateSignatureCertificates(String pdfPath) =>
+      _advancedInfo('validateSignatureCertificates', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> signatureLtvTimestampInfo(String pdfPath) =>
+      _advancedInfo('signatureLtvTimestampInfo', {'pdfPath': pdfPath});
+  Future<String?> addSignatureFields({
+    required String pdfPath,
+    required List<Map<String, dynamic>> fields,
+  }) => _advancedDocument('addSignatureFields', {
+    'pdfPath': pdfPath,
+    'fields': fields,
+  });
+  Future<String?> createESignRequest({
+    required String pdfPath,
+    required List<Map<String, dynamic>> fields,
+  }) => _advancedDocument('createESignRequest', {
+    'pdfPath': pdfPath,
+    'fields': fields,
+  });
+  Future<Map<String, dynamic>?> eSignStatus(String pdfPath) =>
+      _advancedInfo('eSignStatus', {'pdfPath': pdfPath});
+  Future<String?> addAttachments({
+    required String pdfPath,
+    required List<String> attachmentPaths,
+    String? description,
+  }) => _advancedDocument('addAttachments', {
+    'pdfPath': pdfPath,
+    'attachmentPaths': attachmentPaths,
+    'description': description,
+  });
+  Future<Map<String, dynamic>?> listAttachments(String pdfPath) =>
+      _advancedInfo('listAttachments', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> extractAttachments({
+    required String pdfPath,
+    required String outputDir,
+  }) => _advancedInfo('extractAttachments', {
+    'pdfPath': pdfPath,
+    'outputDir': outputDir,
+  });
+  Future<String?> removeAttachments(String pdfPath) =>
+      _advancedDocument('removeAttachments', {'pdfPath': pdfPath});
+  Future<String?> createPortfolio({
+    required String pdfPath,
+    required List<String> attachmentPaths,
+  }) => _advancedDocument('createPortfolio', {
+    'pdfPath': pdfPath,
+    'attachmentPaths': attachmentPaths,
+  });
+  Future<Map<String, dynamic>?> layerInfo(String pdfPath) =>
+      _advancedInfo('layerInfo', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> articleThreadsInfo(String pdfPath) =>
+      _advancedInfo('articleThreadsInfo', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> namedDestinations(String pdfPath) =>
+      _advancedInfo('namedDestinations', {'pdfPath': pdfPath});
+  Future<String?> addNamedDestination({
+    required String pdfPath,
+    required String name,
+    required int page,
+  }) => _advancedDocument('addNamedDestination', {
+    'pdfPath': pdfPath,
+    'name': name,
+    'page': page,
+  });
+  Future<Map<String, dynamic>?> pageLabels(String pdfPath) =>
+      _advancedInfo('pageLabels', {'pdfPath': pdfPath});
+  Future<String?> addLink({
+    required String pdfPath,
+    required Map<String, dynamic> link,
+  }) => _advancedDocument('addLink', {'pdfPath': pdfPath, 'link': link});
+  Future<String?> removeLinks({required String pdfPath, List<int>? pages}) =>
+      _advancedDocument('removeLinks', {'pdfPath': pdfPath, 'pages': pages});
+  Future<Map<String, dynamic>?> extractTables({
+    required String pdfPath,
+    List<int>? pages,
+  }) => _advancedInfo('extractTables', {'pdfPath': pdfPath, 'pages': pages});
+  Future<Map<String, dynamic>?> structuredText({
+    required String pdfPath,
+    List<int>? pages,
+  }) => _advancedInfo('structuredText', {'pdfPath': pdfPath, 'pages': pages});
+  Future<String?> visualDiffPdf({
+    required String pdfPath1,
+    required String pdfPath2,
+  }) => _advancedDocument('visualDiffPdf', {
+    'pdfPath1': pdfPath1,
+    'pdfPath2': pdfPath2,
+  });
+  Future<Map<String, dynamic>?> accessibilityInfo(String pdfPath) =>
+      _advancedInfo('accessibilityInfo', {'pdfPath': pdfPath});
+  Future<String?> applyBasicAccessibility({
+    required String pdfPath,
+    String language = 'en-US',
+    String title = '',
+  }) => _advancedDocument('applyBasicAccessibility', {
+    'pdfPath': pdfPath,
+    'language': language,
+    'title': title,
+  });
+  Future<Map<String, dynamic>?> pdfUaValidationAdvanced(String pdfPath) =>
+      _advancedInfo('pdfUaValidation', {'pdfPath': pdfPath});
+  Future<String?> addBatesNumbering({
+    required String pdfPath,
+    String prefix = 'BATES-',
+    int start = 1,
+  }) => _advancedDocument('addBatesNumbering', {
+    'pdfPath': pdfPath,
+    'prefix': prefix,
+    'start': start,
+  });
+  Future<String?> addLegalLabels({
+    required String pdfPath,
+    String exhibit = 'EXHIBIT',
+  }) => _advancedDocument('addLegalLabels', {
+    'pdfPath': pdfPath,
+    'exhibit': exhibit,
+  });
+  Future<Map<String, dynamic>?> documentActions(String pdfPath) =>
+      _advancedInfo('documentActions', {'pdfPath': pdfPath});
+  Future<String?> removeDocumentActions(String pdfPath) =>
+      _advancedDocument('removeDocumentActions', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> richMediaInfo(String pdfPath) =>
+      _advancedInfo('richMediaInfo', {'pdfPath': pdfPath});
+  Future<String?> incrementalSaveCopy(String pdfPath) =>
+      _advancedDocument('incrementalSaveCopy', {'pdfPath': pdfPath});
+  Future<String?> linearizedCopy(String pdfPath) =>
+      _advancedDocument('linearizedCopy', {'pdfPath': pdfPath});
+  Future<Map<String, dynamic>?> digitalRightsInfo({
+    required String pdfPath,
+    String password = '',
+  }) => _advancedInfo('digitalRightsInfo', {
+    'pdfPath': pdfPath,
+    'password': password,
+  });
+
+  Future<Map<String, dynamic>?> _advancedInfo(
+    String method,
+    Map<String, dynamic> values,
+  ) {
+    return PdfManipulatorPlatform.instance.advancedInfo(
+      method: method,
+      params: PDFAdvancedParams(values),
+    );
+  }
+
+  Future<String?> _advancedDocument(
+    String method,
+    Map<String, dynamic> values,
+  ) {
+    return PdfManipulatorPlatform.instance.advancedDocument(
+      method: method,
+      params: PDFAdvancedParams(values),
+    );
+  }
+
   /// Runs multiple PDF operations sequentially.
   ///
   /// Returns per-operation results. When [PDFBatchProcessorParams.stopOnError]

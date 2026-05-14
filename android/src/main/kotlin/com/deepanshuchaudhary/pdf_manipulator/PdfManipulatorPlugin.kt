@@ -370,6 +370,99 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 context,
                 call.argument<String>("pdfPath").toString(),
             )
+            "verifySignatures" -> pdfManipulator!!.advancedMap(result, "verifySignatures") {
+                PdfAdvancedOperations.verifySignatures(context, call.argument<String>("pdfPath").toString())
+            }
+            "validateSignatureCertificates" -> pdfManipulator!!.advancedMap(result, "validateSignatureCertificates") {
+                PdfAdvancedOperations.validateSignatureCertificates(context, call.argument<String>("pdfPath").toString())
+            }
+            "signatureLtvTimestampInfo" -> pdfManipulator!!.advancedMap(result, "signatureLtvTimestampInfo") {
+                PdfAdvancedOperations.signatureLtvTimestampInfo(context, call.argument<String>("pdfPath").toString())
+            }
+            "addSignatureFields", "createESignRequest" -> pdfManipulator!!.advancedString(result, call.method) {
+                PdfAdvancedOperations.addSignatureFields(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfAnyMapArgument(call, "fields") ?: listOf())
+            }
+            "eSignStatus" -> pdfManipulator!!.advancedMap(result, "eSignStatus") {
+                PdfAdvancedOperations.eSignStatus(context, call.argument<String>("pdfPath").toString())
+            }
+            "addAttachments" -> pdfManipulator!!.advancedString(result, "addAttachments") {
+                PdfAdvancedOperations.addAttachments(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfStringArgument(call, "attachmentPaths") ?: listOf(), call.argument<String>("description"))
+            }
+            "listAttachments" -> pdfManipulator!!.advancedMap(result, "listAttachments") {
+                PdfAdvancedOperations.listAttachments(context, call.argument<String>("pdfPath").toString())
+            }
+            "extractAttachments" -> pdfManipulator!!.advancedMap(result, "extractAttachments") {
+                PdfAdvancedOperations.extractAttachments(context, call.argument<String>("pdfPath").toString(), call.argument<String>("outputDir").toString())
+            }
+            "removeAttachments" -> pdfManipulator!!.advancedString(result, "removeAttachments") {
+                PdfAdvancedOperations.removeAttachments(context, call.argument<String>("pdfPath").toString())
+            }
+            "createPortfolio" -> pdfManipulator!!.advancedString(result, "createPortfolio") {
+                PdfAdvancedOperations.createPortfolio(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfStringArgument(call, "attachmentPaths") ?: listOf())
+            }
+            "layerInfo" -> pdfManipulator!!.advancedMap(result, "layerInfo") {
+                PdfAdvancedOperations.layerInfo(context, call.argument<String>("pdfPath").toString())
+            }
+            "articleThreadsInfo" -> pdfManipulator!!.advancedMap(result, "articleThreadsInfo") {
+                PdfAdvancedOperations.articleThreadsInfo(context, call.argument<String>("pdfPath").toString())
+            }
+            "namedDestinations" -> pdfManipulator!!.advancedMap(result, "namedDestinations") {
+                PdfAdvancedOperations.namedDestinations(context, call.argument<String>("pdfPath").toString())
+            }
+            "addNamedDestination" -> pdfManipulator!!.advancedString(result, "addNamedDestination") {
+                PdfAdvancedOperations.addNamedDestination(context, call.argument<String>("pdfPath").toString(), call.argument<String>("name") ?: "destination", call.argument<Int>("page") ?: 1)
+            }
+            "pageLabels" -> pdfManipulator!!.advancedMap(result, "pageLabels") {
+                PdfAdvancedOperations.pageLabels(context, call.argument<String>("pdfPath").toString())
+            }
+            "addLink" -> pdfManipulator!!.advancedString(result, "addLink") {
+                PdfAdvancedOperations.addLink(context, call.argument<String>("pdfPath").toString(), call.argument<Map<String, Any>>("link") ?: mapOf())
+            }
+            "removeLinks" -> pdfManipulator!!.advancedString(result, "removeLinks") {
+                PdfAdvancedOperations.removeLinks(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfIntArgument(call, "pages"))
+            }
+            "extractTables" -> pdfManipulator!!.advancedMap(result, "extractTables") {
+                PdfAdvancedOperations.extractTables(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfIntArgument(call, "pages"))
+            }
+            "structuredText" -> pdfManipulator!!.advancedMap(result, "structuredText") {
+                PdfAdvancedOperations.structuredText(context, call.argument<String>("pdfPath").toString(), parseMethodCallArrayOfIntArgument(call, "pages"))
+            }
+            "visualDiffPdf" -> pdfManipulator!!.advancedString(result, "visualDiffPdf") {
+                PdfAdvancedOperations.visualDiffPdf(context, call.argument<String>("pdfPath1").toString(), call.argument<String>("pdfPath2").toString())
+            }
+            "accessibilityInfo" -> pdfManipulator!!.advancedMap(result, "accessibilityInfo") {
+                PdfAdvancedOperations.accessibilityInfo(context, call.argument<String>("pdfPath").toString())
+            }
+            "applyBasicAccessibility" -> pdfManipulator!!.advancedString(result, "applyBasicAccessibility") {
+                PdfAdvancedOperations.applyBasicAccessibility(context, call.argument<String>("pdfPath").toString(), call.argument<String>("language") ?: "en-US", call.argument<String>("title") ?: "")
+            }
+            "pdfUaValidation" -> pdfManipulator!!.advancedMap(result, "pdfUaValidation") {
+                PdfAdvancedOperations.pdfUaValidation(context, call.argument<String>("pdfPath").toString())
+            }
+            "addBatesNumbering" -> pdfManipulator!!.advancedString(result, "addBatesNumbering") {
+                PdfAdvancedOperations.addBatesNumbering(context, call.argument<String>("pdfPath").toString(), call.argument<String>("prefix") ?: "BATES-", call.argument<Int>("start") ?: 1)
+            }
+            "addLegalLabels" -> pdfManipulator!!.advancedString(result, "addLegalLabels") {
+                PdfAdvancedOperations.addLegalLabels(context, call.argument<String>("pdfPath").toString(), call.argument<String>("exhibit") ?: "EXHIBIT")
+            }
+            "documentActions" -> pdfManipulator!!.advancedMap(result, "documentActions") {
+                PdfAdvancedOperations.documentActions(context, call.argument<String>("pdfPath").toString())
+            }
+            "removeDocumentActions" -> pdfManipulator!!.advancedString(result, "removeDocumentActions") {
+                PdfAdvancedOperations.removeDocumentActions(context, call.argument<String>("pdfPath").toString())
+            }
+            "richMediaInfo" -> pdfManipulator!!.advancedMap(result, "richMediaInfo") {
+                PdfAdvancedOperations.richMediaInfo(context, call.argument<String>("pdfPath").toString())
+            }
+            "incrementalSaveCopy" -> pdfManipulator!!.advancedString(result, "incrementalSaveCopy") {
+                PdfAdvancedOperations.incrementalSaveCopy(context, call.argument<String>("pdfPath").toString())
+            }
+            "linearizedCopy" -> pdfManipulator!!.advancedString(result, "linearizedCopy") {
+                PdfAdvancedOperations.linearizedCopy(context, call.argument<String>("pdfPath").toString())
+            }
+            "digitalRightsInfo" -> pdfManipulator!!.advancedMap(result, "digitalRightsInfo") {
+                PdfAdvancedOperations.digitalRightsInfo(context, call.argument<String>("pdfPath").toString(), call.argument<String>("password") ?: "")
+            }
             "validatePageOrder" -> result.success(
                 PdfEditorOperations.validatePageOrder(
                     call.argument<Int>("pageCount") ?: 0,

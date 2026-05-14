@@ -114,6 +114,7 @@ export 'src/pdf_manipulator_method_channel.dart'
         PDFEditFormFieldsParams,
         PDFXfaParams,
         PDFXfaInfo,
+        PDFAdvancedParams,
         PDFBatchOperationType,
         PDFBatchOperation,
         PDFBatchProcessorParams,

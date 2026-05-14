@@ -664,6 +664,24 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   Future<String?> removeXfa({PDFXfaParams? params}) =>
       _invokeString('removeXfa', params?.toJson());
 
+  @override
+  Future<Map<String, dynamic>?> advancedInfo({
+    required String method,
+    PDFAdvancedParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      method,
+      params?.toJson(),
+    );
+    return result == null ? null : Map<String, dynamic>.from(result);
+  }
+
+  @override
+  Future<String?> advancedDocument({
+    required String method,
+    PDFAdvancedParams? params,
+  }) => _invokeString(method, params?.toJson());
+
   Future<String?> _invokeString(String method, Map<String, dynamic>? args) {
     return methodChannel.invokeMethod<String?>(method, args);
   }
@@ -3932,6 +3950,18 @@ class PDFXfaInfo {
       isDynamicXfa: json['isDynamicXfa'] as bool? ?? false,
     );
   }
+}
+
+class PDFAdvancedParams {
+  final Map<String, dynamic> values;
+
+  const PDFAdvancedParams(this.values);
+
+  factory PDFAdvancedParams.pdf(String pdfPath) {
+    return PDFAdvancedParams({'pdfPath': pdfPath});
+  }
+
+  Map<String, dynamic> toJson() => values;
 }
 
 String _colorToHex(Color color) =>

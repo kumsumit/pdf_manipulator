@@ -307,6 +307,23 @@ class PdfManipulator(
         }
     }
 
+    fun advancedString(resultCallback: Result, errorPrefix: String, operation: suspend () -> String) {
+        launchEditorOperation(resultCallback, errorPrefix, operation)
+    }
+
+    fun advancedMap(resultCallback: Result, errorPrefix: String, operation: suspend () -> Map<String, Any>) {
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                utils.finishSuccessfullyWithMap(operation(), resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError("${errorPrefix}_exception", e.stackTraceToString(), null, resultCallback)
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError("${errorPrefix}_OutOfMemoryError", e.stackTraceToString(), null, resultCallback)
+            }
+        }
+    }
+
     private fun launchEditorOperation(resultCallback: Result, errorPrefix: String, operation: suspend () -> String) {
         val uiScope = CoroutineScope(Dispatchers.Main)
         job = uiScope.launch {
