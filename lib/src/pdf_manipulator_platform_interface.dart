@@ -54,14 +54,18 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     throw UnimplementedError('pdfPageRotator() has not been implemented.');
   }
 
-  Future<String?> pdfPageRotatorDeleterReorder(
-      {PDFPageRotatorDeleterReorderParams? params}) {
+  Future<String?> pdfPageRotatorDeleterReorder({
+    PDFPageRotatorDeleterReorderParams? params,
+  }) {
     throw UnimplementedError(
-        'pdfPageRotatorDeleterReorder() has not been implemented.');
+      'pdfPageRotatorDeleterReorder() has not been implemented.',
+    );
   }
 
-  Future<OperationResult<String?>> pdfCompressor(
-      {PDFCompressorParams? params, ProgressCallback? onProgress}) {
+  Future<OperationResult<String?>> pdfCompressor({
+    PDFCompressorParams? params,
+    ProgressCallback? onProgress,
+  }) {
     throw UnimplementedError('pdfCompressor() has not been implemented.');
   }
 
@@ -77,10 +81,12 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     throw UnimplementedError('pdfPagesSize() has not been implemented.');
   }
 
-  Future<PdfValidityAndProtection?> pdfValidityAndProtection(
-      {PDFValidityAndProtectionParams? params}) {
+  Future<PdfValidityAndProtection?> pdfValidityAndProtection({
+    PDFValidityAndProtectionParams? params,
+  }) {
     throw UnimplementedError(
-        'pdfValidityAndProtection() has not been implemented.');
+      'pdfValidityAndProtection() has not been implemented.',
+    );
   }
 
   Future<String?> pdfDecryption({PDFDecryptionParams? params}) {
@@ -95,7 +101,8 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     PDFCertificateEncryptionParams? params,
   }) {
     throw UnimplementedError(
-        'pdfCertificateEncryption() has not been implemented.');
+      'pdfCertificateEncryption() has not been implemented.',
+    );
   }
 
   Future<List<String>?> imagesToPdfs({ImagesToPDFsParams? params}) {
@@ -110,10 +117,12 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
-  Future<List<String>?> extractImagesFromPdf(
-      {ExtractImageFromPDFParams? params}) {
+  Future<List<String>?> extractImagesFromPdf({
+    ExtractImageFromPDFParams? params,
+  }) {
     throw UnimplementedError(
-        'extractImagesFromPdf() has not been implemented.');
+      'extractImagesFromPdf() has not been implemented.',
+    );
   }
 
   /// Converts PDF pages to images.
@@ -128,8 +137,9 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
-  Future<PDFTextExtractionResult?> pdfTextExtraction(
-      {PDFTextExtractionParams? params}) {
+  Future<PDFTextExtractionResult?> pdfTextExtraction({
+    PDFTextExtractionParams? params,
+  }) {
     throw UnimplementedError('pdfTextExtraction() has not been implemented.');
   }
 
@@ -173,7 +183,8 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
     PDFFormFieldDataParams? params,
   }) {
     throw UnimplementedError(
-        'extractFormFieldData() has not been implemented.');
+      'extractFormFieldData() has not been implemented.',
+    );
   }
 
   /// Reads PDF metadata (title, author, subject, keywords, etc.).
@@ -190,9 +201,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
-  Future<String?> pdfMetadataWriter({
-    PDFMetadataWriterParams? params,
-  }) {
+  Future<String?> pdfMetadataWriter({PDFMetadataWriterParams? params}) {
     throw UnimplementedError('pdfMetadataWriter() has not been implemented.');
   }
 
@@ -210,9 +219,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
-  Future<String?> pdfBookmarkWriter({
-    PDFBookmarkWriterParams? params,
-  }) {
+  Future<String?> pdfBookmarkWriter({PDFBookmarkWriterParams? params}) {
     throw UnimplementedError('pdfBookmarkWriter() has not been implemented.');
   }
 
@@ -220,9 +227,7 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns PDFComparisonResult containing detailed comparison information.
   /// Throws exception on error.
-  Future<PDFComparisonResult?> pdfComparison({
-    PDFComparisonParams? params,
-  }) {
+  Future<PDFComparisonResult?> pdfComparison({PDFComparisonParams? params}) {
     throw UnimplementedError('pdfComparison() has not been implemented.');
   }
 
@@ -230,9 +235,89 @@ abstract class PdfManipulatorPlatform extends PlatformInterface {
   ///
   /// Returns PDFRepairResult containing repair status and recovered content.
   /// Throws exception on error.
-  Future<PDFRepairResult?> pdfRepair({
-    PDFRepairParams? params,
-  }) {
+  Future<PDFRepairResult?> pdfRepair({PDFRepairParams? params}) {
     throw UnimplementedError('pdfRepair() has not been implemented.');
   }
+
+  Future<String?> createBlankPdf({PDFCreateBlankParams? params}) =>
+      throw UnimplementedError('createBlankPdf() has not been implemented.');
+  Future<String?> insertBlankPages({PDFInsertBlankPagesParams? params}) =>
+      throw UnimplementedError('insertBlankPages() has not been implemented.');
+  Future<String?> insertPages({PDFInsertPagesParams? params}) =>
+      throw UnimplementedError('insertPages() has not been implemented.');
+  Future<String?> replacePages({PDFReplacePagesParams? params}) =>
+      throw UnimplementedError('replacePages() has not been implemented.');
+  Future<String?> duplicatePages({PDFDuplicatePagesParams? params}) =>
+      throw UnimplementedError('duplicatePages() has not been implemented.');
+  Future<String?> extractPages({PDFExtractPagesParams? params}) =>
+      throw UnimplementedError('extractPages() has not been implemented.');
+  Future<String?> cropPages({PDFCropPagesParams? params}) =>
+      throw UnimplementedError('cropPages() has not been implemented.');
+  Future<String?> resizePages({PDFResizePagesParams? params}) =>
+      throw UnimplementedError('resizePages() has not been implemented.');
+  Future<String?> addPageNumbers({PDFPageNumbersParams? params}) =>
+      throw UnimplementedError('addPageNumbers() has not been implemented.');
+  Future<String?> addHeadersFooters({PDFHeadersFootersParams? params}) =>
+      throw UnimplementedError('addHeadersFooters() has not been implemented.');
+  Future<String?> addBackgrounds({PDFBackgroundsParams? params}) =>
+      throw UnimplementedError('addBackgrounds() has not been implemented.');
+  Future<String?> addStamps({PDFStampsParams? params}) =>
+      throw UnimplementedError('addStamps() has not been implemented.');
+  Future<String?> addTextBlocks({PDFTextBlocksParams? params}) =>
+      throw UnimplementedError('addTextBlocks() has not been implemented.');
+  Future<String?> addImages({PDFImagesParams? params}) =>
+      throw UnimplementedError('addImages() has not been implemented.');
+  Future<String?> editText({PDFTextEditsParams? params}) =>
+      throw UnimplementedError('editText() has not been implemented.');
+  Future<String?> editImages({PDFImageEditsParams? params}) =>
+      throw UnimplementedError('editImages() has not been implemented.');
+  Future<String?> removeAnnotations({PDFRemoveAnnotationsParams? params}) =>
+      throw UnimplementedError('removeAnnotations() has not been implemented.');
+  Future<String?> modifyAnnotations({PDFAnnotationsParams? params}) =>
+      throw UnimplementedError('modifyAnnotations() has not been implemented.');
+  Future<String?> flattenAnnotations({PDFFlattenParams? params}) =>
+      throw UnimplementedError(
+        'flattenAnnotations() has not been implemented.',
+      );
+  Future<String?> flattenPdf({PDFFlattenParams? params}) =>
+      throw UnimplementedError('flattenPdf() has not been implemented.');
+  Future<PDFPageOrderValidationResult?> validatePageOrder({
+    PDFPageOrderValidationParams? params,
+  }) =>
+      throw UnimplementedError('validatePageOrder() has not been implemented.');
+  Future<List<int>?> movePageOrder({PDFMovePageOrderParams? params}) =>
+      throw UnimplementedError('movePageOrder() has not been implemented.');
+  Future<List<int>?> swapPageOrder({PDFSwapPageOrderParams? params}) =>
+      throw UnimplementedError('swapPageOrder() has not been implemented.');
+  Future<List<int>?> reversePageOrder({PDFReversePageOrderParams? params}) =>
+      throw UnimplementedError('reversePageOrder() has not been implemented.');
+
+  Future<String?> pdfToWord({PDFDocumentExportParams? params}) =>
+      throw UnimplementedError('pdfToWord() has not been implemented.');
+  Future<String?> pdfToExcel({PDFDocumentExportParams? params}) =>
+      throw UnimplementedError('pdfToExcel() has not been implemented.');
+  Future<String?> pdfToPowerPoint({PDFDocumentExportParams? params}) =>
+      throw UnimplementedError('pdfToPowerPoint() has not been implemented.');
+  Future<String?> pdfToHtml({PDFDocumentExportParams? params}) =>
+      throw UnimplementedError('pdfToHtml() has not been implemented.');
+  Future<String?> pdfToTextFile({PDFDocumentExportParams? params}) =>
+      throw UnimplementedError('pdfToTextFile() has not been implemented.');
+  Future<String?> documentToPdf({PDFDocumentToPdfParams? params}) =>
+      throw UnimplementedError('documentToPdf() has not been implemented.');
+  Future<String?> textToPdf({PDFTextToPdfParams? params}) =>
+      throw UnimplementedError('textToPdf() has not been implemented.');
+  Future<String?> scannerImagesToPdf({PDFScannerImagesToPdfParams? params}) =>
+      throw UnimplementedError(
+        'scannerImagesToPdf() has not been implemented.',
+      );
+  Future<String?> pdfAConversion({PDFArchiveConversionParams? params}) =>
+      throw UnimplementedError('pdfAConversion() has not been implemented.');
+  Future<PDFArchiveValidationResult?> pdfAValidation({
+    PDFArchiveValidationParams? params,
+  }) => throw UnimplementedError('pdfAValidation() has not been implemented.');
+  Future<PDFEmbeddedImagesExportResult?> exportEmbeddedImages({
+    PDFEmbeddedImagesExportParams? params,
+  }) => throw UnimplementedError(
+    'exportEmbeddedImages() has not been implemented.',
+  );
 }

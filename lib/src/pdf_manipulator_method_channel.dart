@@ -12,49 +12,64 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   @override
   Future<String?> mergePDFs({PDFMergerParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'mergePDFs', params?.toJson());
+      'mergePDFs',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<List<String>?> splitPDF({PDFSplitterParams? params}) async {
-    final List? paths =
-        await methodChannel.invokeMethod<List?>('splitPDF', params?.toJson());
+    final List? paths = await methodChannel.invokeMethod<List?>(
+      'splitPDF',
+      params?.toJson(),
+    );
     return paths?.cast<String>();
   }
 
   @override
   Future<String?> pdfPageDeleter({PDFPageDeleterParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfPageDeleter', params?.toJson());
+      'pdfPageDeleter',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<String?> pdfPageReorder({PDFPageReorderParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfPageReorder', params?.toJson());
+      'pdfPageReorder',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<String?> pdfPageRotator({PDFPageRotatorParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfPageRotator', params?.toJson());
+      'pdfPageRotator',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
-  Future<String?> pdfPageRotatorDeleterReorder(
-      {PDFPageRotatorDeleterReorderParams? params}) async {
+  Future<String?> pdfPageRotatorDeleterReorder({
+    PDFPageRotatorDeleterReorderParams? params,
+  }) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfPageRotatorDeleterReorder', params?.toJson());
+      'pdfPageRotatorDeleterReorder',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
-  Future<OperationResult<String?>> pdfCompressor(
-      {PDFCompressorParams? params, ProgressCallback? onProgress}) async {
+  Future<OperationResult<String?>> pdfCompressor({
+    PDFCompressorParams? params,
+    ProgressCallback? onProgress,
+  }) async {
     final operationId = DateTime.now().millisecondsSinceEpoch.toString();
     final Map<String, dynamic> args = {'operationId': operationId};
     if (params != null) {
@@ -73,72 +88,89 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
       });
     }
 
-    final String? path =
-        await methodChannel.invokeMethod<String?>('pdfCompressor', args);
+    final String? path = await methodChannel.invokeMethod<String?>(
+      'pdfCompressor',
+      args,
+    );
     return OperationResult(result: path, operationId: operationId);
   }
 
   @override
   Future<String?> pdfOptimizer({PDFOptimizerParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfOptimizer', params?.toJson());
+      'pdfOptimizer',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<String?> pdfWatermark({PDFWatermarkParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfWatermark', params?.toJson());
+      'pdfWatermark',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<List<PageSizeInfo>?> pdfPagesSize({PDFPagesSizeParams? params}) async {
     final List? result = await methodChannel.invokeMethod<List?>(
-        'pdfPagesSize', params?.toJson());
+      'pdfPagesSize',
+      params?.toJson(),
+    );
     result?.cast<List<double>>();
     if (result == null) {
       return null;
     } else {
       return List<PageSizeInfo>.generate(
-          result.length,
-          (int index) => PageSizeInfo(
-                pageNumber: (result[index][0] as double).toInt(),
-                widthOfPage: result[index][1] as double,
-                heightOfPage: result[index][2] as double,
-              ));
+        result.length,
+        (int index) => PageSizeInfo(
+          pageNumber: (result[index][0] as double).toInt(),
+          widthOfPage: result[index][1] as double,
+          heightOfPage: result[index][2] as double,
+        ),
+      );
     }
   }
 
   @override
-  Future<PdfValidityAndProtection?> pdfValidityAndProtection(
-      {PDFValidityAndProtectionParams? params}) async {
+  Future<PdfValidityAndProtection?> pdfValidityAndProtection({
+    PDFValidityAndProtectionParams? params,
+  }) async {
     final List? result = await methodChannel.invokeMethod<List?>(
-        'pdfValidityAndProtection', params?.toJson());
+      'pdfValidityAndProtection',
+      params?.toJson(),
+    );
     result?.cast<List<bool?>>();
     if (result == null) {
       return null;
     } else {
       return PdfValidityAndProtection(
-          isPDFValid: result[0],
-          isOwnerPasswordProtected: result[1],
-          isOpenPasswordProtected: result[2],
-          isPrintingAllowed: result[3],
-          isModifyContentsAllowed: result[4]);
+        isPDFValid: result[0],
+        isOwnerPasswordProtected: result[1],
+        isOpenPasswordProtected: result[2],
+        isPrintingAllowed: result[3],
+        isModifyContentsAllowed: result[4],
+      );
     }
   }
 
   @override
   Future<String?> pdfDecryption({PDFDecryptionParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfDecryption', params?.toJson());
+      'pdfDecryption',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<String?> pdfEncryption({PDFEncryptionParams? params}) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfEncryption', params?.toJson());
+      'pdfEncryption',
+      params?.toJson(),
+    );
     return path;
   }
 
@@ -147,21 +179,27 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     PDFCertificateEncryptionParams? params,
   }) async {
     final String? path = await methodChannel.invokeMethod<String?>(
-        'pdfCertificateEncryption', params?.toJson());
+      'pdfCertificateEncryption',
+      params?.toJson(),
+    );
     return path;
   }
 
   @override
   Future<List<String>?> imagesToPdfs({ImagesToPDFsParams? params}) async {
     final List? paths = await methodChannel.invokeMethod<List?>(
-        'imagesToPdfs', params?.toJson());
+      'imagesToPdfs',
+      params?.toJson(),
+    );
     return paths?.cast<String>();
   }
 
   @override
   Future<String?> cancelManipulations({String? operationId}) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'cancelManipulations', {'operationId': operationId});
+      'cancelManipulations',
+      {'operationId': operationId},
+    );
     return result;
   }
 
@@ -170,10 +208,13 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
   @override
-  Future<List<String>?> extractImagesFromPdf(
-      {ExtractImageFromPDFParams? params}) async {
+  Future<List<String>?> extractImagesFromPdf({
+    ExtractImageFromPDFParams? params,
+  }) async {
     final List? paths = await methodChannel.invokeMethod<List?>(
-        'extractImagesFromPdf', params?.toJson());
+      'extractImagesFromPdf',
+      params?.toJson(),
+    );
     return paths?.cast<String>();
   }
 
@@ -184,7 +225,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   @override
   Future<List<String>?> pdfToImages({PDFToImagesParams? params}) async {
     final List? paths = await methodChannel.invokeMethod<List?>(
-        'pdfToImages', params?.toJson());
+      'pdfToImages',
+      params?.toJson(),
+    );
     return paths?.cast<String>();
   }
 
@@ -193,10 +236,13 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
   @override
-  Future<PDFTextExtractionResult?> pdfTextExtraction(
-      {PDFTextExtractionParams? params}) async {
+  Future<PDFTextExtractionResult?> pdfTextExtraction({
+    PDFTextExtractionParams? params,
+  }) async {
     final Map? result = await methodChannel.invokeMethod<Map?>(
-        'pdfTextExtraction', params?.toJson());
+      'pdfTextExtraction',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -219,8 +265,10 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Throws exception on error.
   @override
   Future<PDFOCRResult?> pdfOcr({PDFOCRParams? params}) async {
-    final Map? result =
-        await methodChannel.invokeMethod<Map?>('pdfOcr', params?.toJson());
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'pdfOcr',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -250,10 +298,13 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns the path to the signed PDF file.
   /// Throws exception on error.
   @override
-  Future<String?> pdfDigitalSignature(
-      {PDFDigitalSignatureParams? params}) async {
+  Future<String?> pdfDigitalSignature({
+    PDFDigitalSignatureParams? params,
+  }) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'pdfDigitalSignature', params?.toJson());
+      'pdfDigitalSignature',
+      params?.toJson(),
+    );
     return result;
   }
 
@@ -264,7 +315,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   @override
   Future<String?> pdfAnnotations({PDFAnnotationsParams? params}) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'pdfAnnotations', params?.toJson());
+      'pdfAnnotations',
+      params?.toJson(),
+    );
     return result;
   }
 
@@ -275,7 +328,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   @override
   Future<String?> fillFormFields({PDFFormFillParams? params}) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'fillFormFields', params?.toJson());
+      'fillFormFields',
+      params?.toJson(),
+    );
     return result;
   }
 
@@ -288,7 +343,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     PDFFormFieldDataParams? params,
   }) async {
     final Map? result = await methodChannel.invokeMethod<Map?>(
-        'extractFormFieldData', params?.toJson());
+      'extractFormFieldData',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -304,7 +361,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     PDFMetadataReaderParams? params,
   }) async {
     final Map? result = await methodChannel.invokeMethod<Map?>(
-        'pdfMetadataReader', params?.toJson());
+      'pdfMetadataReader',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -316,11 +375,11 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
   @override
-  Future<String?> pdfMetadataWriter({
-    PDFMetadataWriterParams? params,
-  }) async {
+  Future<String?> pdfMetadataWriter({PDFMetadataWriterParams? params}) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'pdfMetadataWriter', params?.toJson());
+      'pdfMetadataWriter',
+      params?.toJson(),
+    );
     return result;
   }
 
@@ -333,7 +392,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     PDFBookmarkReaderParams? params,
   }) async {
     final Map? result = await methodChannel.invokeMethod<Map?>(
-        'pdfBookmarkReader', params?.toJson());
+      'pdfBookmarkReader',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -345,11 +406,11 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
   @override
-  Future<String?> pdfBookmarkWriter({
-    PDFBookmarkWriterParams? params,
-  }) async {
+  Future<String?> pdfBookmarkWriter({PDFBookmarkWriterParams? params}) async {
     final String? result = await methodChannel.invokeMethod<String?>(
-        'pdfBookmarkWriter', params?.toJson());
+      'pdfBookmarkWriter',
+      params?.toJson(),
+    );
     return result;
   }
 
@@ -362,7 +423,9 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
     PDFComparisonParams? params,
   }) async {
     final Map? result = await methodChannel.invokeMethod<Map?>(
-        'pdfComparison', params?.toJson());
+      'pdfComparison',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
@@ -374,15 +437,200 @@ class MethodChannelPdfManipulator extends PdfManipulatorPlatform {
   /// Returns PDFRepairResult containing repair status and recovered content.
   /// Throws exception on error.
   @override
-  Future<PDFRepairResult?> pdfRepair({
-    PDFRepairParams? params,
-  }) async {
-    final Map? result =
-        await methodChannel.invokeMethod<Map?>('pdfRepair', params?.toJson());
+  Future<PDFRepairResult?> pdfRepair({PDFRepairParams? params}) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'pdfRepair',
+      params?.toJson(),
+    );
 
     if (result == null) return null;
 
     return PDFRepairResult.fromJson(Map<dynamic, dynamic>.from(result));
+  }
+
+  @override
+  Future<String?> createBlankPdf({PDFCreateBlankParams? params}) =>
+      _invokeString('createBlankPdf', params?.toJson());
+
+  @override
+  Future<String?> insertBlankPages({PDFInsertBlankPagesParams? params}) =>
+      _invokeString('insertBlankPages', params?.toJson());
+
+  @override
+  Future<String?> insertPages({PDFInsertPagesParams? params}) =>
+      _invokeString('insertPages', params?.toJson());
+
+  @override
+  Future<String?> replacePages({PDFReplacePagesParams? params}) =>
+      _invokeString('replacePages', params?.toJson());
+
+  @override
+  Future<String?> duplicatePages({PDFDuplicatePagesParams? params}) =>
+      _invokeString('duplicatePages', params?.toJson());
+
+  @override
+  Future<String?> extractPages({PDFExtractPagesParams? params}) =>
+      _invokeString('extractPages', params?.toJson());
+
+  @override
+  Future<String?> cropPages({PDFCropPagesParams? params}) =>
+      _invokeString('cropPages', params?.toJson());
+
+  @override
+  Future<String?> resizePages({PDFResizePagesParams? params}) =>
+      _invokeString('resizePages', params?.toJson());
+
+  @override
+  Future<String?> addPageNumbers({PDFPageNumbersParams? params}) =>
+      _invokeString('addPageNumbers', params?.toJson());
+
+  @override
+  Future<String?> addHeadersFooters({PDFHeadersFootersParams? params}) =>
+      _invokeString('addHeadersFooters', params?.toJson());
+
+  @override
+  Future<String?> addBackgrounds({PDFBackgroundsParams? params}) =>
+      _invokeString('addBackgrounds', params?.toJson());
+
+  @override
+  Future<String?> addStamps({PDFStampsParams? params}) =>
+      _invokeString('addStamps', params?.toJson());
+
+  @override
+  Future<String?> addTextBlocks({PDFTextBlocksParams? params}) =>
+      _invokeString('addTextBlocks', params?.toJson());
+
+  @override
+  Future<String?> addImages({PDFImagesParams? params}) =>
+      _invokeString('addImages', params?.toJson());
+
+  @override
+  Future<String?> editText({PDFTextEditsParams? params}) =>
+      _invokeString('editText', params?.toJson());
+
+  @override
+  Future<String?> editImages({PDFImageEditsParams? params}) =>
+      _invokeString('editImages', params?.toJson());
+
+  @override
+  Future<String?> removeAnnotations({PDFRemoveAnnotationsParams? params}) =>
+      _invokeString('removeAnnotations', params?.toJson());
+
+  @override
+  Future<String?> modifyAnnotations({PDFAnnotationsParams? params}) =>
+      _invokeString('modifyAnnotations', params?.toJson());
+
+  @override
+  Future<String?> flattenAnnotations({PDFFlattenParams? params}) =>
+      _invokeString('flattenAnnotations', params?.toJson());
+
+  @override
+  Future<String?> flattenPdf({PDFFlattenParams? params}) =>
+      _invokeString('flattenPdf', params?.toJson());
+
+  @override
+  Future<PDFPageOrderValidationResult?> validatePageOrder({
+    PDFPageOrderValidationParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'validatePageOrder',
+      params?.toJson(),
+    );
+    return result == null
+        ? null
+        : PDFPageOrderValidationResult.fromJson(
+            Map<dynamic, dynamic>.from(result),
+          );
+  }
+
+  @override
+  Future<List<int>?> movePageOrder({PDFMovePageOrderParams? params}) =>
+      _invokeIntList('movePageOrder', params?.toJson());
+
+  @override
+  Future<List<int>?> swapPageOrder({PDFSwapPageOrderParams? params}) =>
+      _invokeIntList('swapPageOrder', params?.toJson());
+
+  @override
+  Future<List<int>?> reversePageOrder({PDFReversePageOrderParams? params}) =>
+      _invokeIntList('reversePageOrder', params?.toJson());
+
+  @override
+  Future<String?> pdfToWord({PDFDocumentExportParams? params}) =>
+      _invokeString('pdfToWord', params?.toJson());
+
+  @override
+  Future<String?> pdfToExcel({PDFDocumentExportParams? params}) =>
+      _invokeString('pdfToExcel', params?.toJson());
+
+  @override
+  Future<String?> pdfToPowerPoint({PDFDocumentExportParams? params}) =>
+      _invokeString('pdfToPowerPoint', params?.toJson());
+
+  @override
+  Future<String?> pdfToHtml({PDFDocumentExportParams? params}) =>
+      _invokeString('pdfToHtml', params?.toJson());
+
+  @override
+  Future<String?> pdfToTextFile({PDFDocumentExportParams? params}) =>
+      _invokeString('pdfToTextFile', params?.toJson());
+
+  @override
+  Future<String?> documentToPdf({PDFDocumentToPdfParams? params}) =>
+      _invokeString('documentToPdf', params?.toJson());
+
+  @override
+  Future<String?> textToPdf({PDFTextToPdfParams? params}) =>
+      _invokeString('textToPdf', params?.toJson());
+
+  @override
+  Future<String?> scannerImagesToPdf({PDFScannerImagesToPdfParams? params}) =>
+      _invokeString('scannerImagesToPdf', params?.toJson());
+
+  @override
+  Future<String?> pdfAConversion({PDFArchiveConversionParams? params}) =>
+      _invokeString('pdfAConversion', params?.toJson());
+
+  @override
+  Future<PDFArchiveValidationResult?> pdfAValidation({
+    PDFArchiveValidationParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'pdfAValidation',
+      params?.toJson(),
+    );
+    return result == null
+        ? null
+        : PDFArchiveValidationResult.fromJson(
+            Map<dynamic, dynamic>.from(result),
+          );
+  }
+
+  @override
+  Future<PDFEmbeddedImagesExportResult?> exportEmbeddedImages({
+    PDFEmbeddedImagesExportParams? params,
+  }) async {
+    final Map? result = await methodChannel.invokeMethod<Map?>(
+      'exportEmbeddedImages',
+      params?.toJson(),
+    );
+    return result == null
+        ? null
+        : PDFEmbeddedImagesExportResult.fromJson(
+            Map<dynamic, dynamic>.from(result),
+          );
+  }
+
+  Future<String?> _invokeString(String method, Map<String, dynamic>? args) {
+    return methodChannel.invokeMethod<String?>(method, args);
+  }
+
+  Future<List<int>?> _invokeIntList(
+    String method,
+    Map<String, dynamic>? args,
+  ) async {
+    final List? result = await methodChannel.invokeMethod<List?>(method, args);
+    return result?.cast<int>();
   }
 }
 
@@ -393,12 +641,10 @@ class PDFMergerParams {
 
   /// Create parameters for the [mergePDFs] method.
   const PDFMergerParams({required this.pdfsPaths})
-      : assert(pdfsPaths.length > 1, 'provide paths for at least 2 pdfs');
+    : assert(pdfsPaths.length > 1, 'provide paths for at least 2 pdfs');
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfsPaths': pdfsPaths,
-    };
+    return <String, dynamic>{'pdfsPaths': pdfsPaths};
   }
 }
 
@@ -438,41 +684,42 @@ class PDFSplitterParams {
   final String? pageRange;
 
   /// Create parameters for the [splitPDF] method.
-  const PDFSplitterParams(
-      {required this.pdfPath,
-      this.pageCount,
-      this.byteSize,
-      this.pageNumbers,
-      this.pageRanges,
-      this.pageRange})
-      : assert(
-            pageCount != null
-                ? (byteSize == null &&
-                    pageNumbers == null &&
-                    pageRanges == null &&
-                    pageRange == null)
-                : byteSize != null
-                    ? (pageCount == null &&
-                        pageNumbers == null &&
-                        pageRanges == null &&
-                        pageRange == null)
-                    : pageNumbers != null
-                        ? (pageCount == null &&
-                            byteSize == null &&
-                            pageRanges == null &&
-                            pageRange == null)
-                        : pageRanges != null
-                            ? (pageCount == null &&
-                                byteSize == null &&
-                                pageNumbers == null &&
-                                pageRange == null)
-                            : pageRange != null
-                                ? (pageCount == null &&
-                                    byteSize == null &&
-                                    pageNumbers == null &&
-                                    pageRanges == null)
-                                : false,
-            'Provide only anyone out of pageCount, byteSize, pageNumbers, pageRanges, pageRange');
+  const PDFSplitterParams({
+    required this.pdfPath,
+    this.pageCount,
+    this.byteSize,
+    this.pageNumbers,
+    this.pageRanges,
+    this.pageRange,
+  }) : assert(
+         pageCount != null
+             ? (byteSize == null &&
+                   pageNumbers == null &&
+                   pageRanges == null &&
+                   pageRange == null)
+             : byteSize != null
+             ? (pageCount == null &&
+                   pageNumbers == null &&
+                   pageRanges == null &&
+                   pageRange == null)
+             : pageNumbers != null
+             ? (pageCount == null &&
+                   byteSize == null &&
+                   pageRanges == null &&
+                   pageRange == null)
+             : pageRanges != null
+             ? (pageCount == null &&
+                   byteSize == null &&
+                   pageNumbers == null &&
+                   pageRange == null)
+             : pageRange != null
+             ? (pageCount == null &&
+                   byteSize == null &&
+                   pageNumbers == null &&
+                   pageRanges == null)
+             : false,
+         'Provide only anyone out of pageCount, byteSize, pageNumbers, pageRanges, pageRange',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -496,14 +743,13 @@ class PDFPageDeleterParams {
 
   /// Create parameters for the [pdfPageDeleter] method.
   const PDFPageDeleterParams({required this.pdfPath, required this.pageNumbers})
-      : assert(
-            pageNumbers.length > 0, 'provide at least 1 page number to delete');
+    : assert(
+        pageNumbers.length > 0,
+        'provide at least 1 page number to delete',
+      );
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-      'pageNumbers': pageNumbers,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath, 'pageNumbers': pageNumbers};
   }
 }
 
@@ -517,13 +763,10 @@ class PDFPageReorderParams {
 
   /// Create parameters for the [pdfPageReorder] method.
   const PDFPageReorderParams({required this.pdfPath, required this.pageNumbers})
-      : assert(pageNumbers.length > 0, 'pageNumbers cant be empty');
+    : assert(pageNumbers.length > 0, 'pageNumbers cant be empty');
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-      'pageNumbers': pageNumbers,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath, 'pageNumbers': pageNumbers};
   }
 }
 
@@ -531,10 +774,7 @@ class PageRotationInfo {
   final int pageNumber;
   final int rotationAngle;
 
-  PageRotationInfo({
-    required this.pageNumber,
-    required this.rotationAngle,
-  });
+  PageRotationInfo({required this.pageNumber, required this.rotationAngle});
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -560,9 +800,10 @@ class PDFPageRotatorParams {
   final List<PageRotationInfo> pagesRotationInfo;
 
   /// Create parameters for the [pdfPageRotator] method.
-  const PDFPageRotatorParams(
-      {required this.pdfPath, required this.pagesRotationInfo})
-      : assert(pagesRotationInfo.length > 0, 'pageNumbers cant be empty');
+  const PDFPageRotatorParams({
+    required this.pdfPath,
+    required this.pagesRotationInfo,
+  }) : assert(pagesRotationInfo.length > 0, 'pageNumbers cant be empty');
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -587,18 +828,19 @@ class PDFPageRotatorDeleterReorderParams {
   final List<int>? pageNumbersForReorder;
 
   /// Create parameters for the [pdfPageRotator] method.
-  const PDFPageRotatorDeleterReorderParams(
-      {required this.pdfPath,
-      this.pagesRotationInfo,
-      this.pageNumbersForDeleter,
-      this.pageNumbersForReorder})
-      : assert(
-            (pagesRotationInfo != null && pagesRotationInfo.length > 0) ||
-                (pageNumbersForDeleter != null &&
-                    pageNumbersForDeleter.length > 0) ||
-                (pageNumbersForReorder != null &&
-                    pageNumbersForReorder.length > 0),
-            'out of pagesRotationInfo, pageNumbersForDeleter, pageNumbersForReorder provide at least one non empty');
+  const PDFPageRotatorDeleterReorderParams({
+    required this.pdfPath,
+    this.pagesRotationInfo,
+    this.pageNumbersForDeleter,
+    this.pageNumbersForReorder,
+  }) : assert(
+         (pagesRotationInfo != null && pagesRotationInfo.length > 0) ||
+             (pageNumbersForDeleter != null &&
+                 pageNumbersForDeleter.length > 0) ||
+             (pageNumbersForReorder != null &&
+                 pageNumbersForReorder.length > 0),
+         'out of pagesRotationInfo, pageNumbersForDeleter, pageNumbersForReorder provide at least one non empty',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -634,10 +876,14 @@ class PDFCompressorParams {
     required this.imageScale,
     this.unEmbedFonts = false,
     this.advancedOptions,
-  })  : assert(imageScale > 0 || imageScale <= 5,
-            'imageScale should be greater than 0 and less tan or equal to 5'),
-        assert(imageQuality > 0 || imageQuality <= 100,
-            'imageQuality should be greater than 0 and less tan or equal to 100');
+  }) : assert(
+         imageScale > 0 || imageScale <= 5,
+         'imageScale should be greater than 0 and less tan or equal to 5',
+       ),
+       assert(
+         imageQuality > 0 || imageQuality <= 100,
+         'imageQuality should be greater than 0 and less tan or equal to 100',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -766,7 +1012,7 @@ enum PositionType {
   bottomLeft,
   bottomCenter,
   bottomRight,
-  custom
+  custom,
 }
 
 enum ImageFormat { png, jpeg, webp }
@@ -827,15 +1073,18 @@ class PDFWatermarkParams {
     this.customPositionYCoordinatesList,
     this.imageWidth,
     this.imageHeight,
-  })  : assert(text != null || imagePath != null,
-            'Either text or imagePath must be provided'),
-        assert(
-            positionType != PositionType.custom ||
-                (customPositionXCoordinatesList != null &&
-                    customPositionXCoordinatesList.isNotEmpty &&
-                    customPositionYCoordinatesList != null &&
-                    customPositionYCoordinatesList.isNotEmpty),
-            'If positionType is custom, both customPositionXCoordinatesList and customPositionYCoordinatesList must be provided and non-empty');
+  }) : assert(
+         text != null || imagePath != null,
+         'Either text or imagePath must be provided',
+       ),
+       assert(
+         positionType != PositionType.custom ||
+             (customPositionXCoordinatesList != null &&
+                 customPositionXCoordinatesList.isNotEmpty &&
+                 customPositionYCoordinatesList != null &&
+                 customPositionYCoordinatesList.isNotEmpty),
+         'If positionType is custom, both customPositionXCoordinatesList and customPositionYCoordinatesList must be provided and non-empty',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -894,14 +1143,10 @@ class PDFPagesSizeParams {
   final String pdfPath;
 
   /// Create parameters for the [pdfPagesSize] method.
-  const PDFPagesSizeParams({
-    required this.pdfPath,
-  });
+  const PDFPagesSizeParams({required this.pdfPath});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath};
   }
 }
 
@@ -962,10 +1207,7 @@ class PDFValidityAndProtectionParams {
   });
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-      'password': password,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath, 'password': password};
   }
 }
 
@@ -978,16 +1220,10 @@ class PDFDecryptionParams {
   final String? password;
 
   /// Create parameters for the [pdfDecryption] method.
-  const PDFDecryptionParams({
-    required this.pdfPath,
-    this.password = "",
-  });
+  const PDFDecryptionParams({required this.pdfPath, this.password = ""});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-      'password': password,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath, 'password': password};
   }
 }
 
@@ -1092,24 +1328,25 @@ class PDFEncryptionParams {
     this.encryptEmbeddedFilesOnly = false,
     this.doNotEncryptMetadata = false,
   }) : assert(
-            standardEncryptionAES40 == true
-                ? (standardEncryptionAES128 == false &&
-                    encryptionAES128 == false &&
-                    encryptionAES256 == false)
-                : standardEncryptionAES128 == true
-                    ? (standardEncryptionAES40 == false &&
-                        encryptionAES128 == false &&
-                        encryptionAES256 == false)
-                    : encryptionAES128 == true
-                        ? (standardEncryptionAES40 == false &&
-                            standardEncryptionAES128 == false &&
-                            encryptionAES256 == false)
-                        : encryptionAES256 == true
-                            ? (standardEncryptionAES40 == false &&
-                                standardEncryptionAES128 == false &&
-                                encryptionAES128 == false)
-                            : false,
-            'Set only anyone encryption out of standardEncryptionAES40, standardEncryptionAES128, encryptionAES128, encryptionAES256 true');
+         standardEncryptionAES40 == true
+             ? (standardEncryptionAES128 == false &&
+                   encryptionAES128 == false &&
+                   encryptionAES256 == false)
+             : standardEncryptionAES128 == true
+             ? (standardEncryptionAES40 == false &&
+                   encryptionAES128 == false &&
+                   encryptionAES256 == false)
+             : encryptionAES128 == true
+             ? (standardEncryptionAES40 == false &&
+                   standardEncryptionAES128 == false &&
+                   encryptionAES256 == false)
+             : encryptionAES256 == true
+             ? (standardEncryptionAES40 == false &&
+                   standardEncryptionAES128 == false &&
+                   encryptionAES128 == false)
+             : false,
+         'Set only anyone encryption out of standardEncryptionAES40, standardEncryptionAES128, encryptionAES128, encryptionAES256 true',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -1227,14 +1464,15 @@ class PDFCertificateEncryptionParams {
     this.encryptionAES256 = true,
     this.encryptEmbeddedFilesOnly = false,
     this.doNotEncryptMetadata = false,
-  })  : assert(recipients.length > 0, 'provide at least 1 recipient'),
-        assert(
-            (standardEncryptionAES40 ? 1 : 0) +
-                    (standardEncryptionAES128 ? 1 : 0) +
-                    (encryptionAES128 ? 1 : 0) +
-                    (encryptionAES256 ? 1 : 0) ==
-                1,
-            'Set exactly one encryption type true');
+  }) : assert(recipients.length > 0, 'provide at least 1 recipient'),
+       assert(
+         (standardEncryptionAES40 ? 1 : 0) +
+                 (standardEncryptionAES128 ? 1 : 0) +
+                 (encryptionAES128 ? 1 : 0) +
+                 (encryptionAES256 ? 1 : 0) ==
+             1,
+         'Set exactly one encryption type true',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -1259,9 +1497,10 @@ class ImagesToPDFsParams {
   final bool createSinglePdf;
 
   /// Create parameters for the [imagesToPdfs] method.
-  const ImagesToPDFsParams(
-      {required this.imagesPaths, this.createSinglePdf = false})
-      : assert(imagesPaths.length > 0, 'provide path for at least 1 image');
+  const ImagesToPDFsParams({
+    required this.imagesPaths,
+    this.createSinglePdf = false,
+  }) : assert(imagesPaths.length > 0, 'provide path for at least 1 image');
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -1295,10 +1534,14 @@ class PDFToImagesParams {
     this.imageFormat = ImageFormat.png,
     this.quality = 90,
     this.scale = 1.0,
-  })  : assert(scale == null || (scale >= 0.1 && scale <= 5.0),
-            'scale should be between 0.1 and 5.0'),
-        assert(quality == null || (quality >= 1 && quality <= 100),
-            'quality should be between 1 and 100');
+  }) : assert(
+         scale == null || (scale >= 0.1 && scale <= 5.0),
+         'scale should be between 0.1 and 5.0',
+       ),
+       assert(
+         quality == null || (quality >= 1 && quality <= 100),
+         'quality should be between 1 and 100',
+       );
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -1320,16 +1563,10 @@ class PDFTextExtractionParams {
   final List<int>? pages;
 
   /// Create parameters for the [pdfTextExtraction] method.
-  const PDFTextExtractionParams({
-    required this.pdfPath,
-    this.pages,
-  });
+  const PDFTextExtractionParams({required this.pdfPath, this.pages});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-      'pages': pages,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath, 'pages': pages};
   }
 }
 
@@ -1341,16 +1578,10 @@ class PDFTextExtractionResult {
   /// Full text content from all pages concatenated.
   final String fullText;
 
-  PDFTextExtractionResult({
-    required this.pageTexts,
-    required this.fullText,
-  });
+  PDFTextExtractionResult({required this.pageTexts, required this.fullText});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pageTexts': pageTexts,
-      'fullText': fullText,
-    };
+    return <String, dynamic>{'pageTexts': pageTexts, 'fullText': fullText};
   }
 }
 
@@ -1387,14 +1618,10 @@ class PDFFormFieldDataParams {
   final String pdfPath;
 
   /// Create parameters for the [extractFormFieldData] method.
-  const PDFFormFieldDataParams({
-    required this.pdfPath,
-  });
+  const PDFFormFieldDataParams({required this.pdfPath});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath};
   }
 }
 
@@ -1403,9 +1630,7 @@ class PDFFormFieldData {
   /// Form fields keyed by field name.
   final Map<String, PDFFormField> fields;
 
-  PDFFormFieldData({
-    required this.fields,
-  });
+  PDFFormFieldData({required this.fields});
 
   factory PDFFormFieldData.fromJson(Map<dynamic, dynamic> json) {
     final fieldsJson = json['fields'] as Map<dynamic, dynamic>? ?? {};
@@ -1413,8 +1638,9 @@ class PDFFormFieldData {
 
     fieldsJson.forEach((key, value) {
       if (value is Map) {
-        fields[key.toString()] =
-            PDFFormField.fromJson(Map<dynamic, dynamic>.from(value));
+        fields[key.toString()] = PDFFormField.fromJson(
+          Map<dynamic, dynamic>.from(value),
+        );
       }
     });
 
@@ -1458,7 +1684,8 @@ class PDFFormField {
       name: json['name'] as String? ?? '',
       value: json['value'] as String? ?? '',
       type: json['type'] as String? ?? 'unknown',
-      options: (json['options'] as List?)?.map((e) => e.toString()).toList() ??
+      options:
+          (json['options'] as List?)?.map((e) => e.toString()).toList() ??
           const [],
       isRequired: json['isRequired'] as bool? ?? false,
     );
@@ -1515,15 +1742,13 @@ class PDFOCRResult {
   /// Full OCR text content from all pages concatenated.
   final String fullText;
 
-  PDFOCRResult({
-    required this.pageResults,
-    required this.fullText,
-  });
+  PDFOCRResult({required this.pageResults, required this.fullText});
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'pageResults': pageResults
-          .map((key, value) => MapEntry(key.toString(), value.toJson())),
+      'pageResults': pageResults.map(
+        (key, value) => MapEntry(key.toString(), value.toJson()),
+      ),
       'fullText': fullText,
     };
   }
@@ -1537,16 +1762,10 @@ class OCRPageResult {
   /// Confidence score of the OCR recognition (0.0 to 1.0).
   final double confidence;
 
-  OCRPageResult({
-    required this.text,
-    required this.confidence,
-  });
+  OCRPageResult({required this.text, required this.confidence});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'text': text,
-      'confidence': confidence,
-    };
+    return <String, dynamic>{'text': text, 'confidence': confidence};
   }
 }
 
@@ -1900,14 +2119,10 @@ class PDFMetadataReaderParams {
   final String pdfPath;
 
   /// Create parameters for the [pdfMetadataReader] method.
-  const PDFMetadataReaderParams({
-    required this.pdfPath,
-  });
+  const PDFMetadataReaderParams({required this.pdfPath});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath};
   }
 }
 
@@ -2038,14 +2253,10 @@ class PDFBookmarkReaderParams {
   final String pdfPath;
 
   /// Create parameters for the [pdfBookmarkReader] method.
-  const PDFBookmarkReaderParams({
-    required this.pdfPath,
-  });
+  const PDFBookmarkReaderParams({required this.pdfPath});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath};
   }
 }
 
@@ -2117,15 +2328,15 @@ class PDFBookmarkData {
   /// Root level bookmarks.
   final List<PDFBookmark> bookmarks;
 
-  PDFBookmarkData({
-    required this.bookmarks,
-  });
+  PDFBookmarkData({required this.bookmarks});
 
   factory PDFBookmarkData.fromJson(Map<dynamic, dynamic> json) {
     final bookmarksJson = json['bookmarks'] as List? ?? [];
     final bookmarks = bookmarksJson
-        .map((bookmark) =>
-            PDFBookmark.fromJson(Map<dynamic, dynamic>.from(bookmark)))
+        .map(
+          (bookmark) =>
+              PDFBookmark.fromJson(Map<dynamic, dynamic>.from(bookmark)),
+        )
         .toList();
 
     return PDFBookmarkData(bookmarks: bookmarks);
@@ -2222,7 +2433,8 @@ class PDFTextComparison {
     final differencesJson = json['differences'] as List? ?? [];
     final differences = differencesJson
         .map(
-            (diff) => TextDifference.fromJson(Map<dynamic, dynamic>.from(diff)))
+          (diff) => TextDifference.fromJson(Map<dynamic, dynamic>.from(diff)),
+        )
         .toList();
 
     return PDFTextComparison(
@@ -2309,15 +2521,19 @@ class PDFMetadataComparison {
   factory PDFMetadataComparison.fromJson(Map<dynamic, dynamic> json) {
     final differencesJson = json['differences'] as List? ?? [];
     final differences = differencesJson
-        .map((diff) =>
-            MetadataDifference.fromJson(Map<dynamic, dynamic>.from(diff)))
+        .map(
+          (diff) =>
+              MetadataDifference.fromJson(Map<dynamic, dynamic>.from(diff)),
+        )
         .toList();
 
     return PDFMetadataComparison(
       metadata1: PDFMetadataResult.fromJson(
-          Map<dynamic, dynamic>.from(json['metadata1'])),
+        Map<dynamic, dynamic>.from(json['metadata1']),
+      ),
       metadata2: PDFMetadataResult.fromJson(
-          Map<dynamic, dynamic>.from(json['metadata2'])),
+        Map<dynamic, dynamic>.from(json['metadata2']),
+      ),
       differences: differences,
     );
   }
@@ -2342,11 +2558,7 @@ class MetadataDifference {
   /// Value in second PDF.
   final String? value2;
 
-  MetadataDifference({
-    required this.field,
-    this.value1,
-    this.value2,
-  });
+  MetadataDifference({required this.field, this.value1, this.value2});
 
   factory MetadataDifference.fromJson(Map<dynamic, dynamic> json) {
     return MetadataDifference(
@@ -2437,15 +2649,18 @@ class PDFComparisonResult {
     return PDFComparisonResult(
       textComparison: json['textComparison'] != null
           ? PDFTextComparison.fromJson(
-              Map<dynamic, dynamic>.from(json['textComparison']))
+              Map<dynamic, dynamic>.from(json['textComparison']),
+            )
           : null,
       metadataComparison: json['metadataComparison'] != null
           ? PDFMetadataComparison.fromJson(
-              Map<dynamic, dynamic>.from(json['metadataComparison']))
+              Map<dynamic, dynamic>.from(json['metadataComparison']),
+            )
           : null,
       structureComparison: json['structureComparison'] != null
           ? PDFStructureComparison.fromJson(
-              Map<dynamic, dynamic>.from(json['structureComparison']))
+              Map<dynamic, dynamic>.from(json['structureComparison']),
+            )
           : null,
       overallSimilarity: (json['overallSimilarity'] as num?)?.toDouble() ?? 0.0,
       summary:
@@ -2470,14 +2685,10 @@ class PDFRepairParams {
   final String pdfPath;
 
   /// Create parameters for the [pdfRepair] method.
-  const PDFRepairParams({
-    required this.pdfPath,
-  });
+  const PDFRepairParams({required this.pdfPath});
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'pdfPath': pdfPath,
-    };
+    return <String, dynamic>{'pdfPath': pdfPath};
   }
 }
 
@@ -2515,16 +2726,20 @@ class PDFRepairResult {
       wasRepaired: json['wasRepaired'] as bool? ?? false,
       repairedPdfPath: json['repairedPdfPath'] as String?,
       originalStatus: PDFCorruptionStatus.fromJson(
-          Map<dynamic, dynamic>.from(json['originalStatus'])),
+        Map<dynamic, dynamic>.from(json['originalStatus']),
+      ),
       repairStatus: PDFRepairStatus.fromJson(
-          Map<dynamic, dynamic>.from(json['repairStatus'])),
-      issues: (json['issues'] as List?)
+        Map<dynamic, dynamic>.from(json['repairStatus']),
+      ),
+      issues:
+          (json['issues'] as List?)
               ?.map((issue) => issue.toString())
               .toList() ??
           [],
       recoveredContent: json['recoveredContent'] != null
           ? PDFRecoveredContent.fromJson(
-              Map<dynamic, dynamic>.from(json['recoveredContent']))
+              Map<dynamic, dynamic>.from(json['recoveredContent']),
+            )
           : null,
     );
   }
@@ -2572,7 +2787,8 @@ class PDFCorruptionStatus {
       hasValidStructure: json['hasValidStructure'] as bool? ?? false,
       hasReadableContent: json['hasReadableContent'] as bool? ?? false,
       corruptionLevel: (json['corruptionLevel'] as num?)?.toDouble() ?? 0.0,
-      detectedIssues: (json['detectedIssues'] as List?)
+      detectedIssues:
+          (json['detectedIssues'] as List?)
               ?.map((issue) => issue.toString())
               .toList() ??
           [],
@@ -2621,7 +2837,8 @@ class PDFRepairStatus {
       contentRecovered: json['contentRecovered'] as bool? ?? false,
       fullyFunctional: json['fullyFunctional'] as bool? ?? false,
       repairMethod: json['repairMethod'] as String? ?? '',
-      repairInfo: (json['repairInfo'] as List?)
+      repairInfo:
+          (json['repairInfo'] as List?)
               ?.map((info) => info.toString())
               .toList() ??
           [],
@@ -2670,7 +2887,8 @@ class PDFRecoveredContent {
       textContentLength: json['textContentLength'] as int? ?? 0,
       imagesRecovered: json['imagesRecovered'] as int? ?? 0,
       metadataPreserved: json['metadataPreserved'] as bool? ?? false,
-      recoveredElements: (json['recoveredElements'] as List?)
+      recoveredElements:
+          (json['recoveredElements'] as List?)
               ?.map((element) => element.toString())
               .toList() ??
           [],
@@ -2731,11 +2949,7 @@ class PDFBatchOperation {
   /// Optional caller-provided identifier for matching results.
   final String? id;
 
-  const PDFBatchOperation({
-    required this.type,
-    this.params,
-    this.id,
-  });
+  const PDFBatchOperation({required this.type, this.params, this.id});
 }
 
 /// Parameters for batch processing multiple PDF operations.
@@ -2790,8 +3004,670 @@ class PDFBatchProcessorResult {
 }
 
 /// Callback for batch progress.
-typedef BatchProgressCallback = void Function(
-  int completed,
-  int total,
-  PDFBatchOperation operation,
-);
+typedef BatchProgressCallback =
+    void Function(int completed, int total, PDFBatchOperation operation);
+
+class PDFCreateBlankParams {
+  final int pageCount;
+  final double width;
+  final double height;
+
+  const PDFCreateBlankParams({
+    this.pageCount = 1,
+    this.width = 595,
+    this.height = 842,
+  }) : assert(pageCount > 0, 'pageCount must be greater than 0');
+
+  Map<String, dynamic> toJson() => {
+    'pageCount': pageCount,
+    'width': width,
+    'height': height,
+  };
+}
+
+class PDFInsertBlankPagesParams {
+  final String pdfPath;
+  final int insertAt;
+  final int blankPageCount;
+  final double? width;
+  final double? height;
+
+  const PDFInsertBlankPagesParams({
+    required this.pdfPath,
+    required this.insertAt,
+    this.blankPageCount = 1,
+    this.width,
+    this.height,
+  }) : assert(blankPageCount > 0, 'blankPageCount must be greater than 0');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'insertAt': insertAt,
+    'blankPageCount': blankPageCount,
+    'width': width,
+    'height': height,
+  };
+}
+
+class PDFInsertPagesParams {
+  final String pdfPath;
+  final String sourcePdfPath;
+  final int insertAt;
+  final List<int>? sourcePages;
+
+  const PDFInsertPagesParams({
+    required this.pdfPath,
+    required this.sourcePdfPath,
+    required this.insertAt,
+    this.sourcePages,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'sourcePdfPath': sourcePdfPath,
+    'insertAt': insertAt,
+    'sourcePages': sourcePages,
+  };
+}
+
+class PDFReplacePagesParams {
+  final String pdfPath;
+  final String replacementPdfPath;
+  final List<int> pageNumbers;
+  final List<int>? replacementPages;
+
+  const PDFReplacePagesParams({
+    required this.pdfPath,
+    required this.replacementPdfPath,
+    required this.pageNumbers,
+    this.replacementPages,
+  }) : assert(pageNumbers.length > 0, 'pageNumbers cannot be empty');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'replacementPdfPath': replacementPdfPath,
+    'pageNumbers': pageNumbers,
+    'replacementPages': replacementPages,
+  };
+}
+
+class PDFDuplicatePagesParams {
+  final String pdfPath;
+  final List<int> pageNumbers;
+  final bool insertAfterEachPage;
+
+  const PDFDuplicatePagesParams({
+    required this.pdfPath,
+    required this.pageNumbers,
+    this.insertAfterEachPage = true,
+  }) : assert(pageNumbers.length > 0, 'pageNumbers cannot be empty');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'pageNumbers': pageNumbers,
+    'insertAfterEachPage': insertAfterEachPage,
+  };
+}
+
+class PDFExtractPagesParams {
+  final String pdfPath;
+  final List<int> pageNumbers;
+
+  const PDFExtractPagesParams({
+    required this.pdfPath,
+    required this.pageNumbers,
+  }) : assert(pageNumbers.length > 0, 'pageNumbers cannot be empty');
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'pageNumbers': pageNumbers,
+  };
+}
+
+class PDFCropPagesParams {
+  final String pdfPath;
+  final List<int>? pages;
+  final double left;
+  final double bottom;
+  final double right;
+  final double top;
+  final bool applyToMediaBox;
+
+  const PDFCropPagesParams({
+    required this.pdfPath,
+    this.pages,
+    required this.left,
+    required this.bottom,
+    required this.right,
+    required this.top,
+    this.applyToMediaBox = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'pages': pages,
+    'left': left,
+    'bottom': bottom,
+    'right': right,
+    'top': top,
+    'applyToMediaBox': applyToMediaBox,
+  };
+}
+
+class PDFResizePagesParams {
+  final String pdfPath;
+  final List<int>? pages;
+  final double width;
+  final double height;
+  final bool scaleToFit;
+
+  const PDFResizePagesParams({
+    required this.pdfPath,
+    this.pages,
+    required this.width,
+    required this.height,
+    this.scaleToFit = true,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'pages': pages,
+    'width': width,
+    'height': height,
+    'scaleToFit': scaleToFit,
+  };
+}
+
+class PDFTextBlock {
+  final String text;
+  final List<int>? pages;
+  final double x;
+  final double y;
+  final double fontSize;
+  final double rotation;
+  final Color color;
+  final String align;
+  final bool underContent;
+  final bool coverExisting;
+  final double? coverX;
+  final double? coverY;
+  final double? coverWidth;
+  final double? coverHeight;
+  final Color coverColor;
+
+  const PDFTextBlock({
+    required this.text,
+    this.pages,
+    this.x = 36,
+    this.y = 36,
+    this.fontSize = 12,
+    this.rotation = 0,
+    this.color = Colors.black,
+    this.align = 'left',
+    this.underContent = false,
+    this.coverExisting = false,
+    this.coverX,
+    this.coverY,
+    this.coverWidth,
+    this.coverHeight,
+    this.coverColor = Colors.white,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'text': text,
+    'pages': pages,
+    'x': x,
+    'y': y,
+    'fontSize': fontSize,
+    'rotation': rotation,
+    'color': _colorToHex(color),
+    'align': align,
+    'underContent': underContent,
+    'coverExisting': coverExisting,
+    'coverX': coverX,
+    'coverY': coverY,
+    'coverWidth': coverWidth,
+    'coverHeight': coverHeight,
+    'coverColor': _colorToHex(coverColor),
+  };
+}
+
+class PDFImageBlock {
+  final String imagePath;
+  final List<int>? pages;
+  final double x;
+  final double y;
+  final double? width;
+  final double? height;
+  final double rotation;
+  final bool underContent;
+  final bool coverExisting;
+  final double? coverX;
+  final double? coverY;
+  final double? coverWidth;
+  final double? coverHeight;
+  final Color coverColor;
+
+  const PDFImageBlock({
+    required this.imagePath,
+    this.pages,
+    this.x = 0,
+    this.y = 0,
+    this.width,
+    this.height,
+    this.rotation = 0,
+    this.underContent = false,
+    this.coverExisting = false,
+    this.coverX,
+    this.coverY,
+    this.coverWidth,
+    this.coverHeight,
+    this.coverColor = Colors.white,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'imagePath': imagePath,
+    'pages': pages,
+    'x': x,
+    'y': y,
+    'width': width,
+    'height': height,
+    'rotation': rotation,
+    'underContent': underContent,
+    'coverExisting': coverExisting,
+    'coverX': coverX,
+    'coverY': coverY,
+    'coverWidth': coverWidth,
+    'coverHeight': coverHeight,
+    'coverColor': _colorToHex(coverColor),
+  };
+}
+
+class PDFPageNumbersParams {
+  final String pdfPath;
+  final int startNumber;
+  final String pattern;
+  final PDFTextBlock style;
+
+  const PDFPageNumbersParams({
+    required this.pdfPath,
+    this.startNumber = 1,
+    this.pattern = '{page}',
+    this.style = const PDFTextBlock(text: ''),
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'options': {
+      ...style.toJson(),
+      'startNumber': startNumber,
+      'pattern': pattern,
+    },
+  };
+}
+
+class PDFHeadersFootersParams {
+  final String pdfPath;
+  final List<PDFTextBlock> headers;
+  final List<PDFTextBlock> footers;
+
+  const PDFHeadersFootersParams({
+    required this.pdfPath,
+    this.headers = const [],
+    this.footers = const [],
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'headers': headers.map((block) => block.toJson()).toList(),
+    'footers': footers.map((block) => block.toJson()).toList(),
+  };
+}
+
+class PDFTextBlocksParams {
+  final String pdfPath;
+  final List<PDFTextBlock> blocks;
+
+  const PDFTextBlocksParams({required this.pdfPath, required this.blocks});
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'blocks': blocks.map((block) => block.toJson()).toList(),
+  };
+}
+
+class PDFImagesParams {
+  final String pdfPath;
+  final List<PDFImageBlock> images;
+
+  const PDFImagesParams({required this.pdfPath, required this.images});
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'images': images.map((image) => image.toJson()).toList(),
+  };
+}
+
+class PDFBackgroundsParams {
+  final String pdfPath;
+  final List<PDFImageBlock> backgrounds;
+
+  const PDFBackgroundsParams({
+    required this.pdfPath,
+    required this.backgrounds,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'backgrounds': backgrounds.map((image) => image.toJson()).toList(),
+  };
+}
+
+class PDFStampsParams {
+  final String pdfPath;
+  final List<Object> stamps;
+
+  const PDFStampsParams({required this.pdfPath, required this.stamps});
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'stamps': stamps
+        .map(
+          (stamp) => switch (stamp) {
+            PDFTextBlock block => block.toJson(),
+            PDFImageBlock image => image.toJson(),
+            _ => throw ArgumentError('Unsupported stamp type $stamp'),
+          },
+        )
+        .toList(),
+  };
+}
+
+class PDFTextEditsParams extends PDFTextBlocksParams {
+  const PDFTextEditsParams({required super.pdfPath, required super.blocks});
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'edits': blocks.map((block) => block.toJson()).toList(),
+  };
+}
+
+class PDFImageEditsParams extends PDFImagesParams {
+  const PDFImageEditsParams({required super.pdfPath, required super.images});
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'edits': images.map((image) => image.toJson()).toList(),
+  };
+}
+
+class PDFRemoveAnnotationsParams {
+  final String pdfPath;
+  final List<int>? pages;
+
+  const PDFRemoveAnnotationsParams({required this.pdfPath, this.pages});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath, 'pages': pages};
+}
+
+class PDFFlattenParams {
+  final String pdfPath;
+
+  const PDFFlattenParams({required this.pdfPath});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath};
+}
+
+class PDFPageOrderValidationParams {
+  final int pageCount;
+  final List<int> pageOrder;
+
+  const PDFPageOrderValidationParams({
+    required this.pageCount,
+    required this.pageOrder,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pageCount': pageCount,
+    'pageOrder': pageOrder,
+  };
+}
+
+class PDFPageOrderValidationResult {
+  final bool isValid;
+  final List<int> duplicates;
+  final List<int> outOfRange;
+  final List<int> missing;
+
+  const PDFPageOrderValidationResult({
+    required this.isValid,
+    required this.duplicates,
+    required this.outOfRange,
+    required this.missing,
+  });
+
+  factory PDFPageOrderValidationResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFPageOrderValidationResult(
+      isValid: json['isValid'] as bool? ?? false,
+      duplicates: (json['duplicates'] as List?)?.cast<int>() ?? const [],
+      outOfRange: (json['outOfRange'] as List?)?.cast<int>() ?? const [],
+      missing: (json['missing'] as List?)?.cast<int>() ?? const [],
+    );
+  }
+}
+
+class PDFMovePageOrderParams {
+  final int pageCount;
+  final int fromPage;
+  final int toPage;
+
+  const PDFMovePageOrderParams({
+    required this.pageCount,
+    required this.fromPage,
+    required this.toPage,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pageCount': pageCount,
+    'fromPage': fromPage,
+    'toPage': toPage,
+  };
+}
+
+class PDFSwapPageOrderParams {
+  final int pageCount;
+  final int firstPage;
+  final int secondPage;
+
+  const PDFSwapPageOrderParams({
+    required this.pageCount,
+    required this.firstPage,
+    required this.secondPage,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pageCount': pageCount,
+    'firstPage': firstPage,
+    'secondPage': secondPage,
+  };
+}
+
+class PDFReversePageOrderParams {
+  final int pageCount;
+
+  const PDFReversePageOrderParams({required this.pageCount});
+
+  Map<String, dynamic> toJson() => {'pageCount': pageCount};
+}
+
+class PDFDocumentExportParams {
+  final String pdfPath;
+  final List<int>? pages;
+
+  const PDFDocumentExportParams({required this.pdfPath, this.pages});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath, 'pages': pages};
+}
+
+class PDFDocumentToPdfParams {
+  final String documentPath;
+
+  const PDFDocumentToPdfParams({required this.documentPath});
+
+  Map<String, dynamic> toJson() => {'documentPath': documentPath};
+}
+
+class PDFTextToPdfParams {
+  final String text;
+
+  const PDFTextToPdfParams({required this.text});
+
+  Map<String, dynamic> toJson() => {'text': text};
+}
+
+class PDFScannerImagesToPdfParams {
+  final List<String> imagePaths;
+  final bool grayscale;
+  final double contrast;
+  final double brightness;
+  final int quality;
+
+  const PDFScannerImagesToPdfParams({
+    required this.imagePaths,
+    this.grayscale = true,
+    this.contrast = 1.15,
+    this.brightness = 0,
+    this.quality = 92,
+  }) : assert(imagePaths.length > 0, 'provide at least 1 image');
+
+  Map<String, dynamic> toJson() => {
+    'imagePaths': imagePaths,
+    'options': {
+      'grayscale': grayscale,
+      'contrast': contrast,
+      'brightness': brightness,
+      'quality': quality,
+    },
+  };
+}
+
+class PDFArchiveConversionParams {
+  final String pdfPath;
+
+  const PDFArchiveConversionParams({required this.pdfPath});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath};
+}
+
+class PDFArchiveValidationParams {
+  final String pdfPath;
+
+  const PDFArchiveValidationParams({required this.pdfPath});
+
+  Map<String, dynamic> toJson() => {'pdfPath': pdfPath};
+}
+
+class PDFArchiveValidationResult {
+  final bool isLikelyPdfA;
+  final bool hasMetadata;
+  final bool hasOutputIntents;
+  final String pdfVersion;
+  final String notes;
+
+  const PDFArchiveValidationResult({
+    required this.isLikelyPdfA,
+    required this.hasMetadata,
+    required this.hasOutputIntents,
+    required this.pdfVersion,
+    required this.notes,
+  });
+
+  factory PDFArchiveValidationResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFArchiveValidationResult(
+      isLikelyPdfA: json['isLikelyPdfA'] as bool? ?? false,
+      hasMetadata: json['hasMetadata'] as bool? ?? false,
+      hasOutputIntents: json['hasOutputIntents'] as bool? ?? false,
+      pdfVersion: json['pdfVersion'] as String? ?? '',
+      notes: json['notes'] as String? ?? '',
+    );
+  }
+}
+
+class PDFEmbeddedImagesExportParams {
+  final String pdfPath;
+  final String outputDir;
+  final List<int>? pages;
+  final String format;
+
+  const PDFEmbeddedImagesExportParams({
+    required this.pdfPath,
+    required this.outputDir,
+    this.pages,
+    this.format = 'original',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'pdfPath': pdfPath,
+    'outputDir': outputDir,
+    'pages': pages,
+    'format': format,
+  };
+}
+
+class PDFEmbeddedImagesExportResult {
+  final List<PDFEmbeddedImageInfo> images;
+
+  const PDFEmbeddedImagesExportResult({required this.images});
+
+  factory PDFEmbeddedImagesExportResult.fromJson(Map<dynamic, dynamic> json) {
+    return PDFEmbeddedImagesExportResult(
+      images: ((json['images'] as List?) ?? const [])
+          .map(
+            (value) => PDFEmbeddedImageInfo.fromJson(
+              Map<dynamic, dynamic>.from(value as Map),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class PDFEmbeddedImageInfo {
+  final String path;
+  final int page;
+  final int width;
+  final int height;
+  final String colorSpace;
+  final int bitsPerComponent;
+  final String filter;
+  final String format;
+
+  const PDFEmbeddedImageInfo({
+    required this.path,
+    required this.page,
+    required this.width,
+    required this.height,
+    required this.colorSpace,
+    required this.bitsPerComponent,
+    required this.filter,
+    required this.format,
+  });
+
+  factory PDFEmbeddedImageInfo.fromJson(Map<dynamic, dynamic> json) {
+    return PDFEmbeddedImageInfo(
+      path: json['path'] as String? ?? '',
+      page: json['page'] as int? ?? 0,
+      width: json['width'] as int? ?? 0,
+      height: json['height'] as int? ?? 0,
+      colorSpace: json['colorSpace'] as String? ?? '',
+      bitsPerComponent: json['bitsPerComponent'] as int? ?? 0,
+      filter: json['filter'] as String? ?? '',
+      format: json['format'] as String? ?? '',
+    );
+  }
+}
+
+String _colorToHex(Color color) =>
+    '#${color.toARGB32().toRadixString(16).padLeft(8, '0')}';

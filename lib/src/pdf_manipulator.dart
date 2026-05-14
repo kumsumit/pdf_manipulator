@@ -46,20 +46,26 @@ class PdfManipulator {
   ///
   /// Returns the path or uri of the resultant file or null if operation was cancelled.
   /// Throws exception on error.
-  Future<String?> pdfPageRotatorDeleterReorder(
-      {PDFPageRotatorDeleterReorderParams? params}) {
-    return PdfManipulatorPlatform.instance
-        .pdfPageRotatorDeleterReorder(params: params);
+  Future<String?> pdfPageRotatorDeleterReorder({
+    PDFPageRotatorDeleterReorderParams? params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfPageRotatorDeleterReorder(
+      params: params,
+    );
   }
 
   /// Compresses provided pdf file.
   ///
   /// Returns OperationResult containing the path or uri of the resultant file or null if operation was cancelled.
   /// Throws exception on error.
-  Future<OperationResult<String?>> pdfCompressor(
-      {PDFCompressorParams? params, ProgressCallback? onProgress}) {
-    return PdfManipulatorPlatform.instance
-        .pdfCompressor(params: params, onProgress: onProgress);
+  Future<OperationResult<String?>> pdfCompressor({
+    PDFCompressorParams? params,
+    ProgressCallback? onProgress,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfCompressor(
+      params: params,
+      onProgress: onProgress,
+    );
   }
 
   /// Optimizes provided pdf file to reduce size without quality loss.
@@ -90,8 +96,9 @@ class PdfManipulator {
   ///
   /// Returns a list of paths to the extracted images.
   /// Throws exception on error.
-  Future<List<String>?> extractImagesFromPdf(
-      {required ExtractImageFromPDFParams params}) {
+  Future<List<String>?> extractImagesFromPdf({
+    required ExtractImageFromPDFParams params,
+  }) {
     return PdfManipulatorPlatform.instance.extractImagesFromPdf(params: params);
   }
 
@@ -107,8 +114,9 @@ class PdfManipulator {
   ///
   /// Returns PDFTextExtractionResult containing page-wise and full text.
   /// Throws exception on error.
-  Future<PDFTextExtractionResult?> pdfTextExtraction(
-      {required PDFTextExtractionParams params}) {
+  Future<PDFTextExtractionResult?> pdfTextExtraction({
+    required PDFTextExtractionParams params,
+  }) {
     return PdfManipulatorPlatform.instance.pdfTextExtraction(params: params);
   }
 
@@ -124,8 +132,9 @@ class PdfManipulator {
   ///
   /// Returns the path to the signed PDF file.
   /// Throws exception on error.
-  Future<String?> pdfDigitalSignature(
-      {required PDFDigitalSignatureParams params}) {
+  Future<String?> pdfDigitalSignature({
+    required PDFDigitalSignatureParams params,
+  }) {
     return PdfManipulatorPlatform.instance.pdfDigitalSignature(params: params);
   }
 
@@ -159,10 +168,12 @@ class PdfManipulator {
   ///
   /// Returns PdfValidityAndProtection for pdf file or null if operation was cancelled.
   /// Throws exception on error.
-  Future<PdfValidityAndProtection?> pdfValidityAndProtection(
-      {PDFValidityAndProtectionParams? params}) {
-    return PdfManipulatorPlatform.instance
-        .pdfValidityAndProtection(params: params);
+  Future<PdfValidityAndProtection?> pdfValidityAndProtection({
+    PDFValidityAndProtectionParams? params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfValidityAndProtection(
+      params: params,
+    );
   }
 
   /// Provides pdf file for decryption.
@@ -188,8 +199,9 @@ class PdfManipulator {
   Future<String?> pdfCertificateEncryption({
     required PDFCertificateEncryptionParams params,
   }) {
-    return PdfManipulatorPlatform.instance
-        .pdfCertificateEncryption(params: params);
+    return PdfManipulatorPlatform.instance.pdfCertificateEncryption(
+      params: params,
+    );
   }
 
   /// Provide images to convert to pdfs.
@@ -204,8 +216,9 @@ class PdfManipulator {
   ///
   /// Returns the cancelling message.
   Future<String?> cancelManipulations({String? operationId}) {
-    return PdfManipulatorPlatform.instance
-        .cancelManipulations(operationId: operationId);
+    return PdfManipulatorPlatform.instance.cancelManipulations(
+      operationId: operationId,
+    );
   }
 
   /// Reads PDF metadata (title, author, subject, keywords, etc.).
@@ -222,9 +235,7 @@ class PdfManipulator {
   ///
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
-  Future<String?> pdfMetadataWriter({
-    required PDFMetadataWriterParams params,
-  }) {
+  Future<String?> pdfMetadataWriter({required PDFMetadataWriterParams params}) {
     return PdfManipulatorPlatform.instance.pdfMetadataWriter(params: params);
   }
 
@@ -242,9 +253,7 @@ class PdfManipulator {
   ///
   /// Returns the path to the updated PDF file.
   /// Throws exception on error.
-  Future<String?> pdfBookmarkWriter({
-    required PDFBookmarkWriterParams params,
-  }) {
+  Future<String?> pdfBookmarkWriter({required PDFBookmarkWriterParams params}) {
     return PdfManipulatorPlatform.instance.pdfBookmarkWriter(params: params);
   }
 
@@ -262,10 +271,162 @@ class PdfManipulator {
   ///
   /// Returns PDFRepairResult containing repair status and recovered content.
   /// Throws exception on error.
-  Future<PDFRepairResult?> pdfRepair({
-    required PDFRepairParams params,
-  }) {
+  Future<PDFRepairResult?> pdfRepair({required PDFRepairParams params}) {
     return PdfManipulatorPlatform.instance.pdfRepair(params: params);
+  }
+
+  Future<String?> createBlankPdf({required PDFCreateBlankParams params}) {
+    return PdfManipulatorPlatform.instance.createBlankPdf(params: params);
+  }
+
+  Future<String?> insertBlankPages({
+    required PDFInsertBlankPagesParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.insertBlankPages(params: params);
+  }
+
+  Future<String?> insertPages({required PDFInsertPagesParams params}) {
+    return PdfManipulatorPlatform.instance.insertPages(params: params);
+  }
+
+  Future<String?> replacePages({required PDFReplacePagesParams params}) {
+    return PdfManipulatorPlatform.instance.replacePages(params: params);
+  }
+
+  Future<String?> duplicatePages({required PDFDuplicatePagesParams params}) {
+    return PdfManipulatorPlatform.instance.duplicatePages(params: params);
+  }
+
+  Future<String?> extractPages({required PDFExtractPagesParams params}) {
+    return PdfManipulatorPlatform.instance.extractPages(params: params);
+  }
+
+  Future<String?> cropPages({required PDFCropPagesParams params}) {
+    return PdfManipulatorPlatform.instance.cropPages(params: params);
+  }
+
+  Future<String?> resizePages({required PDFResizePagesParams params}) {
+    return PdfManipulatorPlatform.instance.resizePages(params: params);
+  }
+
+  Future<String?> addPageNumbers({required PDFPageNumbersParams params}) {
+    return PdfManipulatorPlatform.instance.addPageNumbers(params: params);
+  }
+
+  Future<String?> addHeadersFooters({required PDFHeadersFootersParams params}) {
+    return PdfManipulatorPlatform.instance.addHeadersFooters(params: params);
+  }
+
+  Future<String?> addBackgrounds({required PDFBackgroundsParams params}) {
+    return PdfManipulatorPlatform.instance.addBackgrounds(params: params);
+  }
+
+  Future<String?> addStamps({required PDFStampsParams params}) {
+    return PdfManipulatorPlatform.instance.addStamps(params: params);
+  }
+
+  Future<String?> addTextBlocks({required PDFTextBlocksParams params}) {
+    return PdfManipulatorPlatform.instance.addTextBlocks(params: params);
+  }
+
+  Future<String?> addImages({required PDFImagesParams params}) {
+    return PdfManipulatorPlatform.instance.addImages(params: params);
+  }
+
+  Future<String?> editText({required PDFTextEditsParams params}) {
+    return PdfManipulatorPlatform.instance.editText(params: params);
+  }
+
+  Future<String?> editImages({required PDFImageEditsParams params}) {
+    return PdfManipulatorPlatform.instance.editImages(params: params);
+  }
+
+  Future<String?> removeAnnotations({
+    required PDFRemoveAnnotationsParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.removeAnnotations(params: params);
+  }
+
+  Future<String?> modifyAnnotations({required PDFAnnotationsParams params}) {
+    return PdfManipulatorPlatform.instance.modifyAnnotations(params: params);
+  }
+
+  Future<String?> flattenAnnotations({required PDFFlattenParams params}) {
+    return PdfManipulatorPlatform.instance.flattenAnnotations(params: params);
+  }
+
+  Future<String?> flattenPdf({required PDFFlattenParams params}) {
+    return PdfManipulatorPlatform.instance.flattenPdf(params: params);
+  }
+
+  Future<PDFPageOrderValidationResult?> validatePageOrder({
+    required PDFPageOrderValidationParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.validatePageOrder(params: params);
+  }
+
+  Future<List<int>?> movePageOrder({required PDFMovePageOrderParams params}) {
+    return PdfManipulatorPlatform.instance.movePageOrder(params: params);
+  }
+
+  Future<List<int>?> swapPageOrder({required PDFSwapPageOrderParams params}) {
+    return PdfManipulatorPlatform.instance.swapPageOrder(params: params);
+  }
+
+  Future<List<int>?> reversePageOrder({
+    required PDFReversePageOrderParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.reversePageOrder(params: params);
+  }
+
+  Future<String?> pdfToWord({required PDFDocumentExportParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToWord(params: params);
+  }
+
+  Future<String?> pdfToExcel({required PDFDocumentExportParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToExcel(params: params);
+  }
+
+  Future<String?> pdfToPowerPoint({required PDFDocumentExportParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToPowerPoint(params: params);
+  }
+
+  Future<String?> pdfToHtml({required PDFDocumentExportParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToHtml(params: params);
+  }
+
+  Future<String?> pdfToTextFile({required PDFDocumentExportParams params}) {
+    return PdfManipulatorPlatform.instance.pdfToTextFile(params: params);
+  }
+
+  Future<String?> documentToPdf({required PDFDocumentToPdfParams params}) {
+    return PdfManipulatorPlatform.instance.documentToPdf(params: params);
+  }
+
+  Future<String?> textToPdf({required PDFTextToPdfParams params}) {
+    return PdfManipulatorPlatform.instance.textToPdf(params: params);
+  }
+
+  Future<String?> scannerImagesToPdf({
+    required PDFScannerImagesToPdfParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.scannerImagesToPdf(params: params);
+  }
+
+  Future<String?> pdfAConversion({required PDFArchiveConversionParams params}) {
+    return PdfManipulatorPlatform.instance.pdfAConversion(params: params);
+  }
+
+  Future<PDFArchiveValidationResult?> pdfAValidation({
+    required PDFArchiveValidationParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.pdfAValidation(params: params);
+  }
+
+  Future<PDFEmbeddedImagesExportResult?> exportEmbeddedImages({
+    required PDFEmbeddedImagesExportParams params,
+  }) {
+    return PdfManipulatorPlatform.instance.exportEmbeddedImages(params: params);
   }
 
   /// Runs multiple PDF operations sequentially.
@@ -284,19 +445,23 @@ class PdfManipulator {
 
       try {
         final result = await _runBatchOperation(operation);
-        results.add(PDFBatchOperationResult(
-          type: operation.type,
-          id: operation.id,
-          success: true,
-          result: result,
-        ));
+        results.add(
+          PDFBatchOperationResult(
+            type: operation.type,
+            id: operation.id,
+            success: true,
+            result: result,
+          ),
+        );
       } catch (error) {
-        results.add(PDFBatchOperationResult(
-          type: operation.type,
-          id: operation.id,
-          success: false,
-          error: error.toString(),
-        ));
+        results.add(
+          PDFBatchOperationResult(
+            type: operation.type,
+            id: operation.id,
+            success: false,
+            error: error.toString(),
+          ),
+        );
 
         onProgress?.call(index + 1, total, operation);
         if (params.stopOnError) {

@@ -64,6 +64,203 @@ class PdfManipulator(
 
     private data class LocalPdfFile(val file: File, val shouldDelete: Boolean)
 
+    fun createBlankPdf(resultCallback: Result, context: Context, pageCount: Int, width: Double, height: Double) {
+        launchEditorOperation(resultCallback, "createBlankPdf") {
+            PdfEditorOperations.createBlankPdf(context, pageCount, width.toFloat(), height.toFloat())
+        }
+    }
+
+    fun insertBlankPages(resultCallback: Result, context: Context, pdfPath: String, insertAt: Int, blankPageCount: Int, width: Double?, height: Double?) {
+        launchEditorOperation(resultCallback, "insertBlankPages") {
+            PdfEditorOperations.insertBlankPages(context, pdfPath, insertAt, blankPageCount, width?.toFloat(), height?.toFloat())
+        }
+    }
+
+    fun insertPages(resultCallback: Result, context: Context, pdfPath: String, sourcePdfPath: String, insertAt: Int, sourcePages: List<Int>?) {
+        launchEditorOperation(resultCallback, "insertPages") {
+            PdfEditorOperations.insertPages(context, pdfPath, sourcePdfPath, insertAt, sourcePages)
+        }
+    }
+
+    fun replacePages(resultCallback: Result, context: Context, pdfPath: String, replacementPdfPath: String, pageNumbers: List<Int>, replacementPages: List<Int>?) {
+        launchEditorOperation(resultCallback, "replacePages") {
+            PdfEditorOperations.replacePages(context, pdfPath, replacementPdfPath, pageNumbers, replacementPages)
+        }
+    }
+
+    fun duplicatePages(resultCallback: Result, context: Context, pdfPath: String, pageNumbers: List<Int>, insertAfterEachPage: Boolean) {
+        launchEditorOperation(resultCallback, "duplicatePages") {
+            PdfEditorOperations.duplicatePages(context, pdfPath, pageNumbers, insertAfterEachPage)
+        }
+    }
+
+    fun extractPages(resultCallback: Result, context: Context, pdfPath: String, pageNumbers: List<Int>) {
+        launchEditorOperation(resultCallback, "extractPages") {
+            PdfEditorOperations.extractPages(context, pdfPath, pageNumbers)
+        }
+    }
+
+    fun cropPages(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?, left: Double, bottom: Double, right: Double, top: Double, applyToMediaBox: Boolean) {
+        launchEditorOperation(resultCallback, "cropPages") {
+            PdfEditorOperations.cropPages(context, pdfPath, pages, left.toFloat(), bottom.toFloat(), right.toFloat(), top.toFloat(), applyToMediaBox)
+        }
+    }
+
+    fun resizePages(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?, width: Double, height: Double, scaleToFit: Boolean) {
+        launchEditorOperation(resultCallback, "resizePages") {
+            PdfEditorOperations.resizePages(context, pdfPath, pages, width.toFloat(), height.toFloat(), scaleToFit)
+        }
+    }
+
+    fun addPageNumbers(resultCallback: Result, context: Context, pdfPath: String, options: Map<String, Any>) {
+        launchEditorOperation(resultCallback, "addPageNumbers") {
+            PdfEditorOperations.addPageNumbers(context, pdfPath, options)
+        }
+    }
+
+    fun addHeadersFooters(resultCallback: Result, context: Context, pdfPath: String, headers: List<Map<String, Any>>, footers: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "addHeadersFooters") {
+            PdfEditorOperations.addHeadersFooters(context, pdfPath, headers, footers)
+        }
+    }
+
+    fun addBackgrounds(resultCallback: Result, context: Context, pdfPath: String, backgrounds: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "addBackgrounds") {
+            PdfEditorOperations.addBackgrounds(context, pdfPath, backgrounds)
+        }
+    }
+
+    fun addStamps(resultCallback: Result, context: Context, pdfPath: String, stamps: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "addStamps") {
+            PdfEditorOperations.addStamps(context, pdfPath, stamps)
+        }
+    }
+
+    fun addTextBlocks(resultCallback: Result, context: Context, pdfPath: String, blocks: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "addTextBlocks") {
+            PdfEditorOperations.addTextBlocks(context, pdfPath, blocks)
+        }
+    }
+
+    fun addImages(resultCallback: Result, context: Context, pdfPath: String, images: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "addImages") {
+            PdfEditorOperations.addImages(context, pdfPath, images)
+        }
+    }
+
+    fun removeAnnotations(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "removeAnnotations") {
+            PdfEditorOperations.removeAnnotations(context, pdfPath, pages)
+        }
+    }
+
+    fun flattenPdf(resultCallback: Result, context: Context, pdfPath: String) {
+        launchEditorOperation(resultCallback, "flattenPdf") {
+            PdfEditorOperations.flattenAnnotations(context, pdfPath)
+        }
+    }
+
+    fun editText(resultCallback: Result, context: Context, pdfPath: String, edits: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "editText") {
+            PdfEditorOperations.editText(context, pdfPath, edits)
+        }
+    }
+
+    fun editImages(resultCallback: Result, context: Context, pdfPath: String, edits: List<Map<String, Any>>) {
+        launchEditorOperation(resultCallback, "editImages") {
+            PdfEditorOperations.editImages(context, pdfPath, edits)
+        }
+    }
+
+    fun pdfToWord(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "pdfToWord") {
+            PdfConversionOperations.pdfToWord(context, pdfPath, pages)
+        }
+    }
+
+    fun pdfToExcel(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "pdfToExcel") {
+            PdfConversionOperations.pdfToExcel(context, pdfPath, pages)
+        }
+    }
+
+    fun pdfToPowerPoint(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "pdfToPowerPoint") {
+            PdfConversionOperations.pdfToPowerPoint(context, pdfPath, pages)
+        }
+    }
+
+    fun pdfToHtml(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "pdfToHtml") {
+            PdfConversionOperations.pdfToHtml(context, pdfPath, pages)
+        }
+    }
+
+    fun pdfToTextFile(resultCallback: Result, context: Context, pdfPath: String, pages: List<Int>?) {
+        launchEditorOperation(resultCallback, "pdfToTextFile") {
+            PdfConversionOperations.pdfToTextFile(context, pdfPath, pages)
+        }
+    }
+
+    fun documentToPdf(resultCallback: Result, context: Context, documentPath: String) {
+        launchEditorOperation(resultCallback, "documentToPdf") {
+            PdfConversionOperations.documentToPdf(context, documentPath)
+        }
+    }
+
+    fun textToPdf(resultCallback: Result, context: Context, text: String) {
+        launchEditorOperation(resultCallback, "textToPdf") {
+            PdfConversionOperations.textToPdf(context, text)
+        }
+    }
+
+    fun scannerImagesToPdf(resultCallback: Result, context: Context, imagePaths: List<String>, options: Map<String, Any>) {
+        launchEditorOperation(resultCallback, "scannerImagesToPdf") {
+            PdfConversionOperations.scannerImagesToPdf(context, imagePaths, options)
+        }
+    }
+
+    fun pdfAConversion(resultCallback: Result, context: Context, pdfPath: String) {
+        launchEditorOperation(resultCallback, "pdfAConversion") {
+            PdfConversionOperations.pdfAConversion(context, pdfPath)
+        }
+    }
+
+    fun pdfAValidation(resultCallback: Result, context: Context, pdfPath: String) {
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                utils.finishSuccessfullyWithMap(PdfConversionOperations.pdfAValidation(context, pdfPath), resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError("pdfAValidation_exception", e.stackTraceToString(), null, resultCallback)
+            }
+        }
+    }
+
+    fun exportEmbeddedImages(resultCallback: Result, context: Context, pdfPath: String, outputDir: String, pages: List<Int>?, format: String) {
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                utils.finishSuccessfullyWithMap(PdfConversionOperations.exportEmbeddedImages(context, pdfPath, outputDir, pages, format), resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError("exportEmbeddedImages_exception", e.stackTraceToString(), null, resultCallback)
+            }
+        }
+    }
+
+    private fun launchEditorOperation(resultCallback: Result, errorPrefix: String, operation: suspend () -> String) {
+        val uiScope = CoroutineScope(Dispatchers.Main)
+        job = uiScope.launch {
+            try {
+                utils.finishSuccessfullyWithString(operation(), resultCallback)
+            } catch (e: Exception) {
+                utils.finishWithError("${errorPrefix}_exception", e.stackTraceToString(), null, resultCallback)
+            } catch (e: OutOfMemoryError) {
+                utils.finishWithError("${errorPrefix}_OutOfMemoryError", e.stackTraceToString(), null, resultCallback)
+            }
+        }
+    }
+
     // For merging multiple pdf files.
     fun mergePdfs(
         resultCallback: Result,

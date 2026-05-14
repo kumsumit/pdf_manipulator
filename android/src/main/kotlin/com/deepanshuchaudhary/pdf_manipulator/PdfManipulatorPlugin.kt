@@ -120,6 +120,222 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
         }
         when (call.method) {
+            "createBlankPdf" -> pdfManipulator!!.createBlankPdf(
+                result,
+                context,
+                call.argument<Int>("pageCount") ?: 1,
+                call.argument<Double>("width") ?: 595.0,
+                call.argument<Double>("height") ?: 842.0,
+            )
+            "insertBlankPages" -> pdfManipulator!!.insertBlankPages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<Int>("insertAt") ?: 1,
+                call.argument<Int>("blankPageCount") ?: 1,
+                call.argument<Double>("width"),
+                call.argument<Double>("height"),
+            )
+            "insertPages" -> pdfManipulator!!.insertPages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("sourcePdfPath").toString(),
+                call.argument<Int>("insertAt") ?: 1,
+                parseMethodCallArrayOfIntArgument(call, "sourcePages"),
+            )
+            "replacePages" -> pdfManipulator!!.replacePages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("replacementPdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pageNumbers") ?: listOf(),
+                parseMethodCallArrayOfIntArgument(call, "replacementPages"),
+            )
+            "duplicatePages" -> pdfManipulator!!.duplicatePages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pageNumbers") ?: listOf(),
+                call.argument<Boolean>("insertAfterEachPage") ?: true,
+            )
+            "extractPages" -> pdfManipulator!!.extractPages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pageNumbers") ?: listOf(),
+            )
+            "cropPages" -> pdfManipulator!!.cropPages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<Double>("left") ?: 0.0,
+                call.argument<Double>("bottom") ?: 0.0,
+                call.argument<Double>("right") ?: 595.0,
+                call.argument<Double>("top") ?: 842.0,
+                call.argument<Boolean>("applyToMediaBox") ?: false,
+            )
+            "resizePages" -> pdfManipulator!!.resizePages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<Double>("width") ?: 595.0,
+                call.argument<Double>("height") ?: 842.0,
+                call.argument<Boolean>("scaleToFit") ?: true,
+            )
+            "addPageNumbers" -> pdfManipulator!!.addPageNumbers(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<Map<String, Any>>("options") ?: mapOf(),
+            )
+            "addHeadersFooters" -> pdfManipulator!!.addHeadersFooters(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "headers") ?: listOf(),
+                parseMethodCallArrayOfAnyMapArgument(call, "footers") ?: listOf(),
+            )
+            "addBackgrounds" -> pdfManipulator!!.addBackgrounds(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "backgrounds") ?: listOf(),
+            )
+            "addStamps" -> pdfManipulator!!.addStamps(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "stamps") ?: listOf(),
+            )
+            "addTextBlocks" -> pdfManipulator!!.addTextBlocks(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "blocks") ?: listOf(),
+            )
+            "addImages" -> pdfManipulator!!.addImages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "images") ?: listOf(),
+            )
+            "removeAnnotations" -> pdfManipulator!!.removeAnnotations(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "modifyAnnotations" -> pdfManipulator!!.pdfAnnotations(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "annotations") ?: listOf(),
+            )
+            "flattenAnnotations", "flattenPdf" -> pdfManipulator!!.flattenPdf(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "editText" -> pdfManipulator!!.editText(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "edits") ?: listOf(),
+            )
+            "editImages" -> pdfManipulator!!.editImages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfAnyMapArgument(call, "edits") ?: listOf(),
+            )
+            "pdfToWord" -> pdfManipulator!!.pdfToWord(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "pdfToExcel" -> pdfManipulator!!.pdfToExcel(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "pdfToPowerPoint" -> pdfManipulator!!.pdfToPowerPoint(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "pdfToHtml" -> pdfManipulator!!.pdfToHtml(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "pdfToTextFile" -> pdfManipulator!!.pdfToTextFile(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+            )
+            "documentToPdf" -> pdfManipulator!!.documentToPdf(
+                result,
+                context,
+                call.argument<String>("documentPath").toString(),
+            )
+            "textToPdf" -> pdfManipulator!!.textToPdf(
+                result,
+                context,
+                call.argument<String>("text").orEmpty(),
+            )
+            "scannerImagesToPdf" -> pdfManipulator!!.scannerImagesToPdf(
+                result,
+                context,
+                parseMethodCallArrayOfStringArgument(call, "imagePaths") ?: listOf(),
+                call.argument<Map<String, Any>>("options") ?: mapOf(),
+            )
+            "pdfAConversion" -> pdfManipulator!!.pdfAConversion(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "pdfAValidation" -> pdfManipulator!!.pdfAValidation(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+            )
+            "exportEmbeddedImages" -> pdfManipulator!!.exportEmbeddedImages(
+                result,
+                context,
+                call.argument<String>("pdfPath").toString(),
+                call.argument<String>("outputDir").toString(),
+                parseMethodCallArrayOfIntArgument(call, "pages"),
+                call.argument<String>("format") ?: "original",
+            )
+            "validatePageOrder" -> result.success(
+                PdfEditorOperations.validatePageOrder(
+                    call.argument<Int>("pageCount") ?: 0,
+                    parseMethodCallArrayOfIntArgument(call, "pageOrder") ?: listOf()
+                )
+            )
+            "movePageOrder" -> result.success(
+                PdfEditorOperations.movedOrder(
+                    call.argument<Int>("pageCount") ?: 0,
+                    call.argument<Int>("fromPage") ?: 1,
+                    call.argument<Int>("toPage") ?: 1
+                )
+            )
+            "swapPageOrder" -> result.success(
+                PdfEditorOperations.swappedOrder(
+                    call.argument<Int>("pageCount") ?: 0,
+                    call.argument<Int>("firstPage") ?: 1,
+                    call.argument<Int>("secondPage") ?: 1
+                )
+            )
+            "reversePageOrder" -> result.success((1..(call.argument<Int>("pageCount") ?: 0)).toList().reversed())
             "extractImagesFromPdf" -> pdfManipulator!!.extractImagesFromPdf(
                 result,
                 context,
@@ -421,6 +637,15 @@ class PdfManipulatorPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
     ): List<Map<String, Int>>? {
         if (call.hasArgument(arg)) {
             return call.argument<ArrayList<Map<String, Int>>>(arg)?.toList()
+        }
+        return null
+    }
+
+    private fun parseMethodCallArrayOfAnyMapArgument(
+        call: MethodCall, arg: String
+    ): List<Map<String, Any>>? {
+        if (call.hasArgument(arg)) {
+            return call.argument<ArrayList<Map<String, Any>>>(arg)?.toList()
         }
         return null
     }
