@@ -52,10 +52,14 @@ class _MyHomePageState extends State<MyHomePage> {
   List<int> pageNumbers = [2, 5, 9];
   String pageRange = "1-3,5-8";
 
+  String? _pickedFilePathForReorder;
+  String? _reorderedPDFPath;
+  List<int> pageNumbersForRearrange = [4, 3, 2, 1];
+
   String? _pickedFilePathForRotateDeleteReorder;
   String? _pdfPageRotatorDeleterReorderPath;
   List<PageRotationInfo> pagesRotationInfo = [
-    PageRotationInfo(pageNumber: 1, rotationAngle: 90)
+    PageRotationInfo(pageNumber: 1, rotationAngle: 90),
   ];
   List<int> pageNumbersForDeleter = [2, 4];
   List<int>? pageNumbersForReorder = [9, 8, 7, 6, 5, 4, 3, 2, 1, 10];
@@ -137,10 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _pickedFilePathForBookmarkWriter;
   String? _bookmarkUpdatedPdfPath;
   final List<PDFBookmark> _sampleBookmarks = [
-    PDFBookmark(
-      title: "Introduction",
-      pageNumber: 1,
-    ),
+    PDFBookmark(title: "Introduction", pageNumber: 1),
     PDFBookmark(
       title: "Chapter 1",
       pageNumber: 2,
@@ -157,10 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
         PDFBookmark(title: "Section 2.2", pageNumber: 12),
       ],
     ),
-    PDFBookmark(
-      title: "Conclusion",
-      pageNumber: 15,
-    ),
+    PDFBookmark(title: "Conclusion", pageNumber: 15),
   ];
 
   String? _pickedFilePathForComparison1;
@@ -244,12 +242,26 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
+  Future<String?> _pdfPageReorder(PDFPageReorderParams params) async {
+    String? result;
+    try {
+      result = await _pdfManipulatorPlugin.pdfPageReorder(params: params);
+    } on PlatformException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      log(e.toString());
+    }
+    return result;
+  }
+
   Future<String?> _pdfPageRotatorDeleterReorder(
-      PDFPageRotatorDeleterReorderParams params) async {
+    PDFPageRotatorDeleterReorderParams params,
+  ) async {
     String? result;
     try {
       result = await _pdfManipulatorPlugin.pdfPageRotatorDeleterReorder(
-          params: params);
+        params: params,
+      );
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -261,7 +273,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<String?> _pdfCompressor(PDFCompressorParams params) async {
     String? result;
     try {
-      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(
+        params: params,
+      );
       result = operationResult.result;
     } on PlatformException catch (e) {
       log(e.toString());
@@ -332,11 +346,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PdfValidityAndProtection?> _pdfValidityAndProtection(
-      PDFValidityAndProtectionParams params) async {
+    PDFValidityAndProtectionParams params,
+  ) async {
     PdfValidityAndProtection? result;
     try {
-      result =
-          await _pdfManipulatorPlugin.pdfValidityAndProtection(params: params);
+      result = await _pdfManipulatorPlugin.pdfValidityAndProtection(
+        params: params,
+      );
     } on PlatformException catch (e) {
       log(e.toString());
     } catch (e) {
@@ -370,7 +386,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PDFTextExtractionResult?> _pdfTextExtraction(
-      PDFTextExtractionParams params) async {
+    PDFTextExtractionParams params,
+  ) async {
     PDFTextExtractionResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfTextExtraction(params: params);
@@ -431,7 +448,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PDFFormFieldData?> _extractFormFieldData(
-      PDFFormFieldDataParams params) async {
+    PDFFormFieldDataParams params,
+  ) async {
     PDFFormFieldData? result;
     try {
       result = await _pdfManipulatorPlugin.extractFormFieldData(params: params);
@@ -444,7 +462,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PDFMetadataResult?> _pdfMetadataReader(
-      PDFMetadataReaderParams params) async {
+    PDFMetadataReaderParams params,
+  ) async {
     PDFMetadataResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfMetadataReader(params: params);
@@ -456,8 +475,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<String?> _pdfMetadataWriter(
-      PDFMetadataWriterParams params) async {
+  Future<String?> _pdfMetadataWriter(PDFMetadataWriterParams params) async {
     String? result;
     try {
       result = await _pdfManipulatorPlugin.pdfMetadataWriter(params: params);
@@ -470,7 +488,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PDFBookmarkData?> _pdfBookmarkReader(
-      PDFBookmarkReaderParams params) async {
+    PDFBookmarkReaderParams params,
+  ) async {
     PDFBookmarkData? result;
     try {
       result = await _pdfManipulatorPlugin.pdfBookmarkReader(params: params);
@@ -482,8 +501,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<String?> _pdfBookmarkWriter(
-      PDFBookmarkWriterParams params) async {
+  Future<String?> _pdfBookmarkWriter(PDFBookmarkWriterParams params) async {
     String? result;
     try {
       result = await _pdfManipulatorPlugin.pdfBookmarkWriter(params: params);
@@ -496,7 +514,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<PDFComparisonResult?> _pdfComparison(
-      PDFComparisonParams params) async {
+    PDFComparisonParams params,
+  ) async {
     PDFComparisonResult? result;
     try {
       result = await _pdfManipulatorPlugin.pdfComparison(params: params);
@@ -508,11 +527,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<String?> _pdfAdvancedCompressor(
-      PDFCompressorParams params) async {
+  Future<String?> _pdfAdvancedCompressor(PDFCompressorParams params) async {
     String? result;
     try {
-      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(params: params);
+      final operationResult = await _pdfManipulatorPlugin.pdfCompressor(
+        params: params,
+      );
       result = operationResult.result;
     } on PlatformException catch (e) {
       log(e.toString());
@@ -550,9 +570,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('PDF Manipulator example'),
-        ),
+        appBar: AppBar(title: const Text('PDF Manipulator example')),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -566,9 +584,11 @@ class _MyHomePageState extends State<MyHomePage> {
               ToggleButtons(
                 onPressed: (int index) {
                   setState(() {
-                    for (int buttonIndex = 0;
-                        buttonIndex < isSelected.length;
-                        buttonIndex++) {
+                    for (
+                      int buttonIndex = 0;
+                      buttonIndex < isSelected.length;
+                      buttonIndex++
+                    ) {
                       if (buttonIndex == index) {
                         isSelected[buttonIndex] = true;
                       } else {
@@ -578,10 +598,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
                 isSelected: isSelected,
-                children: const <Widget>[
-                  Text(" URI "),
-                  Text(" Cached path "),
-                ],
+                children: const <Widget>[Text(" URI "), Text(" Cached path ")],
               ),
               const SizedBox(height: 16),
               Text(
@@ -608,82 +625,90 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick multiple PDF files',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    enableMultipleSelection: true,
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick multiple PDF files',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  enableMultipleSelection: true,
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilesPathsForMerge = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilesPathsForMerge = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Merge',
-                          onPressed: _pickedFilesPathsForMerge == null
-                              ? null
-                              : _pickedFilesPathsForMerge!.length < 2
-                                  ? null
-                                  : () async {
-                                      final params = PDFMergerParams(
-                                        pdfsPaths: _pickedFilesPathsForMerge!,
-                                      );
+                        buttonText: 'Merge',
+                        onPressed: _pickedFilesPathsForMerge == null
+                            ? null
+                            : _pickedFilesPathsForMerge!.length < 2
+                            ? null
+                            : () async {
+                                final params = PDFMergerParams(
+                                  pdfsPaths: _pickedFilesPathsForMerge!,
+                                );
 
-                                      String? result = await _mergePDFs(params);
+                                String? result = await _mergePDFs(params);
 
-                                      if (result != null && result.isNotEmpty) {
-                                        setState(() {
-                                          _mergedPDFsPath = result;
-                                        });
-                                      }
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _mergedPDFsPath = result;
+                                  });
+                                }
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Save merged PDF',
-                          onPressed: _mergedPDFsPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                          localOnly: _localOnly,
-                                          saveFiles: [
-                                            SaveFileInfo(
-                                                filePath: _mergedPDFsPath,
-                                                fileName: "Merged PDF.pdf")
-                                          ]);
+                        buttonText: 'Save merged PDF',
+                        onPressed: _mergedPDFsPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _mergedPDFsPath,
+                                      fileName: "Merged PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -700,178 +725,287 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForSplit = result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForSplit = result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       const Divider(),
                       CustomButton(
-                          buttonText: 'Split PDF by page count',
-                          onPressed: _pickedFilePathForSplit == null
-                              ? null
-                              : () async {
-                                  final params = PDFSplitterParams(
-                                    pdfPath: _pickedFilePathForSplit!,
-                                    pageCount: pageCount,
+                        buttonText: 'Split PDF by page count',
+                        onPressed: _pickedFilePathForSplit == null
+                            ? null
+                            : () async {
+                                final params = PDFSplitterParams(
+                                  pdfPath: _pickedFilePathForSplit!,
+                                  pageCount: pageCount,
+                                );
+
+                                List<String>? result = await _splitPDF(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _splitPDFPaths = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _splitPDF(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _splitPDFPaths = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "pageCount: $pageCount",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       const Divider(),
                       CustomButton(
-                          buttonText: 'Split PDF by byte size',
-                          onPressed: _pickedFilePathForSplit == null
-                              ? null
-                              : () async {
-                                  final params = PDFSplitterParams(
-                                    pdfPath: _pickedFilePathForSplit!,
-                                    byteSize: byteSize,
+                        buttonText: 'Split PDF by byte size',
+                        onPressed: _pickedFilePathForSplit == null
+                            ? null
+                            : () async {
+                                final params = PDFSplitterParams(
+                                  pdfPath: _pickedFilePathForSplit!,
+                                  byteSize: byteSize,
+                                );
+
+                                List<String>? result = await _splitPDF(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _splitPDFPaths = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _splitPDF(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _splitPDFPaths = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "byteSize: $byteSize",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Split PDF by page numbers',
-                          onPressed: _pickedFilePathForSplit == null
-                              ? null
-                              : () async {
-                                  final params = PDFSplitterParams(
-                                    pdfPath: _pickedFilePathForSplit!,
-                                    pageNumbers: pageNumbers,
+                        buttonText: 'Split PDF by page numbers',
+                        onPressed: _pickedFilePathForSplit == null
+                            ? null
+                            : () async {
+                                final params = PDFSplitterParams(
+                                  pdfPath: _pickedFilePathForSplit!,
+                                  pageNumbers: pageNumbers,
+                                );
+
+                                List<String>? result = await _splitPDF(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _splitPDFPaths = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _splitPDF(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _splitPDFPaths = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "pageNumbers: $pageNumbers",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       const Divider(),
                       CustomButton(
-                          buttonText: 'Split PDF by page numbers',
-                          onPressed: _pickedFilePathForSplit == null
-                              ? null
-                              : () async {
-                                  final params = PDFSplitterParams(
-                                    pdfPath: _pickedFilePathForSplit!,
-                                    pageRange: pageRange,
+                        buttonText: 'Split PDF by page numbers',
+                        onPressed: _pickedFilePathForSplit == null
+                            ? null
+                            : () async {
+                                final params = PDFSplitterParams(
+                                  pdfPath: _pickedFilePathForSplit!,
+                                  pageRange: pageRange,
+                                );
+
+                                List<String>? result = await _splitPDF(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _splitPDFPaths = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _splitPDF(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _splitPDFPaths = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "pageRange: $pageRange",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       const Divider(),
                       CustomButton(
-                          buttonText: 'Save split PDFs',
-                          onPressed: _splitPDFPaths == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: List.generate(
-                                            _splitPDFPaths!.length,
-                                            (index) => SaveFileInfo(
-                                                filePath:
-                                                    _splitPDFPaths![index],
-                                                fileName:
-                                                    "Split PDF ${index + 1}.pdf")),
-                                      );
+                        buttonText: 'Save split PDFs',
+                        onPressed: _splitPDFPaths == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: List.generate(
+                                    _splitPDFPaths!.length,
+                                    (index) => SaveFileInfo(
+                                      filePath: _splitPDFPaths![index],
+                                      fileName: "Split PDF ${index + 1}.pdf",
+                                    ),
+                                  ),
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Reorder PDF pages",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      CustomButton(
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForReorder = result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
+                      CustomButton(
+                        buttonText: 'Reorder PDF pages',
+                        onPressed: _pickedFilePathForReorder == null
+                            ? null
+                            : () async {
+                                final params = PDFPageReorderParams(
+                                  pdfPath: _pickedFilePathForReorder!,
+                                  pageNumbers: pageNumbersForRearrange,
+                                );
+
+                                String? result = await _pdfPageReorder(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _reorderedPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
+                      Text(
+                        "pageNumbers: $pageNumbersForRearrange",
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      CustomButton(
+                        buttonText: 'Save reordered PDF',
+                        onPressed: _reorderedPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _reorderedPDFPath,
+                                      fileName: "Reordered PDF.pdf",
+                                    ),
+                                  ],
+                                );
+
+                                List<String>? result = await _fileSaver(params);
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -888,97 +1022,101 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForRotateDeleteReorder =
+                                        result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForRotateDeleteReorder =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Rotate, Delete, Reorder PDF pages',
-                          onPressed:
-                              _pickedFilePathForRotateDeleteReorder == null
-                                  ? null
-                                  : () async {
-                                      final params =
-                                          PDFPageRotatorDeleterReorderParams(
-                                        pdfPath:
-                                            _pickedFilePathForRotateDeleteReorder!,
-                                        pagesRotationInfo: pagesRotationInfo,
-                                        pageNumbersForDeleter:
-                                            pageNumbersForDeleter,
-                                        pageNumbersForReorder:
-                                            pageNumbersForReorder,
-                                      );
+                        buttonText: 'Rotate, Delete, Reorder PDF pages',
+                        onPressed: _pickedFilePathForRotateDeleteReorder == null
+                            ? null
+                            : () async {
+                                final params =
+                                    PDFPageRotatorDeleterReorderParams(
+                                      pdfPath:
+                                          _pickedFilePathForRotateDeleteReorder!,
+                                      pagesRotationInfo: pagesRotationInfo,
+                                      pageNumbersForDeleter:
+                                          pageNumbersForDeleter,
+                                      pageNumbersForReorder:
+                                          pageNumbersForReorder,
+                                    );
 
-                                      String? result =
-                                          await _pdfPageRotatorDeleterReorder(
-                                              params);
+                                String? result =
+                                    await _pdfPageRotatorDeleterReorder(params);
 
-                                      if (result != null && result.isNotEmpty) {
-                                        setState(() {
-                                          _pdfPageRotatorDeleterReorderPath =
-                                              result;
-                                        });
-                                      }
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pdfPageRotatorDeleterReorderPath = result;
+                                  });
+                                }
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                       Text(
                         "pagesRotationInfo: $pagesRotationInfo\npageNumbersForDeleter: $pageNumbersForDeleter\npageNumbersForReorder: $pageNumbersForReorder",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save rotated, deleted, reordered PDF',
-                          onPressed: _pdfPageRotatorDeleterReorderPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath:
-                                                  _pdfPageRotatorDeleterReorderPath,
-                                              fileName:
-                                                  "Rotated, Deleted, Reordered PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save rotated, deleted, reordered PDF',
+                        onPressed: _pdfPageRotatorDeleterReorderPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath:
+                                          _pdfPageRotatorDeleterReorderPath,
+                                      fileName:
+                                          "Rotated, Deleted, Reordered PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -995,86 +1133,93 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForCompressingPDF =
+                                        result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForCompressingPDF =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Compress PDF',
-                          onPressed: _pickedFilePathForCompressingPDF == null
-                              ? null
-                              : () async {
-                                  final params = PDFCompressorParams(
-                                    pdfPath: _pickedFilePathForCompressingPDF!,
-                                    imageQuality: imageQuality,
-                                    imageScale: imageScale,
+                        buttonText: 'Compress PDF',
+                        onPressed: _pickedFilePathForCompressingPDF == null
+                            ? null
+                            : () async {
+                                final params = PDFCompressorParams(
+                                  pdfPath: _pickedFilePathForCompressingPDF!,
+                                  imageQuality: imageQuality,
+                                  imageScale: imageScale,
+                                );
+
+                                String? result = await _pdfCompressor(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _compressedPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  String? result = await _pdfCompressor(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _compressedPDFPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "imageQuality: $imageQuality, imageScale: $imageScale",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save compressed PDF',
-                          onPressed: _compressedPDFPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _compressedPDFPath,
-                                              fileName: "Compressed PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save compressed PDF',
+                        onPressed: _compressedPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _compressedPDFPath,
+                                      fileName: "Compressed PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1091,85 +1236,92 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForWatermarkingPDF =
+                                        result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForWatermarkingPDF =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Watermark PDF',
-                          onPressed: _pickedFilePathForWatermarkingPDF == null
-                              ? null
-                              : () async {
-                                  final params = PDFWatermarkParams(
-                                    pdfPath: _pickedFilePathForWatermarkingPDF!,
-                                    text: watermarkText,
+                        buttonText: 'Watermark PDF',
+                        onPressed: _pickedFilePathForWatermarkingPDF == null
+                            ? null
+                            : () async {
+                                final params = PDFWatermarkParams(
+                                  pdfPath: _pickedFilePathForWatermarkingPDF!,
+                                  text: watermarkText,
+                                );
+
+                                String? result = await _pdfWatermark(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _watermarkedPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  String? result = await _pdfWatermark(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _watermarkedPDFPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "watermarkText: $watermarkText",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save watermarked PDF',
-                          onPressed: _watermarkedPDFPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _watermarkedPDFPath,
-                                              fileName: "Watermarked PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save watermarked PDF',
+                        onPressed: _watermarkedPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _watermarkedPDFPath,
+                                      fileName: "Watermarked PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1186,87 +1338,93 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForEncryptingPDF = result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForEncryptingPDF =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Encrypt PDF',
-                          onPressed: _pickedFilePathForEncryptingPDF == null
-                              ? null
-                              : () async {
-                                  final params = PDFEncryptionParams(
-                                    pdfPath: _pickedFilePathForEncryptingPDF!,
-                                    userPassword: userPassword,
-                                    standardEncryptionAES128:
-                                        standardEncryptionAES128,
+                        buttonText: 'Encrypt PDF',
+                        onPressed: _pickedFilePathForEncryptingPDF == null
+                            ? null
+                            : () async {
+                                final params = PDFEncryptionParams(
+                                  pdfPath: _pickedFilePathForEncryptingPDF!,
+                                  userPassword: userPassword,
+                                  standardEncryptionAES128:
+                                      standardEncryptionAES128,
+                                );
+
+                                String? result = await _pdfEncryption(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _encryptedPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  String? result = await _pdfEncryption(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _encryptedPDFPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "userPassword: $userPassword, standardEncryptionAES128: $standardEncryptionAES128",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save encrypted PDF',
-                          onPressed: _encryptedPDFPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _encryptedPDFPath,
-                                              fileName: "Encrypted PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save encrypted PDF',
+                        onPressed: _encryptedPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _encryptedPDFPath,
+                                      fileName: "Encrypted PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1283,85 +1441,91 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForDecryptingPDF = result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForDecryptingPDF =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Decrypt PDF',
-                          onPressed: _pickedFilePathForDecryptingPDF == null
-                              ? null
-                              : () async {
-                                  final params = PDFDecryptionParams(
-                                    pdfPath: _pickedFilePathForDecryptingPDF!,
-                                    password: userOrOwnerPassword,
+                        buttonText: 'Decrypt PDF',
+                        onPressed: _pickedFilePathForDecryptingPDF == null
+                            ? null
+                            : () async {
+                                final params = PDFDecryptionParams(
+                                  pdfPath: _pickedFilePathForDecryptingPDF!,
+                                  password: userOrOwnerPassword,
+                                );
+
+                                String? result = await _pdfDecryption(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _decryptedPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  String? result = await _pdfDecryption(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _decryptedPDFPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "userOrOwnerPassword: $userOrOwnerPassword",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save decrypted PDF',
-                          onPressed: _decryptedPDFPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _decryptedPDFPath,
-                                              fileName: "Decrypted PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save decrypted PDF',
+                        onPressed: _decryptedPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _decryptedPDFPath,
+                                      fileName: "Decrypted PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1378,97 +1542,103 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick multiple image files',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: [
-                                      "image/jpeg",
-                                      "image/jp2",
-                                      "image/png",
-                                      "image/bmp",
-                                      "image/wmf",
-                                      "image/tiff",
-                                      "image/g3fax",
-                                      "image/x-jbig2"
-                                    ],
-                                    enableMultipleSelection: true,
+                        buttonText: 'Pick multiple image files',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: [
+                                    "image/jpeg",
+                                    "image/jp2",
+                                    "image/png",
+                                    "image/bmp",
+                                    "image/wmf",
+                                    "image/tiff",
+                                    "image/g3fax",
+                                    "image/x-jbig2",
+                                  ],
+                                  enableMultipleSelection: true,
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathsForImagesToPDF = result;
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathsForImagesToPDF = result;
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Convert images to PDF',
-                          onPressed: _pickedFilePathsForImagesToPDF == null
-                              ? null
-                              : () async {
-                                  final params = ImagesToPDFsParams(
-                                    imagesPaths:
-                                        _pickedFilePathsForImagesToPDF!,
-                                    createSinglePdf: createSinglePdf,
+                        buttonText: 'Convert images to PDF',
+                        onPressed: _pickedFilePathsForImagesToPDF == null
+                            ? null
+                            : () async {
+                                final params = ImagesToPDFsParams(
+                                  imagesPaths: _pickedFilePathsForImagesToPDF!,
+                                  createSinglePdf: createSinglePdf,
+                                );
+
+                                List<String>? result = await _imagesToPdf(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _imagesToPDFPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _imagesToPdf(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _imagesToPDFPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "createSinglePdf: $createSinglePdf",
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                       CustomButton(
-                          buttonText: 'Save images converted to PDF',
-                          onPressed: _imagesToPDFPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: List.generate(
-                                            _imagesToPDFPath!.length,
-                                            (index) => SaveFileInfo(
-                                                filePath:
-                                                    _imagesToPDFPath![index],
-                                                fileName:
-                                                    "Image ${index + 1} PDF.pdf")),
-                                      );
+                        buttonText: 'Save images converted to PDF',
+                        onPressed: _imagesToPDFPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: List.generate(
+                                    _imagesToPDFPath!.length,
+                                    (index) => SaveFileInfo(
+                                      filePath: _imagesToPDFPath![index],
+                                      fileName: "Image ${index + 1} PDF.pdf",
+                                    ),
+                                  ),
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1485,51 +1655,55 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForPageSizeInfoOfPDF =
+                                        result[0];
+                                  });
+                                }
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForPageSizeInfoOfPDF =
-                                          result[0];
-                                    });
-                                  }
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Display page size info',
-                          onPressed: _pickedFilePathForPageSizeInfoOfPDF == null
-                              ? null
-                              : () async {
-                                  final params = PDFPagesSizeParams(
-                                    pdfPath:
-                                        _pickedFilePathForPageSizeInfoOfPDF!,
+                        buttonText: 'Display page size info',
+                        onPressed: _pickedFilePathForPageSizeInfoOfPDF == null
+                            ? null
+                            : () async {
+                                final params = PDFPagesSizeParams(
+                                  pdfPath: _pickedFilePathForPageSizeInfoOfPDF!,
+                                );
+
+                                List<PageSizeInfo>? result =
+                                    await _pdfPagesSize(params);
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<PageSizeInfo>? result =
-                                      await _pdfPagesSize(params);
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1545,56 +1719,59 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForValidityAndProtectionInfoOfPDF =
+                                        result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForValidityAndProtectionInfoOfPDF =
-                                          result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Display PDF validity & protection info',
-                          onPressed:
-                              _pickedFilePathForValidityAndProtectionInfoOfPDF ==
-                                      null
-                                  ? null
-                                  : () async {
-                                      final params =
-                                          PDFValidityAndProtectionParams(
-                                        pdfPath:
-                                            _pickedFilePathForValidityAndProtectionInfoOfPDF!,
-                                      );
+                        buttonText: 'Display PDF validity & protection info',
+                        onPressed:
+                            _pickedFilePathForValidityAndProtectionInfoOfPDF ==
+                                null
+                            ? null
+                            : () async {
+                                final params = PDFValidityAndProtectionParams(
+                                  pdfPath:
+                                      _pickedFilePathForValidityAndProtectionInfoOfPDF!,
+                                );
 
-                                      PdfValidityAndProtection? result =
-                                          await _pdfValidityAndProtection(
-                                              params);
+                                PdfValidityAndProtection? result =
+                                    await _pdfValidityAndProtection(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1610,58 +1787,62 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForExtractImageFromPDF =
+                                        result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForExtractImageFromPDF =
-                                          result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Extract Image from PDF',
-                          onPressed:
-                              _pickedFilePathForExtractImageFromPDF == null
-                                  ? null
-                                  : () async {
-                                      final outputDir =
-                                          await getApplicationSupportDirectory();
-                                      final params = ExtractImageFromPDFParams(
-                                          pdfPath:
-                                              _pickedFilePathForExtractImageFromPDF!,
-                                          outputDir: outputDir
-                                              .path //"/storage/emulated/0/DCIM/Camera",
-                                          // pageNumber: 1,
-                                          // imageFormat: ImageFormat.png,
-                                          );
+                        buttonText: 'Extract Image from PDF',
+                        onPressed: _pickedFilePathForExtractImageFromPDF == null
+                            ? null
+                            : () async {
+                                final outputDir =
+                                    await getApplicationSupportDirectory();
+                                final params = ExtractImageFromPDFParams(
+                                  pdfPath:
+                                      _pickedFilePathForExtractImageFromPDF!,
+                                  outputDir: outputDir
+                                      .path, //"/storage/emulated/0/DCIM/Camera",
+                                  // pageNumber: 1,
+                                  // imageFormat: ImageFormat.png,
+                                );
 
-                                      await _extractImageFromPDF(params);
+                                await _extractImageFromPDF(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: "Image Extracted");
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: "Image Extracted",
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1678,60 +1859,66 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForPdfToImages = result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForPdfToImages = result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Convert PDF to Images',
-                          onPressed: _pickedFilePathForPdfToImages == null
-                              ? null
-                              : () async {
-                                  final params = PDFToImagesParams(
-                                    pdfPath: _pickedFilePathForPdfToImages!,
-                                    imageFormat: _imageFormat,
-                                    quality: _imageQuality,
-                                    scale: _imageScale,
+                        buttonText: 'Convert PDF to Images',
+                        onPressed: _pickedFilePathForPdfToImages == null
+                            ? null
+                            : () async {
+                                final params = PDFToImagesParams(
+                                  pdfPath: _pickedFilePathForPdfToImages!,
+                                  imageFormat: _imageFormat,
+                                  quality: _imageQuality,
+                                  scale: _imageScale,
+                                );
+
+                                List<String>? result = await _pdfToImages(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pdfToImagesPaths = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text:
+                                        "Generated ${result?.length ?? 0} images",
                                   );
-
-                                  List<String>? result =
-                                      await _pdfToImages(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pdfToImagesPaths = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text:
-                                            "Generated ${result?.length ?? 0} images");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "Format: $_imageFormat, Quality: $_imageQuality, Scale: $_imageScale",
                         style: Theme.of(context).textTheme.labelSmall,
@@ -1757,58 +1944,63 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForTextExtraction =
+                                        result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForTextExtraction =
-                                          result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Extract Text from PDF',
-                          onPressed: _pickedFilePathForTextExtraction == null
-                              ? null
-                              : () async {
-                                  final params = PDFTextExtractionParams(
-                                    pdfPath: _pickedFilePathForTextExtraction!,
+                        buttonText: 'Extract Text from PDF',
+                        onPressed: _pickedFilePathForTextExtraction == null
+                            ? null
+                            : () async {
+                                final params = PDFTextExtractionParams(
+                                  pdfPath: _pickedFilePathForTextExtraction!,
+                                );
+
+                                PDFTextExtractionResult? result =
+                                    await _pdfTextExtraction(params);
+
+                                if (result != null) {
+                                  setState(() {
+                                    _textExtractionResult = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text:
+                                        "Extracted text from ${result?.pageTexts.length ?? 0} pages",
                                   );
-
-                                  PDFTextExtractionResult? result =
-                                      await _pdfTextExtraction(params);
-
-                                  if (result != null) {
-                                    setState(() {
-                                      _textExtractionResult = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text:
-                                            "Extracted text from ${result?.pageTexts.length ?? 0} pages");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       if (_textExtractionResult != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -1844,57 +2036,62 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick single PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick single PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForOcr = result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForOcr = result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Perform OCR on PDF',
-                          onPressed: _pickedFilePathForOcr == null
-                              ? null
-                              : () async {
-                                  final params = PDFOCRParams(
-                                    pdfPath: _pickedFilePathForOcr!,
-                                    languageCode: _ocrLanguageCode,
+                        buttonText: 'Perform OCR on PDF',
+                        onPressed: _pickedFilePathForOcr == null
+                            ? null
+                            : () async {
+                                final params = PDFOCRParams(
+                                  pdfPath: _pickedFilePathForOcr!,
+                                  languageCode: _ocrLanguageCode,
+                                );
+
+                                PDFOCRResult? result = await _pdfOcr(params);
+
+                                if (result != null) {
+                                  setState(() {
+                                    _ocrResult = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text:
+                                        "OCR completed on ${result?.pageResults.length ?? 0} pages",
                                   );
-
-                                  PDFOCRResult? result = await _pdfOcr(params);
-
-                                  if (result != null) {
-                                    setState(() {
-                                      _ocrResult = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text:
-                                            "OCR completed on ${result?.pageResults.length ?? 0} pages");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "Language: $_ocrLanguageCode",
                         style: Theme.of(context).textTheme.labelSmall,
@@ -1939,106 +2136,111 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick fillable PDF file',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick fillable PDF file',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForFormFields = result[0];
+                                    _formFieldData = null;
+                                    _formFilledPdfPath = null;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForFormFields = result[0];
-                                      _formFieldData = null;
-                                      _formFilledPdfPath = null;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Extract form field data',
-                          onPressed: _pickedFilePathForFormFields == null
-                              ? null
-                              : () async {
-                                  final params = PDFFormFieldDataParams(
-                                    pdfPath: _pickedFilePathForFormFields!,
+                        buttonText: 'Extract form field data',
+                        onPressed: _pickedFilePathForFormFields == null
+                            ? null
+                            : () async {
+                                final params = PDFFormFieldDataParams(
+                                  pdfPath: _pickedFilePathForFormFields!,
+                                );
+
+                                PDFFormFieldData? result =
+                                    await _extractFormFieldData(params);
+
+                                if (result != null) {
+                                  setState(() {
+                                    _formFieldData = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text:
+                                        "Found ${result?.fields.length ?? 0} form fields",
                                   );
-
-                                  PDFFormFieldData? result =
-                                      await _extractFormFieldData(params);
-
-                                  if (result != null) {
-                                    setState(() {
-                                      _formFieldData = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text:
-                                            "Found ${result?.fields.length ?? 0} form fields");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Fill form fields',
-                          onPressed: _pickedFilePathForFormFields == null
-                              ? null
-                              : () async {
-                                  final fields = _formFieldData?.fields ?? {};
-                                  final values = <String, dynamic>{};
+                        buttonText: 'Fill form fields',
+                        onPressed: _pickedFilePathForFormFields == null
+                            ? null
+                            : () async {
+                                final fields = _formFieldData?.fields ?? {};
+                                final values = <String, dynamic>{};
 
-                                  for (final field in fields.values) {
-                                    if (field.type == 'signature') continue;
-                                    if (field.type == 'checkbox') {
-                                      values[field.name] = true;
-                                    } else if ((field.type == 'radio' ||
-                                            field.type == 'combo' ||
-                                            field.type == 'list') &&
-                                        field.options.isNotEmpty) {
-                                      values[field.name] = field.options.first;
-                                    } else {
-                                      values[field.name] =
-                                          'Sample ${field.name}';
-                                    }
+                                for (final field in fields.values) {
+                                  if (field.type == 'signature') continue;
+                                  if (field.type == 'checkbox') {
+                                    values[field.name] = true;
+                                  } else if ((field.type == 'radio' ||
+                                          field.type == 'combo' ||
+                                          field.type == 'list') &&
+                                      field.options.isNotEmpty) {
+                                    values[field.name] = field.options.first;
+                                  } else {
+                                    values[field.name] = 'Sample ${field.name}';
                                   }
+                                }
 
-                                  final params = PDFFormFillParams(
-                                    pdfPath: _pickedFilePathForFormFields!,
-                                    fieldValues: values.isEmpty
-                                        ? _sampleFormValues
-                                        : values,
+                                final params = PDFFormFillParams(
+                                  pdfPath: _pickedFilePathForFormFields!,
+                                  fieldValues: values.isEmpty
+                                      ? _sampleFormValues
+                                      : values,
+                                );
+
+                                String? result = await _fillFormFields(params);
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _formFilledPdfPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result != null
+                                        ? "PDF form filled"
+                                        : "No PDF form was filled",
                                   );
-
-                                  String? result =
-                                      await _fillFormFields(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _formFilledPdfPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result != null
-                                            ? "PDF form filled"
-                                            : "No PDF form was filled");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       if (_formFieldData != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2052,8 +2254,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               Text(
                                 _formFieldData!.fields.values
                                     .take(5)
-                                    .map((field) =>
-                                        "${field.name} (${field.type}) = ${field.value}")
+                                    .map(
+                                      (field) =>
+                                          "${field.name} (${field.type}) = ${field.value}",
+                                    )
                                     .join("\n"),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
@@ -2061,30 +2265,32 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                       CustomButton(
-                          buttonText: 'Save filled PDF',
-                          onPressed: _formFilledPdfPath == null
-                              ? null
-                              : _isBusy
-                                  ? null
-                                  : () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _formFilledPdfPath,
-                                              fileName: "Filled Form PDF.pdf")
-                                        ],
-                                      );
+                        buttonText: 'Save filled PDF',
+                        onPressed: _formFilledPdfPath == null
+                            ? null
+                            : _isBusy
+                            ? null
+                            : () async {
+                                final params = FileSaverParams(
+                                  localOnly: _localOnly,
+                                  saveFiles: [
+                                    SaveFileInfo(
+                                      filePath: _formFilledPdfPath,
+                                      fileName: "Filled Form PDF.pdf",
+                                    ),
+                                  ],
+                                );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                List<String>? result = await _fileSaver(params);
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
+                                  );
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -2107,26 +2313,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Pick PDF file to read metadata',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick PDF file to read metadata',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForMetadataReader = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForMetadataReader =
+                                        result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForMetadataReader != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2140,23 +2349,26 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Expanded(
                             child: CustomButton(
-                                buttonText: 'Read Metadata',
-                                onPressed: _pickedFilePathForMetadataReader == null
-                                    ? null
-                                    : () async {
-                                        final params = PDFMetadataReaderParams(
-                                          pdfPath: _pickedFilePathForMetadataReader!,
-                                        );
+                              buttonText: 'Read Metadata',
+                              onPressed:
+                                  _pickedFilePathForMetadataReader == null
+                                  ? null
+                                  : () async {
+                                      final params = PDFMetadataReaderParams(
+                                        pdfPath:
+                                            _pickedFilePathForMetadataReader!,
+                                      );
 
-                                        PDFMetadataResult? result =
-                                            await _pdfMetadataReader(params);
+                                      PDFMetadataResult? result =
+                                          await _pdfMetadataReader(params);
 
-                                        if (mounted) {
-                                          setState(() {
-                                            _metadataResult = result;
-                                          });
-                                        }
-                                      }),
+                                      if (mounted) {
+                                        setState(() {
+                                          _metadataResult = result;
+                                        });
+                                      }
+                                    },
+                            ),
                           ),
                           if (_metadataResult != null)
                             IconButton(
@@ -2181,13 +2393,27 @@ class _MyHomePageState extends State<MyHomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Title: ${_metadataResult!.title ?? 'N/A'}"),
-                              Text("Author: ${_metadataResult!.author ?? 'N/A'}"),
-                              Text("Subject: ${_metadataResult!.subject ?? 'N/A'}"),
-                              Text("Keywords: ${_metadataResult!.keywords ?? 'N/A'}"),
-                              Text("Creator: ${_metadataResult!.creator ?? 'N/A'}"),
-                              Text("Producer: ${_metadataResult!.producer ?? 'N/A'}"),
-                              Text("Creation Date: ${_metadataResult!.creationDate ?? 'N/A'}"),
-                              Text("Modification Date: ${_metadataResult!.modificationDate ?? 'N/A'}"),
+                              Text(
+                                "Author: ${_metadataResult!.author ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Subject: ${_metadataResult!.subject ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Keywords: ${_metadataResult!.keywords ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Creator: ${_metadataResult!.creator ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Producer: ${_metadataResult!.producer ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Creation Date: ${_metadataResult!.creationDate ?? 'N/A'}",
+                              ),
+                              Text(
+                                "Modification Date: ${_metadataResult!.modificationDate ?? 'N/A'}",
+                              ),
                             ],
                           ),
                         ),
@@ -2202,26 +2428,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Pick PDF file to update metadata',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick PDF file to update metadata',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForMetadataWriter = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForMetadataWriter =
+                                        result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForMetadataWriter != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2232,54 +2461,60 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Update Metadata',
-                          onPressed: _pickedFilePathForMetadataWriter == null
-                              ? null
-                              : () async {
-                                  final params = PDFMetadataWriterParams(
-                                    pdfPath: _pickedFilePathForMetadataWriter!,
-                                    title: _sampleMetadataValues['title'],
-                                    author: _sampleMetadataValues['author'],
-                                    subject: _sampleMetadataValues['subject'],
-                                    keywords: _sampleMetadataValues['keywords'],
-                                    creator: _sampleMetadataValues['creator'],
-                                    producer: _sampleMetadataValues['producer'],
-                                  );
+                        buttonText: 'Update Metadata',
+                        onPressed: _pickedFilePathForMetadataWriter == null
+                            ? null
+                            : () async {
+                                final params = PDFMetadataWriterParams(
+                                  pdfPath: _pickedFilePathForMetadataWriter!,
+                                  title: _sampleMetadataValues['title'],
+                                  author: _sampleMetadataValues['author'],
+                                  subject: _sampleMetadataValues['subject'],
+                                  keywords: _sampleMetadataValues['keywords'],
+                                  creator: _sampleMetadataValues['creator'],
+                                  producer: _sampleMetadataValues['producer'],
+                                );
 
-                                  String? result =
-                                      await _pdfMetadataWriter(params);
+                                String? result = await _pdfMetadataWriter(
+                                  params,
+                                );
 
-                                  if (mounted) {
-                                    setState(() {
-                                      _metadataUpdatedPdfPath = result;
-                                    });
-                                  }
-                                }),
+                                if (mounted) {
+                                  setState(() {
+                                    _metadataUpdatedPdfPath = result;
+                                  });
+                                }
+                              },
+                      ),
                       if (_metadataUpdatedPdfPath != null)
                         Row(
                           children: [
                             Expanded(
                               child: CustomButton(
-                                  buttonText: 'Save Updated PDF',
-                                  onPressed: () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _metadataUpdatedPdfPath,
-                                              fileName: "Updated Metadata PDF.pdf")
-                                        ],
-                                      );
+                                buttonText: 'Save Updated PDF',
+                                onPressed: () async {
+                                  final params = FileSaverParams(
+                                    localOnly: _localOnly,
+                                    saveFiles: [
+                                      SaveFileInfo(
+                                        filePath: _metadataUpdatedPdfPath,
+                                        fileName: "Updated Metadata PDF.pdf",
+                                      ),
+                                    ],
+                                  );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                  List<String>? result = await _fileSaver(
+                                    params,
+                                  );
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                      context: context,
+                                      text: result.toString(),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                             IconButton(
                               onPressed: () {
@@ -2313,26 +2548,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Pick PDF file to read bookmarks',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick PDF file to read bookmarks',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForBookmarkReader = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForBookmarkReader =
+                                        result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForBookmarkReader != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2346,23 +2584,26 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Expanded(
                             child: CustomButton(
-                                buttonText: 'Read Bookmarks',
-                                onPressed: _pickedFilePathForBookmarkReader == null
-                                    ? null
-                                    : () async {
-                                        final params = PDFBookmarkReaderParams(
-                                          pdfPath: _pickedFilePathForBookmarkReader!,
-                                        );
+                              buttonText: 'Read Bookmarks',
+                              onPressed:
+                                  _pickedFilePathForBookmarkReader == null
+                                  ? null
+                                  : () async {
+                                      final params = PDFBookmarkReaderParams(
+                                        pdfPath:
+                                            _pickedFilePathForBookmarkReader!,
+                                      );
 
-                                        PDFBookmarkData? result =
-                                            await _pdfBookmarkReader(params);
+                                      PDFBookmarkData? result =
+                                          await _pdfBookmarkReader(params);
 
-                                        if (mounted) {
-                                          setState(() {
-                                            _bookmarkData = result;
-                                          });
-                                        }
-                                      }),
+                                      if (mounted) {
+                                        setState(() {
+                                          _bookmarkData = result;
+                                        });
+                                      }
+                                    },
+                            ),
                           ),
                           if (_bookmarkData != null)
                             IconButton(
@@ -2388,7 +2629,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               padding: const EdgeInsets.all(8),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: buildBookmarkTree(_bookmarkData!.bookmarks, 0),
+                                children: buildBookmarkTree(
+                                  _bookmarkData!.bookmarks,
+                                  0,
+                                ),
                               ),
                             ),
                           ),
@@ -2404,26 +2648,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Pick PDF file to add bookmarks',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick PDF file to add bookmarks',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForBookmarkWriter = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForBookmarkWriter =
+                                        result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForBookmarkWriter != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2434,49 +2681,55 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Add Sample Bookmarks',
-                          onPressed: _pickedFilePathForBookmarkWriter == null
-                              ? null
-                              : () async {
-                                  final params = PDFBookmarkWriterParams(
-                                    pdfPath: _pickedFilePathForBookmarkWriter!,
-                                    bookmarks: _sampleBookmarks,
-                                  );
+                        buttonText: 'Add Sample Bookmarks',
+                        onPressed: _pickedFilePathForBookmarkWriter == null
+                            ? null
+                            : () async {
+                                final params = PDFBookmarkWriterParams(
+                                  pdfPath: _pickedFilePathForBookmarkWriter!,
+                                  bookmarks: _sampleBookmarks,
+                                );
 
-                                  String? result =
-                                      await _pdfBookmarkWriter(params);
+                                String? result = await _pdfBookmarkWriter(
+                                  params,
+                                );
 
-                                  if (mounted) {
-                                    setState(() {
-                                      _bookmarkUpdatedPdfPath = result;
-                                    });
-                                  }
-                                }),
+                                if (mounted) {
+                                  setState(() {
+                                    _bookmarkUpdatedPdfPath = result;
+                                  });
+                                }
+                              },
+                      ),
                       if (_bookmarkUpdatedPdfPath != null)
                         Row(
                           children: [
                             Expanded(
                               child: CustomButton(
-                                  buttonText: 'Save Bookmarked PDF',
-                                  onPressed: () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _bookmarkUpdatedPdfPath,
-                                              fileName: "Bookmarked PDF.pdf")
-                                        ],
-                                      );
+                                buttonText: 'Save Bookmarked PDF',
+                                onPressed: () async {
+                                  final params = FileSaverParams(
+                                    localOnly: _localOnly,
+                                    saveFiles: [
+                                      SaveFileInfo(
+                                        filePath: _bookmarkUpdatedPdfPath,
+                                        fileName: "Bookmarked PDF.pdf",
+                                      ),
+                                    ],
+                                  );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                  List<String>? result = await _fileSaver(
+                                    params,
+                                  );
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                      context: context,
+                                      text: result.toString(),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                             IconButton(
                               onPressed: () {
@@ -2510,26 +2763,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(height: 8),
                       // First PDF picker
                       CustomButton(
-                          buttonText: 'Pick First PDF to compare',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick First PDF to compare',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForComparison1 = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForComparison1 = result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForComparison1 != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2543,26 +2798,28 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       // Second PDF picker
                       CustomButton(
-                          buttonText: 'Pick Second PDF to compare',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick Second PDF to compare',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForComparison2 = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForComparison2 = result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForComparison2 != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2579,28 +2836,32 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Expanded(
                             child: CustomButton(
-                                buttonText: 'Compare PDFs',
-                                onPressed: (_pickedFilePathForComparison1 == null ||
-                                           _pickedFilePathForComparison2 == null)
-                                    ? null
-                                    : () async {
-                                        final params = PDFComparisonParams(
-                                          pdfPath1: _pickedFilePathForComparison1!,
-                                          pdfPath2: _pickedFilePathForComparison2!,
-                                          compareText: true,
-                                          compareMetadata: true,
-                                          compareStructure: true,
-                                        );
+                              buttonText: 'Compare PDFs',
+                              onPressed:
+                                  (_pickedFilePathForComparison1 == null ||
+                                      _pickedFilePathForComparison2 == null)
+                                  ? null
+                                  : () async {
+                                      final params = PDFComparisonParams(
+                                        pdfPath1:
+                                            _pickedFilePathForComparison1!,
+                                        pdfPath2:
+                                            _pickedFilePathForComparison2!,
+                                        compareText: true,
+                                        compareMetadata: true,
+                                        compareStructure: true,
+                                      );
 
-                                        PDFComparisonResult? result =
-                                            await _pdfComparison(params);
+                                      PDFComparisonResult? result =
+                                          await _pdfComparison(params);
 
-                                        if (mounted) {
-                                          setState(() {
-                                            _comparisonResult = result;
-                                          });
-                                        }
-                                      }),
+                                      if (mounted) {
+                                        setState(() {
+                                          _comparisonResult = result;
+                                        });
+                                      }
+                                    },
+                            ),
                           ),
                           if (_comparisonResult != null)
                             IconButton(
@@ -2632,58 +2893,104 @@ class _MyHomePageState extends State<MyHomePage> {
                                   // Overall similarity
                                   Text(
                                     "Overall Similarity: ${(_comparisonResult!.overallSimilarity * 100).toInt()}%",
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 8),
 
                                   // Summary
                                   Text(
                                     "Summary:",
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
                                   ),
-                                  ..._comparisonResult!.summary.map((item) =>
-                                    Text("• $item")
+                                  ..._comparisonResult!.summary.map(
+                                    (item) => Text("• $item"),
                                   ),
 
                                   // Detailed results
-                                  if (_comparisonResult!.structureComparison != null) ...[
+                                  if (_comparisonResult!.structureComparison !=
+                                      null) ...[
                                     const SizedBox(height: 12),
                                     Text(
                                       "Structure Comparison:",
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
                                     ),
-                                    Text("PDF 1: ${_comparisonResult!.structureComparison!.pageCount1} pages"),
-                                    Text("PDF 2: ${_comparisonResult!.structureComparison!.pageCount2} pages"),
-                                    Text("Page count equal: ${_comparisonResult!.structureComparison!.pageCountEqual}"),
-                                    if (_comparisonResult!.structureComparison!.differences.isNotEmpty)
-                                      ..._comparisonResult!.structureComparison!.differences.map((diff) =>
-                                        Text("• $diff", style: const TextStyle(color: Colors.red))
-                                      ),
+                                    Text(
+                                      "PDF 1: ${_comparisonResult!.structureComparison!.pageCount1} pages",
+                                    ),
+                                    Text(
+                                      "PDF 2: ${_comparisonResult!.structureComparison!.pageCount2} pages",
+                                    ),
+                                    Text(
+                                      "Page count equal: ${_comparisonResult!.structureComparison!.pageCountEqual}",
+                                    ),
+                                    if (_comparisonResult!
+                                        .structureComparison!
+                                        .differences
+                                        .isNotEmpty)
+                                      ..._comparisonResult!
+                                          .structureComparison!
+                                          .differences
+                                          .map(
+                                            (diff) => Text(
+                                              "• $diff",
+                                              style: const TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
                                   ],
 
-                                  if (_comparisonResult!.metadataComparison != null) ...[
+                                  if (_comparisonResult!.metadataComparison !=
+                                      null) ...[
                                     const SizedBox(height: 12),
                                     Text(
                                       "Metadata Differences:",
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
                                     ),
-                                    if (_comparisonResult!.metadataComparison!.differences.isEmpty)
-                                      const Text("• No metadata differences found")
+                                    if (_comparisonResult!
+                                        .metadataComparison!
+                                        .differences
+                                        .isEmpty)
+                                      const Text(
+                                        "• No metadata differences found",
+                                      )
                                     else
-                                      ..._comparisonResult!.metadataComparison!.differences.map((diff) =>
-                                        Text("• ${diff.field}: '${diff.value1}' vs '${diff.value2}'",
-                                             style: const TextStyle(color: Colors.orange))
-                                      ),
+                                      ..._comparisonResult!
+                                          .metadataComparison!
+                                          .differences
+                                          .map(
+                                            (diff) => Text(
+                                              "• ${diff.field}: '${diff.value1}' vs '${diff.value2}'",
+                                              style: const TextStyle(
+                                                color: Colors.orange,
+                                              ),
+                                            ),
+                                          ),
                                   ],
 
-                                  if (_comparisonResult!.textComparison != null) ...[
+                                  if (_comparisonResult!.textComparison !=
+                                      null) ...[
                                     const SizedBox(height: 12),
                                     Text(
                                       "Text Comparison:",
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall,
                                     ),
-                                    Text("Text similarity: ${(_comparisonResult!.textComparison!.similarity * 100).toInt()}%"),
-                                    Text("Differences found: ${_comparisonResult!.textComparison!.differences.length}"),
+                                    Text(
+                                      "Text similarity: ${(_comparisonResult!.textComparison!.similarity * 100).toInt()}%",
+                                    ),
+                                    Text(
+                                      "Differences found: ${_comparisonResult!.textComparison!.differences.length}",
+                                    ),
                                   ],
                                 ],
                               ),
@@ -2712,26 +3019,29 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Pick PDF file to compress',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+                        buttonText: 'Pick PDF file to compress',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForAdvancedCompression = result[0];
-                                    });
-                                  }
-                                }),
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForAdvancedCompression =
+                                        result[0];
+                                  });
+                                }
+                              },
+                      ),
                       if (_pickedFilePathForAdvancedCompression != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -2742,63 +3052,72 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       const SizedBox(height: 8),
                       CustomButton(
-                          buttonText: 'Compress with Advanced Options',
-                          onPressed: _pickedFilePathForAdvancedCompression == null
-                              ? null
-                              : () async {
-                                  final params = PDFCompressorParams(
-                                    pdfPath: _pickedFilePathForAdvancedCompression!,
-                                    imageQuality: 85,
-                                    imageScale: 0.9,
-                                    unEmbedFonts: true,
-                                    advancedOptions: const PDFAdvancedCompressionOptions(
-                                      enableFontSubsetting: true,
-                                      removeDuplicateFonts: true,
-                                      compressFonts: true,
-                                      optimizeStructure: true,
-                                      removeUnusedMetadata: true,
-                                      deduplicateImages: true,
-                                      optimizeImageFormats: true,
-                                      compressStreams: true,
-                                      flattenFormFields: false, // Be careful with this
-                                      cleanNamedDestinations: true,
-                                    ),
-                                  );
+                        buttonText: 'Compress with Advanced Options',
+                        onPressed: _pickedFilePathForAdvancedCompression == null
+                            ? null
+                            : () async {
+                                final params = PDFCompressorParams(
+                                  pdfPath:
+                                      _pickedFilePathForAdvancedCompression!,
+                                  imageQuality: 85,
+                                  imageScale: 0.9,
+                                  unEmbedFonts: true,
+                                  advancedOptions:
+                                      const PDFAdvancedCompressionOptions(
+                                        enableFontSubsetting: true,
+                                        removeDuplicateFonts: true,
+                                        compressFonts: true,
+                                        optimizeStructure: true,
+                                        removeUnusedMetadata: true,
+                                        deduplicateImages: true,
+                                        optimizeImageFormats: true,
+                                        compressStreams: true,
+                                        flattenFormFields:
+                                            false, // Be careful with this
+                                        cleanNamedDestinations: true,
+                                      ),
+                                );
 
-                                  String? result =
-                                      await _pdfAdvancedCompressor(params);
+                                String? result = await _pdfAdvancedCompressor(
+                                  params,
+                                );
 
-                                  if (mounted) {
-                                    setState(() {
-                                      _advancedCompressedPdfPath = result;
-                                    });
-                                  }
-                                }),
+                                if (mounted) {
+                                  setState(() {
+                                    _advancedCompressedPdfPath = result;
+                                  });
+                                }
+                              },
+                      ),
                       if (_advancedCompressedPdfPath != null)
                         Row(
                           children: [
                             Expanded(
                               child: CustomButton(
-                                  buttonText: 'Save Advanced Compressed PDF',
-                                  onPressed: () async {
-                                      final params = FileSaverParams(
-                                        localOnly: _localOnly,
-                                        saveFiles: [
-                                          SaveFileInfo(
-                                              filePath: _advancedCompressedPdfPath,
-                                              fileName: "Advanced Compressed PDF.pdf")
-                                        ],
-                                      );
+                                buttonText: 'Save Advanced Compressed PDF',
+                                onPressed: () async {
+                                  final params = FileSaverParams(
+                                    localOnly: _localOnly,
+                                    saveFiles: [
+                                      SaveFileInfo(
+                                        filePath: _advancedCompressedPdfPath,
+                                        fileName: "Advanced Compressed PDF.pdf",
+                                      ),
+                                    ],
+                                  );
 
-                                      List<String>? result =
-                                          await _fileSaver(params);
+                                  List<String>? result = await _fileSaver(
+                                    params,
+                                  );
 
-                                      if (mounted && context.mounted) {
-                                        callSnackBar(
-                                            context: context,
-                                            text: result.toString());
-                                      }
-                                    }),
+                                  if (mounted && context.mounted) {
+                                    callSnackBar(
+                                      context: context,
+                                      text: result.toString(),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                             IconButton(
                               onPressed: () {
@@ -2827,7 +3146,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 8),
-                            Text("• Font subsetting (embed only used characters)"),
+                            Text(
+                              "• Font subsetting (embed only used characters)",
+                            ),
                             Text("• Duplicate font removal"),
                             Text("• Font stream compression"),
                             Text("• Structure optimization (unused objects)"),
@@ -2855,102 +3176,110 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick PDF file to sign',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick PDF file to sign',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForDigitalSignature =
+                                        result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForDigitalSignature =
-                                          result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Pick certificate file (.p12/.pfx)',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/x-pkcs12"],
-                                    allowedExtensions: [".p12", ".pfx"],
+                        buttonText: 'Pick certificate file (.p12/.pfx)',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/x-pkcs12"],
+                                  allowedExtensions: [".p12", ".pfx"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedCertificatePath = result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedCertificatePath = result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Add Digital Signature',
-                          onPressed: _pickedFilePathForDigitalSignature ==
-                                      null ||
-                                  _pickedCertificatePath == null
-                              ? null
-                              : () async {
-                                  final params = PDFDigitalSignatureParams(
-                                    pdfPath:
-                                        _pickedFilePathForDigitalSignature!,
-                                    certificatePath: _pickedCertificatePath!,
-                                    certificatePassword: _certificatePassword,
-                                    reason: "Document approval",
-                                    location: "Test Location",
-                                    contact: "test@example.com",
-                                    appearance: SignatureAppearance(
-                                      text: "Test Signature\nApproved",
-                                      x: 100,
-                                      y: 100,
-                                      width: 200,
-                                      height: 100,
-                                      pageNumber: 1,
-                                    ),
+                        buttonText: 'Add Digital Signature',
+                        onPressed:
+                            _pickedFilePathForDigitalSignature == null ||
+                                _pickedCertificatePath == null
+                            ? null
+                            : () async {
+                                final params = PDFDigitalSignatureParams(
+                                  pdfPath: _pickedFilePathForDigitalSignature!,
+                                  certificatePath: _pickedCertificatePath!,
+                                  certificatePassword: _certificatePassword,
+                                  reason: "Document approval",
+                                  location: "Test Location",
+                                  contact: "test@example.com",
+                                  appearance: SignatureAppearance(
+                                    text: "Test Signature\nApproved",
+                                    x: 100,
+                                    y: 100,
+                                    width: 200,
+                                    height: 100,
+                                    pageNumber: 1,
+                                  ),
+                                );
+
+                                String? result = await _pdfDigitalSignature(
+                                  params,
+                                );
+
+                                if (result != null) {
+                                  setState(() {
+                                    _signedPdfPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result != null
+                                        ? "PDF signed successfully"
+                                        : "Failed to sign PDF",
                                   );
-
-                                  String? result =
-                                      await _pdfDigitalSignature(params);
-
-                                  if (result != null) {
-                                    setState(() {
-                                      _signedPdfPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result != null
-                                            ? "PDF signed successfully"
-                                            : "Failed to sign PDF");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       Text(
                         "Certificate password: $_certificatePassword",
                         style: Theme.of(context).textTheme.labelSmall,
@@ -2979,84 +3308,89 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                     children: [
                       CustomButton(
-                          buttonText: 'Pick PDF file to annotate',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
+                        buttonText: 'Pick PDF file to annotate',
+                        onPressed: _isBusy
+                            ? null
+                            : () async {
+                                final params = FilePickerParams(
+                                  localOnly: _localOnly,
+                                  getCachedFilePath: isSelected[1],
+                                  mimeTypesFilter: ["application/pdf"],
+                                  allowedExtensions: [".pdf"],
+                                );
+
+                                List<String>? result = await _filePicker(
+                                  params,
+                                );
+
+                                if (result != null && result.isNotEmpty) {
+                                  setState(() {
+                                    _pickedFilePathForAnnotations = result[0];
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result.toString(),
                                   );
-
-                                  List<String>? result =
-                                      await _filePicker(params);
-
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForAnnotations = result[0];
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result.toString());
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       CustomButton(
-                          buttonText: 'Add Annotations to PDF',
-                          onPressed: _pickedFilePathForAnnotations == null
-                              ? null
-                              : () async {
-                                  final params = PDFAnnotationsParams(
-                                    pdfPath: _pickedFilePathForAnnotations!,
-                                    annotations: [
-                                      // Text annotation (sticky note)
-                                      TextAnnotation(
-                                        pageNumber: 1,
-                                        rect: [100, 200, 200, 250],
-                                        contents: "This is a sample note",
-                                        title: "Sample Note",
-                                        color: [1.0, 1.0, 0.0], // Yellow
-                                      ),
-                                      // Highlight annotation
-                                      HighlightAnnotation(
-                                        pageNumber: 1,
-                                        rect: [50, 150, 300, 170],
-                                        quads: [
-                                          [50, 170, 300, 170, 50, 150, 300, 150]
-                                        ],
-                                        contents: "Highlighted text",
-                                        color: [1.0, 1.0, 0.0], // Yellow
-                                      ),
-                                      // Link annotation
-                                      LinkAnnotation(
-                                        pageNumber: 1,
-                                        rect: [150, 100, 250, 120],
-                                        url: "https://flutter.dev",
-                                        contents: "Flutter Website",
-                                      ),
-                                    ],
+                        buttonText: 'Add Annotations to PDF',
+                        onPressed: _pickedFilePathForAnnotations == null
+                            ? null
+                            : () async {
+                                final params = PDFAnnotationsParams(
+                                  pdfPath: _pickedFilePathForAnnotations!,
+                                  annotations: [
+                                    // Text annotation (sticky note)
+                                    TextAnnotation(
+                                      pageNumber: 1,
+                                      rect: [100, 200, 200, 250],
+                                      contents: "This is a sample note",
+                                      title: "Sample Note",
+                                      color: [1.0, 1.0, 0.0], // Yellow
+                                    ),
+                                    // Highlight annotation
+                                    HighlightAnnotation(
+                                      pageNumber: 1,
+                                      rect: [50, 150, 300, 170],
+                                      quads: [
+                                        [50, 170, 300, 170, 50, 150, 300, 150],
+                                      ],
+                                      contents: "Highlighted text",
+                                      color: [1.0, 1.0, 0.0], // Yellow
+                                    ),
+                                    // Link annotation
+                                    LinkAnnotation(
+                                      pageNumber: 1,
+                                      rect: [150, 100, 250, 120],
+                                      url: "https://flutter.dev",
+                                      contents: "Flutter Website",
+                                    ),
+                                  ],
+                                );
+
+                                String? result = await _pdfAnnotations(params);
+
+                                if (result != null) {
+                                  setState(() {
+                                    _annotatedPdfPath = result;
+                                  });
+                                }
+
+                                if (mounted && context.mounted) {
+                                  callSnackBar(
+                                    context: context,
+                                    text: result != null
+                                        ? "Annotations added successfully"
+                                        : "Failed to add annotations",
                                   );
-
-                                  String? result = await _pdfAnnotations(params);
-
-                                  if (result != null) {
-                                    setState(() {
-                                      _annotatedPdfPath = result;
-                                    });
-                                  }
-
-                                  if (mounted && context.mounted) {
-                                    callSnackBar(
-                                        context: context,
-                                        text: result != null
-                                            ? "Annotations added successfully"
-                                            : "Failed to add annotations");
-                                  }
-                                }),
+                                }
+                              },
+                      ),
                       if (_annotatedPdfPath != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -3089,8 +3423,9 @@ class CustomButton extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton(
-              onPressed: onPressed,
-              child: Text(buttonText, textAlign: TextAlign.center)),
+            onPressed: onPressed,
+            child: Text(buttonText, textAlign: TextAlign.center),
+          ),
         ),
       ],
     );
@@ -3099,9 +3434,7 @@ class CustomButton extends StatelessWidget {
 
 void callSnackBar({required BuildContext context, required String text}) {
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    content: Text(text),
-  ));
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 }
 
 // null
