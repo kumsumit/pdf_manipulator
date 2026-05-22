@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("com.android.library")
@@ -38,11 +36,6 @@ extensions.configure<com.android.build.api.dsl.LibraryExtension>("android") {
 
 }
 
-tasks.withType<KotlinJvmCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
-}
 
 dependencies {
     implementation("com.itextpdf:kernel:9.6.0")
