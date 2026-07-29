@@ -1,839 +1,701 @@
-[![pub package](https://img.shields.io/pub/v/pdf_manipulator.svg)](https://pub.dev/packages/pdf_manipulator) [![wakatime](https://wakatime.com/badge/user/83f3b15d-49de-4c01-b8de-bbc132f11be1/project/db0907ad-0c7e-49cb-bbbb-a0fba05b6bc9.svg)](https://wakatime.com/badge/user/83f3b15d-49de-4c01-b8de-bbc132f11be1/project/db0907ad-0c7e-49cb-bbbb-a0fba05b6bc9)
+<!--
+  Banner stays <picture> for GitHub's dark/light. pub.dev strips <picture>
+  when sanitizing the README, so the publish step flattens it to the inner
+  <img> via `tool/ci/release.sh --stamp-readme` (the repo copy is untouched).
+  Drop both once pub.dev renders <picture>. Tracking:
+  dart-lang/pub-dev#5923, dart-lang/pub-dev#6363, google/dart-neats#383.
+-->
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)"  srcset="assets/banner_dark-web-min.webp">
+    <source media="(prefers-color-scheme: light)" srcset="assets/banner_light-web-min.webp">
+    <img alt="pdf_manipulator — cross-platform PDF manipulation for Dart & Flutter"
+         src="assets/banner_light-web-min.webp" width="100%">
+  </picture>
+</p>
 
-## Word from creator
+<p align="center">
+  <a href="https://pub.dev/packages/pdf_manipulator"><img src="https://img.shields.io/pub/v/pdf_manipulator.svg" alt="pub package"></a>
+  <a href="https://pub.dev/packages/pdf_manipulator/score"><img src="https://img.shields.io/pub/likes/pdf_manipulator" alt="likes"></a>
+  <a href="https://pub.dev/packages/pdf_manipulator/score"><img src="https://img.shields.io/pub/points/pdf_manipulator" alt="pub points"></a>
+  <a href="https://github.com/whuppi/pdf_manipulator"><img src="https://img.shields.io/github/stars/whuppi/pdf_manipulator?style=flat&logo=github" alt="GitHub stars"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license: MIT"></a>
+</p>
 
-**Hello👋, This package is completely compatible with flutter and it also supports using Android Uri of picked file to work with which offers some real benefits such as manipulating them without caching or validating them without caching.**
+Cross-platform PDF manipulation for Dart & Flutter. Merge, split, render, extract, search, sign, encrypt, validate, convert, or build from scratch. Every operation runs off the main thread and streams large files in chunks. Any of it can be cancelled mid-flight.
 
-**Yes, without a doubt, giving a free 👍 or ⭐ will encourage me to keep working on this plugin.**
+> like it? a [⭐ star](https://github.com/whuppi/pdf_manipulator) or [👍 like](https://pub.dev/packages/pdf_manipulator) is the entire marketing budget. [Bugs & features →](https://github.com/whuppi/pdf_manipulator/issues)
 
-## Package description
+> **Coming from the old Android-only package?** everything changed, but the [migration guide](docs/MIGRATION.md) has the before/after for every call.
 
-A flutter plugin for doing various manipulations such as merge, split, compress and many more on PDF easily.
+---
 
-**Note:** This project utilises itext7 for various operations involving PDFs and since itext7 AGPL V3 License is used in this plugin, it is also licenced under this licence. The project/plugin developer, the owner of the copyright, and the contributors are not accountable or liable for any damage resulting from this project/plugin.
+<details>
+<summary><b>👀 Peek inside</b></summary>
 
-## Features
+- [Install](#install)
+  - [Add the dependency](#add-the-dependency)
+  - [Native](#native)
+  - [Web](#web)
+- [Quick start](#quick-start)
+  - [Merge two PDFs](#merge-two-pdfs)
+  - [Cancellation](#cancellation)
+- [Sources & sinks](#sources--sinks)
+- [Usage](#usage)
+  - [One-shot operations](#one-shot-operations)
+  - [Read a document](#read-a-document)
+  - [Edit a document](#edit-a-document)
+  - [Build from scratch](#build-from-scratch)
+  - [CJK & emoji in form fields](#cjk--emoji-in-form-fields)
+- [Error handling](#error-handling)
+- [The engine binary](#the-engine-binary)
+- [Platform support](#platform-support)
+  - [Browser support](#browser-support)
+  - [Web I/O modes](#web-io-modes)
+- [Not in the box](#not-in-the-box)
+- [Docs](#docs)
 
-- Works on Android 5.0 (API level 21) or later.
-- Works with both absolute file path and Android native Uri.
-- Supports merging multiple PDFs.
-- Supports splitting PDF.
-- Supports rotating PDF pages.
-- Supports deleting PDF pages.
-- Supports reordering PDF pages.
-- Supports rotating, deleting, reordering PDF pages at the same time for more efficiency.
-- Supports compressing PDF.
-- Supports watermarking PDF.
-- Supports encrypting PDF.
-- Supports decrypting PDF.
-- Supports converting images to PDF.
-- Supports getting PDF validity and protection info.
-- Supports getting PDF page size info.
-- Supports converting PDF pages to images.
-- Supports extracting text from PDF pages.
-- Supports OCR (Optical Character Recognition) on PDF pages.
-- Supports adding digital signatures to PDFs.
-- Supports adding annotations to PDFs (text, highlight, underline, etc.).
-- Supports filling PDF form fields.
-- Supports extracting PDF form field data.
-- Supports reading and modifying PDF metadata (title, author, subject, keywords, creation date, modification date).
-- Supports creating, modifying, and extracting PDF bookmarks/outlines (table of contents).
-- Supports comparing two PDFs and highlighting differences (text, layout, structure).
-- Supports repairing corrupted or damaged PDF files.
-- Supports advanced PDF compression with font optimization, structure optimization, and image deduplication.
+</details>
 
-**Note:** To use it in realease mode you will need to create a file named proguard-rules.pro in your project Android->App->proguard-rules.pro. In that file you need to add the below block of text at the end of the file.
-```
-# To use iText in release mode Otherwise we get
-# PlatformException AbstractITextEvent is only for internal usage.
--keep public class com.itextpdf.**
--keep public class org.apache.**
-```
-For reference see this [project file](https://github.com/chaudharydeepanshu/files_tools/blob/main/android/app/proguard-rules.pro).
+---
 
-Then, setup your App->build.gradle buildTypes release config as done in this [project file](https://github.com/chaudharydeepanshu/files_tools/blob/54774ecf28d37c2a27d4fc666f7b178ad84ac46b/android/app/build.gradle#L77).
-If you don't do all of this then you will get PlatformException: AbstractITextEvent is only for internal usage in Release build.
+## Install
 
-**Note:** If you are getting errors in you IDE after updating this plugin to newer version and the error contains works like Redeclaration, Conflicting declarations, Overload resolution ambiguity then to fix that you probably need to remove the older version of plugin from pub cache `C:\Users\username\AppData\Local\Pub\Cache\hosted\pub.dev\older_version` or simply run `flutter clean`.
-
-## Getting started
-
-- In pubspec.yaml, add this dependency:
+### Add the dependency
 
 ```yaml
-pdf_manipulator: 
+dependencies:
+  pdf_manipulator:
 ```
 
-- Add this package to your project:
+### Native
+
+Nothing to do. On iOS, Android, macOS, Windows, and Linux, the build hook downloads the right binary on first build.
+
+### Web
+
+Web can't auto-download native assets, so run setup once. It fetches the prebuilt WASM engine. Run it again after any `pub upgrade`, because the asset is tied to the package version:
+
+```sh
+flutter pub run pdf_manipulator:setup
+```
+
+Pin the version, too, so a `pub upgrade` can't bump it behind your back and leave that fetched asset stale:
+
+```yaml
+pdf_manipulator: X.Y.Z  # exact version
+```
+
+<details>
+<summary><b>🧰 all the setup commands</b></summary>
+
+```sh
+flutter pub run pdf_manipulator:setup                  # web (default)
+flutter pub run pdf_manipulator:setup <target>         # web|android|ios|macos|linux|windows
+flutter pub run pdf_manipulator:setup --force <target> # re-resolve (debugging)
+```
+
+The command never carries config flags. `keep` and `build` live in your
+pubspec (see The engine binary) — web reads the same block native does.
+
+</details>
+
+<details>
+<summary><b>🧩 wait — why does web need a setup step?</b></summary>
+
+<br>
+
+Flutter's build system automatically downloads native binaries for
+iOS, Android, etc., but it doesn't support web assets (WASM, JS)
+yet. The setup command fills that gap: it downloads the pre-built
+WASM engine, or compiles it from the vendored Rust source if the
+download isn't available.
+
+This will go away when Dart/Flutter adds WASM/JS asset support to
+build hooks. Tracking: [dart-lang/native#988](https://github.com/dart-lang/native/issues/988)
+
+</details>
+
+That's it — every platform now runs the full engine. **Before you ship: it can be up to 70% smaller.** One pubspec entry keeps only the features your app uses — [The engine binary](#the-engine-binary).
+
+---
+
+## Quick start
+
+### Merge two PDFs
+
+Merge two PDFs, using bytes in memory (works on web too):
 
 ```dart
 import 'package:pdf_manipulator/pdf_manipulator.dart';
+
+// one Pdf instance, reused everywhere
+final pdf = Pdf();
+
+// your two PDFs, as sources
+final firstPdf = MemorySource(firstPdfBytes);
+final secondPdf = MemorySource(secondPdfBytes);
+
+// where the merged PDF lands
+final output = MemorySink();
+
+// combine the two into the output
+await pdf.merge([firstPdf, secondPdf], output);
+
+// take the merged bytes, then dispose it
+final merged = output.takeBytes();
+await pdf.dispose();
 ```
 
-## Basic Usage
-
-### Merging multiple PDFs
+On mobile or desktop, point the same program at files; only the sources, sink, and import change:
 
 ```dart
-String? mergedPdfPath = await PdfManipulator().mergePDFs(
-  params: PDFMergerParams(pdfsPaths: [pdfPath1, padfPath2]),
-);
+import 'package:pdf_manipulator/pdf_manipulator.dart';
+import 'package:pdf_manipulator/io.dart'; // adds FileSource / FileSink
+
+final pdf = Pdf();
+
+// read the two PDFs straight from disk
+final firstPdf = FileSource(File('first.pdf'));
+final secondPdf = FileSource(File('second.pdf'));
+
+// write the result straight to a file
+final output = await FileSink.create(File('merged.pdf'));
+
+// the merge call is identical
+await pdf.merge([firstPdf, secondPdf], output);
+
+// flush the file, then dispose it
+await output.close();
+await pdf.dispose();
 ```
 
-### Spliting PDF
+That's the shape of every **edit**: source in, sink out. Watermark, compress, split, sign are the same shape, a different verb. Reading is the other shape: `open` a document and query it, no sink needed. See [Usage](#usage) for the full menu of both.
+
+### Cancellation
+
+Long job the user no longer needs? You can stop it. Every operation is a **`PdfTask`**: an ordinary `Future` you `await`, plus a `cancel()` button.
+
+Keep the task in a variable: `await` it as usual, and `cancel()` it to stop early, from a Cancel button or your widget's `dispose()`.
 
 ```dart
-String? mergedPdfPath = await PdfManipulator().mergePDFs(
-  params: PDFMergerParams(pdfsPaths: [pdfPath1, padfPath2]),
-);
+// run it and await it — your normal code
+final task = pdf.merge([firstPdf, secondPdf], output); // starts running
+try {
+  await task;
+  final merged = output.takeBytes(); // success
+} on PdfCancelled {
+  // cancelled — the Pdf and everything else keep working
+}
 ```
 
-#### Split PDF by page count
-
 ```dart
-List<String>? splitPdfPaths = await PdfManipulator().splitPDF(
-  params: PDFSplitterParams(pdfPath: pdfPath, pageCount: 2),
-);
+// stop it — from a Cancel button, or your widget's dispose()
+task.cancel(); // the await above now throws PdfCancelled
 ```
 
-#### Split PDF by size
+Three rules and you're safe:
+
+- **The `cancel()` call never throws** — it sends a stop request and returns. No `try/catch` needed; it's safe to call twice, and a no-op after the task is done.
+- **`PdfCancelled` only appears when you `await` the task** — never a half-finished result. That's the spot to wrap in `try/catch`.
+- **Never await the task? Nothing to handle** — cancel it and move on, no error, no crash.
+
+To stop *everything*, **`pdf.dispose()`** cancels every operation and returns immediately; it never waits for in-flight work to drain.
+
+<details>
+<summary><b>🧩 Advanced: when do i want more than one <code>Pdf</code>?</b></summary>
+
+<br>
+
+**Most apps need just one `Pdf` instance**: create it once, reuse it everywhere.
+
+You'd want a second one when **two parts of your app should stop independently.** Say each screen runs its own PDF work: give each screen its own `Pdf`, then `dispose()` it when the user leaves, which cancels only *that* screen's jobs and leaves the rest running. (With one shared `Pdf`, `dispose()` would stop everything, everywhere.)
+
+Each `Pdf` instance runs its own pool of background workers, so operations go in parallel. Want more or fewer at a time?
 
 ```dart
-List<String>? splitPdfPaths = await PdfManipulator().splitPDF(
-  params: PDFSplitterParams(pdfPath: pdfPath, byteSize: splitSize),
-);
+final pdf = Pdf(config: PdfConfig(maxLanes: 8)); // default: max(2, cores ÷ 2)
 ```
 
-#### Split PDF by page numbers
+</details>
+
+---
+
+## Sources & sinks
+
+Every operation reads from a **source** and writes to a **sink**. You've already used the built-ins: `MemorySource`/`MemorySink` for bytes, `FileSource`/`FileSink` for files. Write your own for anything else (a server, a database, a `Blob`).
+
+<details>
+<summary><b>🧩 what are sources & sinks, really? (+ rolling your own)</b></summary>
+
+<br>
+
+A **source** is how `pdf_manipulator` reads your PDF, never all at once, just small bites:
 
 ```dart
-List<String>? splitPdfPaths = await PdfManipulator().splitPDF(
-  params: PDFSplitterParams(pdfPath: pdfPath, pageNumbers: [2, 5]),
-);
+abstract interface class DataSource {
+  int get length; // how big are you?
+  FutureOr<Uint8List> readAt(int offset, int count); // count bytes from offset
+}
 ```
 
-#### Extract PDF pages by page range
+It only nibbles — *"give me 64KB starting here"*, then the next bit, then the next. So you hand it a **reader**, not your whole file dumped into one giant `Uint8List`. (It hops around to any spot in the file, so a one-way stream like a live socket can't be a source; stash those in memory or a file first.)
+
+A **sink** is the mirror, one method:
 
 ```dart
-List<String>? splitPdfPaths = await PdfManipulator().splitPDF(
-  params: PDFSplitterParams(pdfPath: pdfPath, pageRanges: ["2", "5-10"]),
-);
+abstract interface class DataSink {
+  FutureOr<void> write(Uint8List chunk); // here's a chunk of output
+}
 ```
 
-### Rotaing PDF pages
+**Build your own** for any backing store. Here's a PDF on a server, streamed over HTTP, pulling only the byte ranges asked for, never the whole download:
 
 ```dart
-String? rotatedPagesPdfPath = await PdfManipulator().pdfPageRotator(
-  params: PDFPageRotatorParams(pdfPath: pdfPath, pagesRotationInfo: [PageRotationInfo(pageNumber: 1, rotationAngle: 180)]),
-);
-```
+import 'package:http/http.dart' as http;
 
-### Deleting PDF pages
+class UrlSource implements DataSource {
+  UrlSource(this.uri, this.length); // length from a HEAD request
+  final Uri uri;
+  @override
+  final int length;
 
-```dart
-String? deletedPagesPdfPath = await PdfManipulator().pdfPageDeleter(
-  params: PDFPageDeleterParams(pdfPath: pdfPath, pageNumbers: [1, 2, 3]),
-);
-```
-
-### Reordering PDF pages
-
-```dart
-String? reorderedPagesPdfPath = await PdfManipulator().pdfPageReorder(
-  params: PDFPageReorderParams(pdfPath: pdfPath, pageNumbers: [4, 1]),
-);
-```
-
-### Rotating, Deleting, Reordering PDF pages at the same time
-
-```dart
-String? rotatedDeletedReorderedPagesPdfPath = await PdfManipulator().pdfPageRotatorDeleterReorder(
-  params: PDFPageRotatorDeleterReorderParams(
-      pdfPath: pdfPath,
-      pagesRotationInfo: [PageRotationInfo(pageNumber: 1, rotationAngle: 180)],
-      pageNumbersForReorder: [4, 3, 2, 1],
-      pageNumbersForDeleter: [3, 2]),
-);
-```
-
-### Compressing PDF
-
-```dart
-String? compressedPdfPath = await PdfManipulator().pdfCompressor(
-  params: PDFCompressorParams(pdfPath: pdfPath, imageQuality: 100, imageScale: 1),
-);
-```
-
-### Watermarking PDF
-
-```dart
-String? watermarkedPdfPath = await PdfManipulator().pdfWatermark(
-  params: PDFWatermarkParams(
-      pdfPath: pdfPath,
-      text: "Watermark Text",
-      watermarkColor: Colors.red,
-      fontSize: 50,
-      watermarkLayer: WatermarkLayer.overContent,
-      opacity: 0.7,
-      positionType: PositionType.center),
-);
-```
-
-**Note:** When using `PositionType.custom` you need to provide `customPositionXCoordinatesList` and `customPositionYCoordinatesList`.
-
-### Encrypting PDF
-
-```dart
-String? encryptedPdfPath = await PdfManipulator().pdfEncryption(
-  params: PDFEncryptionParams(
-      pdfPath: pdfPath,
-      ownerPassword: "ownerpw",
-      userPassword: "userpw",
-      encryptionAES256: true), // Set true to enable encryptionAES256 encryption.
-);
-```
-
-`PDFEncryptionParams` other parameters with their default values is as follows:-
-- `bool allowPrinting = false` Set true to allow printing permission.
-- `bool allowModifyContents = false` Set true to allow modify permission.
-- `bool allowCopy = false` Set true to allow copy permission.
-- `bool allowModifyAnnotations = false` Set true to allow modifying annotations permission.
-- `bool allowFillIn = false` Set true to allow fill in permission.
-- `bool allowScreenReaders = false` Set true to allow screen readers permission.
-- `bool allowAssembly = false` Set true to allow assembly permission.
-- `bool allowDegradedPrinting = false` Set true to allow degraded printing permission.
-- `bool standardEncryptionAES40 = false` Set true to enable StandardEncryptionAES40 encryption. standardEncryptionAES40 implicitly sets doNotEncryptMetadata and encryptEmbeddedFilesOnly as false.
-- `bool standardEncryptionAES128 = false` Set true to enable StandardEncryptionAES128 encryption. standardEncryptionAES128 implicitly sets EncryptionConstants.EMBEDDED_FILES_ONLY as false.
-- `bool encryptionAES128 = false` Set true to enable encryptionAES128 encryption.
-- `bool encryptEmbeddedFilesOnly = false` Set true to encrypt embedded files only.
-- `bool doNotEncryptMetadata = false` Set true to not encrypt metadata.
-
-**Note:** Please be aware that the passed encryption types may override permissions.
-
-### Certificate-based PDF encryption
-
-```dart
-String? encryptedPdfPath = await PdfManipulator().pdfCertificateEncryption(
-  params: PDFCertificateEncryptionParams(
-    pdfPath: pdfPath,
-    recipients: [
-      PDFCertificateEncryptionRecipient(
-        certificatePath: certificatePath,
-        allowPrinting: true,
-        allowCopy: true,
-      ),
-    ],
-    encryptionAES256: true,
-  ),
-);
-```
-
-`certificatePath` should point to an X.509 public certificate file. Each recipient can receive different permissions by setting the same permission flags used by password encryption.
-
-### Decrypting PDF
-
-```dart
-String? decryptedPdfPath = await PdfManipulator().pdfDecryption(
-  params: PDFDecryptionParams(
-      pdfPath: pdfPath,
-      password: ownerOrUserPassword,
-);
-```
-
-### Converting images to PDF
-
-```dart
-List<String>? pdfsPaths = await PdfManipulator().imagesToPdfs(
-  params: ImagesToPDFsParams(
-      imagesPaths: imagesPaths,
-      createSinglePdf: false,
-);
-```
-
-Images in JPEG, JPEG2000, GIF, PNG, BMP, WMF, TIFF, CCITT and JBIG2 formats are supported.
-
-### PDF validity and protection info
-
-```dart
-PdfValidityAndProtection? pdfValidityAndProtectionInfo = await PdfManipulator().pdfValidityAndProtection(
-  params: PDFValidityAndProtectionParams(
-      pdfPath: pdfPath,
-);
-
-/// Getting info.
-bool? isPDFValid = pdfValidityAndProtectionInfo?.isPDFValid;
-bool? isOwnerPasswordProtected = pdfValidityAndProtectionInfo?.isOwnerPasswordProtected;
-bool? isOpenPasswordProtected = pdfValidityAndProtectionInfo?.isOpenPasswordProtected;
-bool? isPrintingAllowed = pdfValidityAndProtectionInfo?.isPrintingAllowed;
-bool? isModifyContentsAllowed = pdfValidityAndProtectionInfo?.isModifyContentsAllowed;
-```
-Don't provide password if you just want to check validity and protection. Only provide password if you want to check if that password is correct or not.
-
-**Note:** If you only want to check validity and protection then I suggest to use [pdf_bitmaps](https://pub.dev/packages/pdf_bitmaps) as that is fast and requires less memory.
-
-### PDF page size info
-
-```dart
-List<PageSizeInfo>? pdfPagesSizeInfo = await PdfManipulator().pdfPagesSize(
-  params: PDFPagesSizeParams(
-      pdfPath: pdfPath,
-);
-
-/// Getting 1st page info.
-double? widthOfPage = pdfPagesSizeInfo[0]?.widthOfPage;
-double? heightOfPage = pdfPagesSizeInfo[0]?.heightOfPage;
-```
-
-**Note:** If you only want to get page size then I suggest to use [pdf_bitmaps](https://pub.dev/packages/pdf_bitmaps) as that is fast and requires less memory.
-
-### Converting PDF pages to images
-
-```dart
-List<String>? imagePaths = await PdfManipulator().pdfToImages(
-  params: PDFToImagesParams(
-      pdfPath: pdfPath,
-      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
-      imageFormat: ImageFormat.png, // Optional: png, jpeg, webp
-      quality: 90, // Optional: JPEG/WebP quality (1-100)
-      scale: 1.0, // Optional: scale factor (0.1-5.0)
-);
-```
-
-Supported image formats: PNG, JPEG, WebP.
-
-### Extracting text from PDF
-
-```dart
-PDFTextExtractionResult? textResult = await PdfManipulator().pdfTextExtraction(
-  params: PDFTextExtractionParams(
-      pdfPath: pdfPath,
-      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
-);
- 
-/// Getting extracted text
-String? fullText = textResult?.fullText; // All text concatenated
-Map<int, String>? pageTexts = textResult?.pageTexts; // Text per page
-String? page1Text = pageTexts?[1]; // Text from page 1
-```
-
-### Performing OCR on PDF
-
-```dart
-PDFOCRResult? ocrResult = await PdfManipulator().pdfOcr(
-  params: PDFOCRParams(
-      pdfPath: pdfPath,
-      pages: [1, 2, 3], // Optional: specific pages, empty for all pages
-      languageCode: 'en', // Optional: language code, default 'en'
-);
- 
-/// Getting OCR results
-String? fullOcrText = ocrResult?.fullText; // All OCR text concatenated
-Map<int, OCRPageResult>? pageOcrResults = ocrResult?.pageResults; // OCR results per page
-OCRPageResult? page1Result = pageOcrResults?[1]; // OCR result for page 1
-String? page1Text = page1Result?.text; // Recognized text
-double? page1Confidence = page1Result?.confidence; // Confidence score (0.0-1.0)
-```
-
-### Adding digital signatures to PDF
-
-```dart
-String? signedPdfPath = await PdfManipulator().pdfDigitalSignature(
-  params: PDFDigitalSignatureParams(
-      pdfPath: pdfPath,
-      certificatePath: certificatePath, // Path to .p12 or .pfx certificate file
-      certificatePassword: "certificate_password",
-      reason: "Document approval", // Optional
-      location: "New York", // Optional
-      contact: "john@example.com", // Optional
-      appearance: SignatureAppearance( // Optional
-        text: "John Doe\nApproved",
-        x: 100,
-        y: 100,
-        width: 200,
-        height: 100,
-        pageNumber: 1,
-      ),
-);
-```
-
-### Filling PDF form fields
-
-```dart
-String? filledPdfPath = await PdfManipulator().fillFormFields(
-  params: PDFFormFillParams(
-      pdfPath: pdfPath,
-      fieldValues: {
-        "name": "Jane Doe",
-        "email": "jane.doe@example.com",
-        "subscribe": true, // Checkbox fields can use bool values.
-      },
-      flatten: false, // Optional: set true to make fields non-editable
-);
-```
-
-### Extracting PDF form field data
-
-```dart
-PDFFormFieldData? formData = await PdfManipulator().extractFormFieldData(
-  params: PDFFormFieldDataParams(pdfPath: pdfPath),
-);
-
-/// Getting form field info.
-Map<String, PDFFormField>? fields = formData?.fields;
-PDFFormField? nameField = fields?["name"];
-String? currentValue = nameField?.value;
-String? fieldType = nameField?.type; // text, checkbox, radio, combo, list, etc.
-List<String>? options = nameField?.options; // Choice/checkbox/radio options.
-bool? isRequired = nameField?.isRequired;
-```
-
-### Adding annotations to PDF
-
-```dart
-String? annotatedPdfPath = await PdfManipulator().pdfAnnotations(
-  params: PDFAnnotationsParams(
-      pdfPath: pdfPath,
-      annotations: [
-        // Text annotation (sticky note)
-        TextAnnotation(
-          pageNumber: 1,
-          rect: [100, 200, 200, 250], // x, y, width, height
-          contents: "This is a note",
-          title: "Note",
-          color: [1.0, 1.0, 0.0], // Yellow
-        ),
-        // Highlight annotation
-        HighlightAnnotation(
-          pageNumber: 1,
-          rect: [50, 150, 300, 170],
-          quads: [[50, 170, 300, 170, 50, 150, 300, 150]], // Highlight area
-          contents: "Important text",
-          color: [1.0, 1.0, 0.0], // Yellow
-        ),
-        // Link annotation
-        LinkAnnotation(
-          pageNumber: 1,
-          rect: [150, 100, 250, 120],
-          url: "https://example.com",
-          contents: "Click here",
-        ),
-      ],
-);
-```
-
-### Reading PDF metadata
-
-```dart
-PDFMetadataResult? metadata = await PdfManipulator().pdfMetadataReader(
-  params: PDFMetadataReaderParams(pdfPath: pdfPath),
-);
-
-String? title = metadata?.title;
-String? author = metadata?.author;
-String? subject = metadata?.subject;
-String? keywords = metadata?.keywords;
-String? creator = metadata?.creator;
-String? producer = metadata?.producer;
-String? creationDate = metadata?.creationDate; // ISO 8601 format
-String? modificationDate = metadata?.modificationDate; // ISO 8601 format
-```
-
-### Modifying PDF metadata
-
-```dart
-String? updatedPdfPath = await PdfManipulator().pdfMetadataWriter(
-  params: PDFMetadataWriterParams(
-    pdfPath: pdfPath,
-    title: "Updated Title",
-    author: "New Author",
-    subject: "Updated Subject",
-    keywords: "keyword1, keyword2, keyword3",
-    creator: "My App",
-    producer: "PDF Manipulator Plugin",
-    creationDate: "2024-01-01T10:00:00Z", // ISO 8601 format
-    modificationDate: "2024-12-31T23:59:59Z", // ISO 8601 format
-  ),
-);
-```
-
-### Reading PDF bookmarks
-
-```dart
-PDFBookmarkData? bookmarkData = await PdfManipulator().pdfBookmarkReader(
-  params: PDFBookmarkReaderParams(pdfPath: pdfPath),
-);
-
-for (var bookmark in bookmarkData?.bookmarks ?? []) {
-  print('Bookmark: ${bookmark.title} -> Page ${bookmark.pageNumber}');
-  // Process child bookmarks recursively
-  processBookmarkChildren(bookmark.children);
+  @override
+  Future<Uint8List> readAt(int offset, int count) async {
+    final res = await http.get(uri,
+        headers: {'range': 'bytes=$offset-${offset + count - 1}'});
+    return res.bodyBytes;
+  }
 }
 
-void processBookmarkChildren(List<PDFBookmark> children) {
-  for (var child in children) {
-    print('  Child: ${child.title} -> Page ${child.pageNumber}');
-    processBookmarkChildren(child.children);
+// then use it exactly like any other source
+final doc = await pdf.open(UrlSource(uri, contentLength));
+```
+
+Or a browser `Blob` from a file picker / drag-and-drop:
+
+```dart
+import 'package:web/web.dart' as web;
+
+class BlobSource implements DataSource {
+  BlobSource(this._blob) : length = _blob.size;
+  final web.Blob _blob;
+  @override
+  final int length;
+
+  @override
+  Future<Uint8List> readAt(int offset, int count) async {
+    final slice = _blob.slice(offset, offset + count);
+    final bytes = await slice.arrayBuffer().toDart;
+    return bytes.asUint8List();
   }
 }
 ```
 
-### Creating PDF bookmarks
+Same idea for a custom `DataSink`: implement `write(chunk)` for an upload stream, a database column, wherever the bytes should go.
+
+</details>
+
+---
+
+## Usage
+
+Everything goes through one of four doors. Pick the one that fits what you're doing. Highlights below; every method and full signature lives in the [API reference](https://pub.dev/documentation/pdf_manipulator/latest/).
+
+### One-shot operations
+
+A single change: call it straight on `pdf`, source in, sink out:
 
 ```dart
-String? bookmarkedPdfPath = await PdfManipulator().pdfBookmarkWriter(
-  params: PDFBookmarkWriterParams(
-    pdfPath: pdfPath,
-    bookmarks: [
-      PDFBookmark(
-        title: "Chapter 1",
-        pageNumber: 1,
-        children: [
-          PDFBookmark(title: "Section 1.1", pageNumber: 2),
-          PDFBookmark(title: "Section 1.2", pageNumber: 5),
-        ],
-      ),
-      PDFBookmark(
-        title: "Chapter 2",
-        pageNumber: 10,
-        children: [
-          PDFBookmark(title: "Section 2.1", pageNumber: 12),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "PDF Repair",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Repair Corrupted PDF",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      CustomButton(
-                          buttonText: 'Pick corrupted PDF to repair',
-                          onPressed: _isBusy
-                              ? null
-                              : () async {
-                                  final params = FilePickerParams(
-                                    localOnly: _localOnly,
-                                    getCachedFilePath: isSelected[1],
-                                    mimeTypesFilter: ["application/pdf"],
-                                    allowedExtensions: [".pdf"],
-                                  );
+await pdf.watermark(source, output,
+    text: 'CONFIDENTIAL',
+    style: PdfWatermarkStyle(opacity: 0.2, fontSize: 60));
 
-                                  List<String>? result =
-                                      await _filePicker(params);
+await pdf.compress(source, output, imageQuality: 75);
 
-                                  if (result != null && result.isNotEmpty) {
-                                    setState(() {
-                                      _pickedFilePathForRepair = result[0];
-                                    });
-                                  }
-                                }),
-                      if (_pickedFilePathForRepair != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            "Selected: ${_pickedFilePathForRepair!.split('/').last}",
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      CustomButton(
-                          buttonText: 'Attempt Repair',
-                          onPressed: _pickedFilePathForRepair == null
-                              ? null
-                              : () async {
-                                  final params = PDFRepairParams(
-                                    pdfPath: _pickedFilePathForRepair!,
-                                  );
+await pdf.encrypt(source, output,
+    encryption: PdfEncryptionConfig(
+      ownerPassword: 'secret',
+      algorithm: PdfEncryptionAlgorithm.aes256,
+    ));
 
-                                  PDFRepairResult? result =
-                                      await _pdfRepair(params);
-
-                                  if (mounted) {
-                                    setState(() {
-                                      _repairResult = result;
-                                    });
-                                  }
-                                }),
-                      if (_repairResult != null)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomButton(
-                                  buttonText: 'Save Repaired PDF',
-                                  onPressed: _repairResult!.repairedPdfPath == null
-                                      ? null
-                                      : () async {
-                                          final params = FileSaverParams(
-                                            localOnly: _localOnly,
-                                            saveFiles: [
-                                              SaveFileInfo(
-                                                  filePath: _repairResult!.repairedPdfPath,
-                                                  fileName: "Repaired PDF.pdf")
-                                            ],
-                                          );
-
-                                          List<String>? result =
-                                              await _fileSaver(params);
-
-                                          if (mounted && context.mounted) {
-                                            callSnackBar(
-                                                context: context,
-                                                text: result.toString());
-                                          }
-                                        }),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _repairResult = null;
-                                });
-                              },
-                              icon: const Icon(Icons.clear),
-                            ),
-                          ],
-                        ),
-
-                      // Results display
-                      if (_repairResult != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          constraints: const BoxConstraints(maxHeight: 300),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Repair status
-                                  Text(
-                                    "Repair Status: ${_repairResult!.wasRepaired ? 'SUCCESS' : 'FAILED'}",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: _repairResult!.wasRepaired ? Colors.green : Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  // Corruption analysis
-                                  Text(
-                                    "Original PDF Status:",
-                                    style: Theme.of(context).textTheme.titleSmall,
-                                  ),
-                                  Text("Can Open: ${_repairResult!.originalStatus.canOpen}"),
-                                  Text("Valid Structure: ${_repairResult!.originalStatus.hasValidStructure}"),
-                                  Text("Readable Content: ${_repairResult!.originalStatus.hasReadableContent}"),
-                                  Text("Corruption Level: ${(_repairResult!.originalStatus.corruptionLevel * 100).toInt()}%"),
-
-                                  if (_repairResult!.originalStatus.detectedIssues.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Detected Issues:",
-                                      style: Theme.of(context).textTheme.titleSmall,
-                                    ),
-                                    ..._repairResult!.originalStatus.detectedIssues.map((issue) =>
-                                      Text("• $issue", style: TextStyle(color: Colors.red))
-                                    ),
-                                  ],
-
-                                  // Repair status
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    "Repair Operation:",
-                                    style: Theme.of(context).textTheme.titleSmall,
-                                  ),
-                                  Text("Completed: ${_repairResult!.repairStatus.completed}"),
-                                  Text("Content Recovered: ${_repairResult!.repairStatus.contentRecovered}"),
-                                  Text("Fully Functional: ${_repairResult!.repairStatus.fullyFunctional}"),
-                                  Text("Method: ${_repairResult!.repairStatus.repairMethod}"),
-
-                                  if (_repairResult!.repairStatus.repairInfo.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
-                                    ..._repairResult!.repairStatus.repairInfo.map((info) =>
-                                      Text("• $info", style: TextStyle(color: Colors.blue))
-                                    ),
-                                  ],
-
-                                  // Recovered content
-                                  if (_repairResult!.recoveredContent != null) ...[
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      "Recovered Content:",
-                                      style: Theme.of(context).textTheme.titleSmall,
-                                    ),
-                                    Text("Pages: ${_repairResult!.recoveredContent!.pagesRecovered}"),
-                                    Text("Text Length: ${_repairResult!.recoveredContent!.textContentLength} characters"),
-                                    Text("Images: ${_repairResult!.recoveredContent!.imagesRecovered}"),
-                                    Text("Metadata Preserved: ${_repairResult!.recoveredContent!.metadataPreserved}"),
-                                  ],
-
-                                  // General issues
-                                  if (_repairResult!.issues.isNotEmpty) ...[
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      "Repair Issues:",
-                                      style: Theme.of(context).textTheme.titleSmall,
-                                    ),
-                                    ..._repairResult!.issues.map((issue) =>
-                                      Text("• $issue", style: TextStyle(color: Colors.orange))
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Add Digital Signature to PDF",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-);
+await pdf.split(source, (i) => MemorySink(), every: 5);
 ```
 
-### Comparing two PDFs
+The full one-shot set, all the same shape: `merge`, `split` / `splitBySize` / `splitByBookmarks`, `extractPages`, `deletePages`, `reorderPages`, `movePage`, `rotatePages` / `rotateAllPages`, `addStamp` / `addImageStamp`, `flattenForms`, `applyRedactions`, `embedFile`, `eraseRegions`, `decrypt`, `sign`, `convertTo` (DOCX/PPTX/XLSX), `convertToPdf`, `convertToPdfA`, `imagesToPdf`.
+
+> Doing several of these to the *same* PDF? Use the editor (below); it parses once instead of re-parsing per call.
+
+### Read a document
+
+`pdf.open` gives you a document to query as much as you like, then dispose:
 
 ```dart
-PDFComparisonResult? comparisonResult = await PdfManipulator().pdfComparison(
-  params: PDFComparisonParams(
-    pdfPath1: pdfPath1,
-    pdfPath2: pdfPath2,
-    compareText: true,        // Compare text content
-    compareMetadata: true,    // Compare metadata
-    compareStructure: true,   // Compare page count and structure
-  ),
-);
+final doc = await pdf.open(source);
+print('${doc.pageCount} pages · encrypted: ${doc.isEncrypted}');
 
-// Overall similarity score
-double similarity = comparisonResult!.overallSimilarity; // 0.0 to 1.0
+final text = await doc.extract(pages: PdfPages.all());
+final hits = await doc.search(query: 'revenue', pages: PdfPages.all());
 
-// Summary of differences
-List<String> summary = comparisonResult.summary;
-
-// Detailed results
-PDFTextComparison? textComparison = comparisonResult.textComparison;
-PDFMetadataComparison? metadataComparison = comparisonResult.metadataComparison;
-PDFStructureComparison? structureComparison = comparisonResult.structureComparison;
-
-// Text comparison details
-if (textComparison != null) {
-  double textSimilarity = textComparison.similarity;
-  List<TextDifference> textDifferences = textComparison.differences;
+await for (final page in doc.render(
+    pages: PdfPages.all(), size: PdfRenderSize.thumbnail(200))) {
+  // page.width, page.height, page.data — PNG-encoded bytes; decode to read pixels
 }
 
-// Metadata comparison details
-if (metadataComparison != null) {
-  List<MetadataDifference> metadataDifferences = metadataComparison.differences;
-  for (var diff in metadataDifferences) {
-    print('${diff.field}: "${diff.value1}" vs "${diff.value2}"');
-  }
-}
+await doc.dispose();
+```
 
-// Structure comparison details
-if (structureComparison != null) {
-  bool pageCountEqual = structureComparison.pageCountEqual;
-  int pageCount1 = structureComparison.pageCount1;
-  int pageCount2 = structureComparison.pageCount2;
+Also on the document: `extract` (plain / markdown / html), `extractImages`, `getSignatures` / `verifySignatures`, `validatePdfA` / `validatePdfUa`, `classifyPage` / `classifyDocument`, `planSplitByBookmarks`, plus metadata getters (`title`, `author`, `version`, `isTagged`).
+
+### Edit a document
+
+`pdf.edit` is for *many* changes to one PDF. It parses once, applies everything in memory, and writes once on save:
+
+```dart
+final editor = await pdf.edit(source);
+
+await editor.setTitle('Q4 Report');
+await editor.mergeFrom(appendix);
+await editor.deletePage(4);
+await editor.addWatermark(0, 'FINAL', style: PdfWatermarkStyle(opacity: 0.15));
+await editor.optimizeImages(quality: 70);
+
+await editor.save(output); // see save options below
+await editor.dispose();
+```
+
+Also on the editor: `selectPages`, `rotatePage` / `rotateAllPages`, `addStamp` / `addImageStamp`, `embedFile`, `eraseRegions`, `cropMargins`, `resizeImage`, `flattenForms` / `flattenAllAnnotations`, `setFormFieldValue`, `unembedStandardFonts`, `convertToPdfA`, `scrubMetadata`, and metadata get/set.
+
+Save options:
+
+- `PdfSaveOptions.fullRewrite()` — default; recompresses and drops unused objects.
+- `PdfSaveOptions.fullRewrite(encryption: ...)` — encrypt on save (or `PdfEncryption.remove()` to strip it).
+- `PdfSaveOptions.incremental()` — appends changes; faster, larger file.
+
+Redaction is a mark-then-apply lifecycle (the content is removed, not just hidden):
+
+```dart
+editor.addRedaction(0, PdfRect(x: 72, y: 700, width: 200, height: 20));
+print(await editor.redactionCount(0)); // pending marks on this page
+await editor.applyRedactions(); // gone for good
+```
+
+### Build from scratch
+
+`pdf.build` hands you an empty PDF; add pages, then content:
+
+```dart
+final builder = await pdf.build();
+await builder.setTitle('Invoice #1042');
+
+final page = await builder.addA4Page();
+await page.heading(1, 'Invoice');
+await page.paragraph('Thank you for your purchase.');
+await page.textField('notes', PdfRect(x: 50, y: 400, width: 300, height: 100));
+await page.linkUrl('https://example.com');
+
+await builder.save(output);
+await builder.dispose();
+```
+
+Pages: `addA4Page` / `addLetterPage` / `addPage` (custom size). Content: `text`, `heading`, `paragraph`, `space`, `image`, `columns`, `footnote`, `watermark`; form fields (`textField`, `checkbox`, `radioGroup`, `comboBox`, `pushButton`, `signatureField`) with Acrobat JS actions (`fieldFormat`, `fieldValidate`, `fieldCalculate`, `fieldKeystroke`); links (`linkUrl`, `linkPage`).
+
+---
+
+### CJK & emoji in form fields
+
+Filling a form with text the field's own font cannot draw (Japanese, Korean, Chinese, emoji) needs a fallback font. The binary doesn't bundle one (that's multiple MB most apps never use) — you register your own once, and every later fill uses it.
+
+**1. Download a font.** Any complete `.ttf` or `.otf` file works:
+
+- For Chinese, Japanese, or Korean: pick the Noto Sans font for your language — [Noto Sans SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) (Simplified Chinese), [Noto Sans TC](https://fonts.google.com/noto/specimen/Noto+Sans+TC) (Traditional Chinese), [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP) (Japanese), or [Noto Sans KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) (Korean). If your forms mix several of these languages, [notofonts/noto-cjk](https://github.com/notofonts/noto-cjk) has combined files that cover all of them at once — a bigger file, but one registration.
+- For emoji: [Noto Emoji](https://fonts.google.com/noto/specimen/Noto+Emoji). Use this black-and-white font: baked emoji come out as black-and-white shapes, like printed text. Color is not possible here — PDF text is drawn from character shapes in one color, and no PDF tool can bake a color emoji font into text. (The stored value keeps the real emoji character either way.)
+
+**2. Put the file in your app's assets** and declare it in `pubspec.yaml`:
+
+```yaml
+flutter:
+  assets:
+    - assets/fonts/NotoSansSC-Regular.ttf
+```
+
+**3. Register it once at startup**, before the first fill or flatten:
+
+```dart
+final fontBytes = await rootBundle.load('assets/fonts/NotoSansSC-Regular.ttf');
+await pdf.registerFallbackFont(
+    PdfFallbackFontKind.cjk, fontBytes.buffer.asUint8List());
+```
+
+`PdfFallbackFontKind.emoji` works the same way, with the emoji font. One registration covers the whole `Pdf` instance, on every platform.
+
+The font stays in memory after you register it — that is what makes every later fill fast. On native the engine holds one shared copy; on web each engine worker holds its own copy (workers start only when needed). So when one language is enough, prefer the single-language file over the combined one.
+
+Without a registered font the fill still succeeds — the value is stored correctly and readers with their own fonts display it; only the baked-in (flattened) appearance falls back to the field's font.
+
+---
+
+## Error handling
+
+Every failure is a typed subclass of `PdfError`: no string matching, no `PlatformException`. Catch the cases you handle specially; let the rest fall to a catch-all. Each error carries a human-readable `message`.
+
+```dart
+try {
+  final doc = await pdf.open(source);
+  // ... use the document, then doc.dispose()
+} on PdfPasswordRequired {
+  // encrypted — retry with pdf.open(source, password: '...')
+} on PdfWrongPassword {
+  // wrong password — ask the user again
+} on PdfCorrupted catch (e) {
+  print('Not a valid PDF: ${e.message}');
+} on PdfError catch (e) {
+  // anything else — I/O failure, unsupported feature, page out of range...
+  print(e.message);
 }
 ```
 
-### Repairing corrupted PDFs
+`PdfError` is sealed, so you can also `catch (e)` once and `switch` over it, and the compiler flags any case you haven't handled. `PdfCancelled` is part of the same hierarchy (the one [Cancellation](#cancellation) throws).
 
-```dart
-PDFRepairResult? repairResult = await PdfManipulator().pdfRepair(
-  params: PDFRepairParams(pdfPath: corruptedPdfPath),
-);
+---
 
-// Check if repair was successful
-bool wasRepaired = repairResult!.wasRepaired;
+## The engine binary
 
-// Get path to repaired PDF (if successful)
-String? repairedPdfPath = repairResult.repairedPdfPath;
+The default binary carries every capability. If your app only uses some of them, tell the build which capabilities to `keep` and it deletes the rest at compile time. It follows the same safety rule as Dart's own tree shaking: when the build cannot prove that your app skips something, it keeps it. The worst case is a slightly bigger binary — never a missing feature.
 
-// Analyze original corruption status
-PDFCorruptionStatus originalStatus = repairResult.originalStatus;
-bool canOpen = originalStatus.canOpen;
-double corruptionLevel = originalStatus.corruptionLevel; // 0.0 to 1.0
-List<String> detectedIssues = originalStatus.detectedIssues;
+Two knobs decide the size — **`keep`** (which capabilities go in) and **`build`** (`speed`, the default, or `size` for denser code, no features lost). Each row is one engine you can build; the columns are the two platforms:
 
-// Check repair operation status
-PDFRepairStatus repairStatus = repairResult.repairStatus;
-bool repairCompleted = repairStatus.completed;
-bool contentRecovered = repairStatus.contentRecovered;
-bool fullyFunctional = repairStatus.fullyFunctional;
-String repairMethod = repairStatus.repairMethod;
+| Engine | Native | Web — raw (gzipped) |
+|---|---|---|
+| Full · `speed` (default) | 21.1 MB | 17.5 MB (7.3 MB) |
+| Full · `size` | 15.9 MB | 14.4 MB (6.3 MB) |
+| Core only · `speed` | 6.3 MB | 5.2 MB (1.9 MB) |
+| Core only · `size` | 5.1 MB | 4.4 MB (1.7 MB) |
 
-// Get information about recovered content
-PDFRecoveredContent? recoveredContent = repairResult.recoveredContent;
-if (recoveredContent != null) {
-  int pagesRecovered = recoveredContent.pagesRecovered;
-  int textLength = recoveredContent.textContentLength;
-  int imagesRecovered = recoveredContent.imagesRecovered;
-  bool metadataPreserved = recoveredContent.metadataPreserved;
-}
+The top row is the default; the bottom row is the smallest — core + `size`, about three quarters off. `keep` does the heavy lifting (full → core is about 70% of the native library gone); `build: size` shaves another ~15–25% on top. `size` trades a little runtime speed for the bytes: the cost lands on rendering and image work, and is negligible for parse, edit, and metadata.
 
-// Get any issues encountered during repair
-List<String> repairIssues = repairResult.issues;
+A custom engine — only the capabilities you keep — compiles on your machine. There is nothing to set up in advance: if a piece is missing, the build stops with the exact instruction. What it will ask for:
+
+- **Native** (iOS, Android, macOS, Windows, Linux): [Rust](https://rustup.rs) — the same one-line installer on every OS.
+- **Web**: [Rust](https://rustup.rs) too — nothing more. The web build makes its own helper tools the first time, which adds a few minutes once; every run after that reuses them.
+
+```yaml
+# pubspec.yaml of YOUR app
+hooks:
+  user_defines:
+    pdf_manipulator:
+      keep: auto              # a source scan decides what to keep
 ```
 
-### Advanced PDF compression
+The scan reads your app's own `lib/` and `bin/`. Keeping source somewhere else? Point it there — paths are relative to your app, and they add to `lib/` and `bin/` rather than replacing them:
 
-```dart
-String? compressedPdfPath = await PdfManipulator().pdfCompressor(
-  params: PDFCompressorParams(
-    pdfPath: pdfPath,
-    imageQuality: 80,      // Basic image quality (0-100)
-    imageScale: 0.8,       // Basic image scale (0-5)
-    unEmbedFonts: true,    // Basic font unembedding
-    advancedOptions: PDFAdvancedCompressionOptions(
-      // Font optimizations
-      enableFontSubsetting: true,     // Embed only used characters
-      removeDuplicateFonts: true,     // Remove duplicate fonts
-      compressFonts: true,            // Compress font streams
-
-      // Structure optimizations
-      optimizeStructure: true,        // Remove unused objects
-      removeUnusedMetadata: true,     // Remove non-essential metadata
-
-      // Image optimizations
-      deduplicateImages: true,        // Remove duplicate images
-      optimizeImageFormats: true,     // Convert to optimal formats
-
-      // Advanced options
-      compressStreams: true,          // Aggressive stream compression
-      flattenFormFields: true,        // Convert form fields to static content
-      cleanNamedDestinations: true,   // Remove unused destinations
-    ),
-  ),
-);
+```yaml
+      keep: auto
+      scan-dirs: [tools, packages/shared/lib]
 ```
 
-Note: To try the demos shown in below images run the example included in this plugin.
+The one thing no scan can see is a call made *inside* a package you depend on. If that's your case, name those capabilities yourself with the manual form below — `keep:` takes one value, so it is `auto` or an explicit set, not both.
 
-<img src="https://user-images.githubusercontent.com/85361211/201522048-1f0c9cd3-e25e-4304-bae9-3673097bfbf1.jpeg" width="20%"></img> <img src="https://user-images.githubusercontent.com/85361211/201522051-db1595b6-d229-4e46-a765-1d09728a5f8c.jpeg" width="20%"></img> <img src="https://user-images.githubusercontent.com/85361211/201522053-7fbf7531-9264-4831-97aa-6d068ee18c4a.jpeg" width="20%"></img> <img src="https://user-images.githubusercontent.com/85361211/201522055-161fd60b-b656-4db3-b310-0b2c1dcb7e67.jpeg" width="20%"></img>
+Prefer to say it yourself? The manual form keeps exactly these capabilities (plus the always-included core — parse, write, edit, forms, build):
+
+```yaml
+      keep: [render, signatures]
+```
+
+<details>
+<summary><b>🧩 shrinking or debugging the engine — the <code>build:</code> knob</b></summary>
+
+<br>
+
+Alongside `keep` (which picks _which_ capabilities go in) there's `build` (what the engine is _optimized for_ — speed, size, or debugging). It lives in the same pubspec block and works the same on web and native:
+
+```yaml
+hooks:
+  user_defines:
+    pdf_manipulator:
+      build: speed   # speed (default) | size | debug
+```
+
+- **`speed`** — the shipped default. The prebuilt binaries are this; nothing compiles.
+- **`size`** — optimizes for size over speed (a smaller engine, somewhat slower). Compiles from source, like any `keep` subset.
+- **`debug`** — keeps debug symbols so a native engine crash points to a file and line. For diagnosing an engine problem, not for shipping. Compiles from source.
+
+Only `speed` has prebuilt binaries — `size` and `debug` always compile on your machine (so they need [Rust](https://rustup.rs), exactly like a `keep` subset). `build` and `keep` stack: `size` + a tight `keep:` is the smallest possible engine.
+
+</details>
+
+
+How do you know what to keep? Each capability covers a small set of methods. Core is always included:
+
+| Capability | Keep it if you call | Also brings | Adds (native) |
+|---|---|---|---|
+| `core` | everything else — merge, split, forms, watermark, encrypt, build… | — | always included (~6.3 MB) |
+| `render` | `doc.render()`, `editor.optimizeImages()`, the `compress` one-shot | — | +4.2 MB |
+| `signatures` | `sign()`, `doc.getSignatures()`, `doc.verifySignatures()` | — | +0.9 MB |
+| `pdfa` | `doc.validatePdfA()`, `doc.validatePdfUa()`, `convertToPdfA` | — | +0.1 MB |
+| `extract` | `doc.extract()`, `doc.search()`, `doc.classifyPage()`, `doc.classifyDocument()` | — | +3.0 MB |
+| `office` | `convertTo`, `convertToPdf` (DOCX / PPTX / XLSX) | `extract`, automatically | +2.5 MB on top of `extract` |
+
+Dependencies are handled for you: `keep: [office]` switches on `extract` as well. Costs are measured one capability at a time, and capabilities share some code — so a combination can total a little less than the sum of its rows.
+
+Not sure? Use `keep: auto` — the scan answers this for you. And if you ever guess wrong, the error message names the missing capability.
+
+Want to see it live? [`example_trimmed/`](example_trimmed/) runs the full example app under a `keep: [render]` engine — its smoke test asserts that kept capabilities work and excluded ones answer the typed error.
+
+On web, just re-run the setup after configuring pubspec — it reads the same
+`keep:` block:
+
+```bash
+flutter pub run pdf_manipulator:setup
+```
+
+<details>
+<summary><b>🧩 how keep works</b></summary>
+
+- `auto` reads your app's code and keeps every capability it can reach. If any file can't be analyzed, you get the full binary and a warning — it never guesses.
+- The custom engine compiles once and is cached — later builds reuse it.
+- Call something you left out and you get a clear error saying what to add to `keep:`. No crashes, no silent misbehavior.
+- A typo in `keep:` fails the build and prints the valid options.
+
+</details>
+
+<details>
+<summary><b>🧩 where the binary comes from (the build-time steps)</b></summary>
+
+<br>
+
+You never call this; it runs at build time. For the curious (or when a build fails), here's the order it tries to get the binary, native and web alike:
+
+| Priority | Method | When | Requires |
+|:---:|---|---|---|
+| 1 | **Cached** | File exists + SHA-256 hash matches | Nothing |
+| 2 | **Download** | Fetch pre-built from GitHub Releases | Internet |
+| 3 | **Source compile** | Binary unavailable, vendor source on disk | [Rust](https://rustup.rs) |
+| 4 | **Submodule init** | Git dep `ref: dev` (no vendor dir) | [Rust](https://rustup.rs) + git |
+| 5 | **Error** | Nothing worked | A clear message listing your options |
+
+The vendored Rust source ships in both the pub.dev tarball and git tags. If the repo disappears, published versions still compile from source.
+
+</details>
+
+---
+
+## Platform support
+
+Every platform Flutter runs on, one API. Native platforms run a Rust core; web runs that same core compiled to WASM.
+
+| Target | Architectures | Minimum version | Engine |
+|---|---|---|---|
+| Android | arm64, arm, x64, x86 | API 21 (Android 5.0) | Native (Rust) |
+| iOS | arm64 device, arm64 + x64 simulator | 13.0 | Native (Rust) |
+| macOS | arm64, x64 | 10.15 (Catalina) | Native (Rust) |
+| Linux | x64, arm64 | glibc 2.31+ (Ubuntu 20.04+) | Native (Rust) |
+| Windows | x64, arm64 | Windows 10 | Native (Rust) |
+| Web | All modern browsers | See [browser support](#browser-support) | WASM |
+
+### Browser support
+
+Minimum versions, with no special setup:
+
+| Browser | Version | Released |
+|---|---|---|
+| Chrome / Edge | 102+ | May 2022 |
+| Firefox | 111+ | Mar 2023 |
+| Safari / Safari iOS | 15.2+ | Dec 2021 |
+| Chrome Android | 102+ | May 2022 |
+| Samsung Internet | 21+ | 2023 |
+
+The engine compiles to WASM and runs in isolated Web Workers, so your UI thread never touches PDF work. No jank, even on large files. (These floors can go further back with two extra headers; see [Web I/O modes](#web-io-modes).)
+
+### Web I/O modes
+
+On web you don't configure anything; the package auto-detects the best mode the browser supports and uses it. Everything works regardless of mode; the only thing that varies is how fast it reads large files.
+
+Internally the modes differ in *how* the WASM engine gets your bytes: the top two stream them on demand, while the fallback copies the whole file into private browser storage first (works everywhere, just a slower first byte).
+
+| Mode | What it means for you | Streams large files | Picked when |
+|---|---|:---:|---|
+| **JSPI** | Best: streams, zero setup | ✅ | Chrome 137+ · Firefox 139+ |
+| **Atomics** | Streams, but needs two server headers | ✅ | COOP/COEP headers are set |
+| **OPFS** | Always works; copies the file to disk first, then reads | ❌ | any modern browser (the fallback) |
+
+<details>
+<summary><b>🧩 ok but what do JSPI, Atomics, and OPFS actually mean?</b></summary>
+
+<br>
+
+All three solve the same puzzle (synchronous WASM code needs bytes that arrive asynchronously from Dart), just in different ways:
+
+- **JSPI** (JavaScript Promise Integration) — the browser lets the WASM call pause and resume while it waits for the next chunk. Cleanest path, no setup; needs a recent browser. Used automatically where available.
+- **Atomics** — the WASM side blocks on a `SharedArrayBuffer` while a worker fills it. Works on older browsers, but `SharedArrayBuffer` only switches on when your site sends two security headers (see below).
+- **OPFS** (Origin Private File System) — when neither of the above is available, the package copies your file into the browser's private on-disk storage and reads from there. Works everywhere; the copy means a slower first byte and a little disk use.
+
+You never choose; the package tries JSPI, then Atomics, then OPFS, and uses the first that works.
+
+</details>
+
+<details>
+<summary><b>🧰 Advanced: force a mode, or enable streaming on older browsers</b></summary>
+
+<br>
+
+Pin a mode, or just check which one was chosen (native ignores this):
+
+```dart
+final pdf = Pdf(config: PdfConfig(webIoMode: PdfIoMode.atomics)); // pin a mode
+final mode = await pdf.ensureInitialized(); // or just check
+```
+
+**Enable streaming on older browsers.** Chrome 137+ / Firefox 139+ already stream via JSPI with no setup. For older browsers that have `SharedArrayBuffer`, two server headers switch the fallback from disk-copy (OPFS) to streaming (Atomics):
+
+```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+**⚠️ These headers have side effects.** `require-corp` blocks *any* cross-origin resource (images, fonts, scripts, iframes) that doesn't opt in via `Cross-Origin-Resource-Policy` or CORS. Google Fonts, CDN images, analytics, OAuth popups, embedded video all break unless their servers send the right headers. Add them only if your app controls its resource origins, or you've tested thoroughly.
+
+With the headers set, streaming reaches further back:
+
+| Browser | Version | Released |
+|---|---|---|
+| Chrome / Edge | 68+ | Jul 2018 |
+| Firefox | 79+ | Jul 2020 |
+| Safari / Safari iOS | 15.2+ | Dec 2021 |
+
+For local dev, Flutter adds the headers for you:
+
+```sh
+flutter run -d chrome --cross-origin-isolation
+```
+
+</details>
+
+---
+
+## Not in the box
+
+A tiny wishlist — what the shipped package doesn't do *yet*, and what to grab in the meantime. For the full engine-vs-shipped picture, see the [capability roadmap](docs/CAPABILITY_ROADMAP.md).
+
+- **A viewer to display PDFs.** This is a manipulation library, not a UI widget. To put a PDF on screen, use [`pdfx`](https://pub.dev/packages/pdfx) or [`flutter_pdfview`](https://pub.dev/packages/flutter_pdfview). It pairs well: pre-process here (merge, decrypt, watermark), display there. (It does render pages to image bytes via `doc.render(...)` if you'd rather draw your own surface.)
+- **OCR and table extraction.** `extract` and `search` read the text already in a PDF, so a scanned page (just an image) comes back empty, and clean rows-and-columns is a separate problem. The engine *has* both (a PaddleOCR pipeline and ML table detection); the default build leaves them out so it doesn't pull the ONNX runtime and ~12 MB of models into every install. An opt-in build is on the [roadmap](docs/CAPABILITY_ROADMAP.md); until then, run them externally ([Tesseract](https://github.com/tesseract-ocr/tesseract), [Camelot](https://github.com/camelot-dev/camelot), or a cloud API) and feed the result back. Want them first-party? [Open an issue](https://github.com/whuppi/pdf_manipulator/issues); it's how we gauge demand.
+
+---
+
+## Docs
+
+The README covers the everyday stuff. wanna go deeper?
+
+| Doc | What's inside |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | How it's built: layers, streaming I/O, three web modes |
+| [Capabilities](docs/CAPABILITY_ROADMAP.md) | What's shipped, what's planned |
+| [Updating](docs/UPDATING.md) | Maintaining the vendored Rust engine |
+| [Migration](docs/MIGRATION.md) | Upgrading from the old Android-only version |
+| [Contributing](CONTRIBUTING.md) | Setup, PR workflow, adding operations |
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).

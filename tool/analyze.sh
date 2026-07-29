@@ -1,0 +1,166 @@
+#!/bin/bash
+# Run all static analysis: format + the shared Dart core (stamped from
+# whuppi/ci) + Rust warnings.
+# Called by: make analyze
+# Run from package root.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PKG_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# SDK commands — REQUIRED, no fallback. The caller (the Makefile) passes them;
+# a missing one fails loud, never guesses.
+: "${DART:?analyze: DART must be set by the caller, e.g. fvm dart}"
+: "${FLUTTER:?analyze: FLUTTER must be set by the caller, e.g. fvm flutter}"
+
+# ── Resolve BEFORE formatting ───────────────────────────────────────
+# `dart format`'s output depends on the file's resolved LANGUAGE
+# VERSION (new "every-arg-on-its-line" style at >=3.7, old wrap style
+# below). The language version comes from each package's pubspec SDK
+# floor, read via .dart_tool/package_config.json. With no
+# package_config (unresolved deps), the formatter falls back to the
+# SDK's latest — a DIFFERENT style than a resolved package produces.
+#
+# So both packages MUST be resolved before either is formatted, and
+# each package MUST be formatted from its own directory so the
+# formatter reads ITS package_config. Resolving here also means the
+# analyze steps below need no second pub get.
+echo "=== Dart: pub get (root + example) ==="
+$DART pub get --no-example
+( cd "$PKG_ROOT/example" && $FLUTTER pub get )
+
+# ── Dart formatting ─────────────────────────────────────────────────
+# Locally: format in place (the gate fixes what it finds).
+# CI: fail on any diff — unformatted code never lands unnoticed.
+#
+# Each package formatted from its own root so the resolved language
+# version is the one its pubspec declares — identical output local and
+# CI, regardless of either machine's default SDK.
+echo "=== Dart: format ==="
+format_pkg() {
+  local pkg_dir="$1"; shift
+  local targets=()
+  for d in "$@"; do
+    [ -e "$pkg_dir/$d" ] && targets+=("$d")
+  done
+  [ ${#targets[@]} -eq 0 ] && return 0
+  if [ -n "${CI:-}" ]; then
+    ( cd "$pkg_dir" && $DART format --set-exit-if-changed "${targets[@]}" )
+  else
+    ( cd "$pkg_dir" && $DART format "${targets[@]}" )
+  fi
+}
+format_pkg "$PKG_ROOT" lib bin test tool hook
+format_pkg "$PKG_ROOT/example" lib integration_test
+
+# ── Shared Dart analysis core (stamped from whuppi/ci) ──────────────
+# Suppression-comment ban + dart/flutter analyze --fatal-infos over the
+# package dirs and example. Canonical script lives in whuppi/ci; a gate
+# change lands here through a re-stamp, never an edit to this copy.
+ANALYZE_DIRS="lib bin test hook" EXAMPLE_DIR="example" \
+  DART="$DART" FLUTTER="$FLUTTER" bash "$SCRIPT_DIR/analyze_core.sh"
+
+# ── Rust analysis (warnings in our patched lines only) ──────────────
+
+source "$SCRIPT_DIR/build_lib.sh"
+ensure_jq  # cargo-warning filtering + build.json reads parse JSON via jq
+
+NATIVE_FEATURES=$(json_get '.features.native')
+WASM_FEATURES=$(json_get '.features.wasm')
+
+# Filter cargo warnings to only lines we changed vs upstream base tag.
+_filter_warnings() {
+  local diff_text="$1"
+  # Membership via temp file, not an associative array — macOS ships
+  # bash 3.2, which doesn't have them.
+  local changed_keys
+  changed_keys=$(mktemp)
+  local cur_file=""
+  while IFS= read -r line; do
+    case "$line" in
+      "+++ b/"*)
+        cur_file="${line#'+++ b/'}"
+        ;;
+      "@@"*)
+        local start count
+        start=$(sed -n 's/.*+\([0-9][0-9]*\).*/\1/p' <<< "$line")
+        count=$(sed -n 's/.*+[0-9][0-9]*,\([0-9][0-9]*\).*/\1/p' <<< "$line")
+        count=${count:-1}
+        [ "$count" -eq 0 ] && count=1
+        for (( i=start; i<start+count; i++ )); do
+          echo "${cur_file}:${i}" >> "$changed_keys"
+        done
+        ;;
+    esac
+  done <<< "$diff_text"
+
+  local warns=0 skipped=0
+  while IFS= read -r json_line; do
+    grep -q '"reason":"compiler-message"' <<< "$json_line" || continue
+    grep -q '"level":"warning"' <<< "$json_line" || continue
+    local span_file span_line msg_text
+    span_file=$(jq -r '.message.spans[0].file_name // empty' <<< "$json_line" 2>/dev/null)
+    span_line=$(jq -r '.message.spans[0].line_start // empty' <<< "$json_line" 2>/dev/null)
+    msg_text=$(jq -r '.message.message // empty' <<< "$json_line" 2>/dev/null)
+    if [ -z "$span_file" ] || [ -z "$span_line" ]; then
+      skipped=$((skipped + 1))
+      continue
+    fi
+    if grep -qxF "${span_file}:${span_line}" "$changed_keys"; then
+      echo "  ${span_file}:${span_line}: ${msg_text}"
+      warns=$((warns + 1))
+    fi
+  done
+
+  rm -f "$changed_keys"
+  if [ "$skipped" -gt 0 ]; then
+    echo "  ($skipped warning(s) skipped — could not parse span)" >&2
+  fi
+  if [ "$warns" -gt 0 ]; then
+    echo ""
+    echo "${warns} warning(s) in our changed lines"
+    return 1
+  fi
+}
+
+check_rust_warnings() {
+  local crate_dir="$1" features="$2" extra_args="${3:-}"
+
+  cd "$crate_dir"
+
+  local branch base_tag
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ "$branch" == *"/"* ]]; then
+    base_tag="v$(cut -d/ -f2 <<< "$branch" | sed 's/-patches$//')"
+  else
+    base_tag=$(json_get '.baseTag')
+  fi
+
+  local diff_output
+  diff_output=$(git diff --unified=0 "$base_tag..HEAD" -- src/ 2>/dev/null || true)
+
+  local feature_flag=""
+  if [ -n "$features" ]; then
+    feature_flag="--features $features"
+  fi
+
+  cargo check --lib $extra_args $feature_flag \
+    --message-format=json 2>/dev/null \
+  | _filter_warnings "$diff_output"
+
+  cd "$PKG_ROOT"
+}
+
+echo "=== Rust: check pdf_oxide warnings (native) ==="
+check_rust_warnings "$PKG_ROOT/vendor/pdf_oxide" "$NATIVE_FEATURES" ""
+
+echo "=== Rust: check pdf_oxide warnings (wasm) ==="
+ensure_target wasm32-unknown-unknown
+check_rust_warnings "$PKG_ROOT/vendor/pdf_oxide" "$WASM_FEATURES" \
+  "--target wasm32-unknown-unknown --no-default-features"
+
+echo "=== Rust: check office_oxide warnings ==="
+check_rust_warnings "$PKG_ROOT/vendor/office_oxide" "" ""
+
+echo ""
+echo "=== All analysis passed ==="
