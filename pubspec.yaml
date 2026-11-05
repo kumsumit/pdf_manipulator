@@ -33,7 +33,7 @@ dependencies:
   ffi: ^2.2.0
 
   # Build hook — package root resolution
-  package_config: '>=3.0.0 <4.0.0'
+  package_config: '>=2.0.0 <4.0.0'
 
   # Trim detector (tooling-only: setup + build hook; never in lib barrel,
   # so it adds no bytes to any app)
