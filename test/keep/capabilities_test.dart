@@ -160,9 +160,9 @@ void main() {
   group('README capability table', () {
     test('lists every detector member (drift guard)', () {
       // A Windows checkout may carry CRLF; the table is found by blank lines.
-      final readme = File(
-        'README.md',
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      final readme = File('README.md')
+          .readAsStringSync()
+          .replaceAll('\r\n', '\n');
       final start = readme.indexOf('| Capability | Keep it if you call |');
       expect(start, greaterThan(0), reason: 'capability table missing');
       final table = readme.substring(start, readme.indexOf('\n\n', start));

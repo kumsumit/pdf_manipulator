@@ -493,9 +493,8 @@ class WebLaneHost implements LaneHost {
     if (_cachedModule != null) return _cachedModule;
     _compileInFlight ??= () async {
       try {
-        final response = await _fetch(
-          '${_baseUrl}pdf_oxide_bg.wasm'.toJS,
-        ).toDart;
+        final response = await _fetch('${_baseUrl}pdf_oxide_bg.wasm'.toJS)
+            .toDart;
         _cachedModule = await _wasmCompileStreaming(response).toDart;
       } catch (_) {
         _cachedModule = null;

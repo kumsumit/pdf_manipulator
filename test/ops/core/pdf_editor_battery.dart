@@ -617,9 +617,9 @@ void registerEditorTests(Pdf Function() createPdf) {
         double? ppiMin,
       }) async {
         final editor = await pdf.edit(src(bytes));
-        final row = (await editor.reduceImages(
-          PdfImagePolicy.lossless,
-        )).images.single;
+        final row = (await editor.reduceImages(PdfImagePolicy.lossless))
+            .images
+            .single;
         expect(row.encoding, encoding);
         expect(row.color, color);
         expect(row.indexed, indexed);
@@ -935,9 +935,9 @@ void registerEditorTests(Pdf Function() createPdf) {
     test('reduceImages downsamples a gray image to a gray JPEG', () async {
       final pdf = createPdf();
       final editor = await pdf.edit(src(tpKindGray));
-      final row = (await editor.reduceImages(
-        PdfImagePolicy.screen,
-      )).images.single;
+      final row = (await editor.reduceImages(PdfImagePolicy.screen))
+          .images
+          .single;
       expect(row.action, PdfImageAction.downsampled, reason: '$row');
       expect(row.widthAfter, 16);
       final sink = TestSink();
@@ -2290,12 +2290,10 @@ void registerEditorTests(Pdf Function() createPdf) {
       await flat.dispose();
 
       final doc = await pdf.open(src(sink.takeBytes()));
-      final page0 = (await doc.extract(
-        pages: const PdfPages.single(0),
-      )).toUpperCase();
-      final page1 = (await doc.extract(
-        pages: const PdfPages.single(1),
-      )).toUpperCase();
+      final page0 = (await doc.extract(pages: const PdfPages.single(0)))
+          .toUpperCase();
+      final page1 = (await doc.extract(pages: const PdfPages.single(1)))
+          .toUpperCase();
       await doc.dispose();
       expect(
         page0,

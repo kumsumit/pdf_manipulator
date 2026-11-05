@@ -109,12 +109,10 @@ void main() {
     final app = _appUsingOnlyExtract();
     // A pure-Dart layout (bin/, no lib/) used to fall back to scanning the
     // bare app root, which contains .dart_tool/.
-    Directory(
-      '${app.path}/.dart_tool/build/generated',
-    ).createSync(recursive: true);
-    File(
-      '${app.path}/.dart_tool/generated.dart',
-    ).writeAsStringSync('void sign() {}\n');
+    Directory('${app.path}/.dart_tool/build/generated')
+        .createSync(recursive: true);
+    File('${app.path}/.dart_tool/generated.dart')
+        .writeAsStringSync('void sign() {}\n');
 
     final plan = await resolveKeepPlan(
       keep: KeepConfig.auto,
@@ -197,9 +195,8 @@ Future<void> check(PdfDoc doc) async {
 ''');
       // Tool-owned, and `lib/build/` which is the app's own code, not output.
       Directory('${app.path}/lib/.dart_tool').createSync(recursive: true);
-      File(
-        '${app.path}/lib/.dart_tool/gen.dart',
-      ).writeAsStringSync('void validatePdfA() {}\n');
+      File('${app.path}/lib/.dart_tool/gen.dart')
+          .writeAsStringSync('void validatePdfA() {}\n');
       Directory('${app.path}/lib/build').createSync(recursive: true);
       File('${app.path}/lib/build/maker.dart').writeAsStringSync('''
 import 'package:pdf_manipulator/pdf_manipulator.dart';

@@ -30,14 +30,11 @@ class PdfEditor {
   PdfEditor.internal(
     PdfBridge _,
     this._handle, {
-    PdfEncryptionAlgorithm? sourceEncryption,
-    PdfPermissions? sourcePermissions,
-    String? password,
-    PdfDoc? sourceDoc,
-  }) : _sourceEncryption = sourceEncryption,
-       _sourcePermissions = sourcePermissions,
-       _password = password,
-       _sourceDoc = sourceDoc;
+    this._sourceEncryption,
+    this._sourcePermissions,
+    this._password,
+    this._sourceDoc,
+  });
 
   final BridgeEditorHandle _handle;
   final PdfEncryptionAlgorithm? _sourceEncryption;
