@@ -57,8 +57,9 @@ Future<void> main() async {
   // and injected into every spec's build() so the catalog needs no
   // raster of its own.
   final photoPng = buildPhotoPng();
-  File('$_generatedDir/f_photo_png.dart')
-      .writeAsStringSync(_emitBytes('photoPng', photoPng));
+  File(
+    '$_generatedDir/f_photo_png.dart',
+  ).writeAsStringSync(_emitBytes('photoPng', photoPng));
   exports.add("export 'f_photo_png.dart';");
 
   // The transparent raster the image-stamp transparency test feeds in.
@@ -125,7 +126,7 @@ String _emitBytes(
   List<int> bytes, [
   String doc =
       'Photo-like 128x128 PNG (seeded noise) — JPEG-q50 beats its Flate\n'
-      '/// stream, so optimizeImages finds work. Decoded once at first use.',
+      '/// stream, so reduceImages finds work. Decoded once at first use.',
 ]) {
   final b64 = base64Encode(bytes);
   final chunks = <String>[

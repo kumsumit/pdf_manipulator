@@ -13,7 +13,6 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-
 import '../../../harness/timeouts.dart';
 
 void registerNativeFinalizerTests() {
@@ -24,9 +23,9 @@ void registerNativeFinalizerTests() {
     // Windows locks loaded DLLs. The parent test process has pdf_oxide.dll
     // loaded via @Native FFI. `dart run` triggers build hooks which try to
     // copy the DLL → Access denied. `dart <file>` skips hooks entirely.
-    final repro = File('test/ops/platform/native/dispose_exit_payload.dart')
-        .absolute
-        .path;
+    final repro = File(
+      'test/ops/platform/native/dispose_exit_payload.dart',
+    ).absolute.path;
     final process = await Process.start(Platform.resolvedExecutable, [repro]);
     final exitCode = await process.exitCode.timeout(
       Duration(seconds: 30),

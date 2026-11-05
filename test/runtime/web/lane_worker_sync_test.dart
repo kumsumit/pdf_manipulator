@@ -50,7 +50,8 @@ void main() {
       expect(
         perOpPattern.hasMatch(workerSource),
         isFalse,
-        reason: 'lane_worker.js must not dispatch per op — all ops go through lane_execute',
+        reason:
+            'lane_worker.js must not dispatch per op — all ops go through lane_execute',
       );
     });
 
@@ -80,10 +81,9 @@ void main() {
         LaneMsg.error,
         LaneMsg.opfsWriteAck,
       };
-      final posted = RegExp("postMessage\\(\\{ type: '([a-zA-Z.]+)'")
-          .allMatches(workerSource)
-          .map((m) => m.group(1)!)
-          .toSet();
+      final posted = RegExp(
+        "postMessage\\(\\{ type: '([a-zA-Z.]+)'",
+      ).allMatches(workerSource).map((m) => m.group(1)!).toSet();
       for (final tag in posted) {
         expect(
           workerToDart,
@@ -97,10 +97,9 @@ void main() {
       // Drift direction that matters: a P.key the injection doesn't
       // provide is undefined in JS — silent NaN/undefined physics.
       final injected = laneProtocolCodes().keys.toSet();
-      final used = RegExp(r'P\.([a-zA-Z0-9_]+)')
-          .allMatches(workerSource)
-          .map((m) => m.group(1)!)
-          .toSet();
+      final used = RegExp(
+        r'P\.([a-zA-Z0-9_]+)',
+      ).allMatches(workerSource).map((m) => m.group(1)!).toSet();
       expect(
         used,
         isNotEmpty,

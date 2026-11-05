@@ -1,0 +1,25 @@
+# zizmor configuration.
+#
+# unpinned-uses: third-party actions must be SHA-pinned (zizmor's default
+# blanket policy). First-party whuppi/ci refs are the exception — they're
+# pinned to an exact, immutable release tag (@vX.Y.Z), bumped by the grouped
+# whuppi-ci Dependabot PR, and the tag is what makes them reproducible. A
+# ref-pin policy accepts the tag ref without demanding a SHA. Local actions
+# (./.github/actions/*) and every third-party action are unaffected.
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "whuppi/ci/*": ref-pin
+  # dangerous-triggers: two workflows carry the privileged triggers GitHub
+  # offers for their job and nothing else can do — retry.yml reacts to a
+  # finished run (workflow_run), triage.yml writes labels on fork PRs
+  # (pull_request_target). Each file's header states the hardening that
+  # makes the trigger sound (no checkout of fork code, no artifact
+  # ingestion, owner guard, least privilege). The policy lives here, once,
+  # so the exception is reviewed in one place; no workflow silences the
+  # audit inline.
+  dangerous-triggers:
+    ignore:
+      - retry.yml
+      - triage.yml

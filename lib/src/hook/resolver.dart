@@ -236,8 +236,9 @@ void _cacheIfNeeded(File src, File? cacheFile) {
 
 /// Check if `vendor/pdf_oxide/Cargo.toml` exists.
 bool hasVendorSource(Uri packageRoot) {
-  return File.fromUri(packageRoot.resolve('vendor/pdf_oxide/Cargo.toml'))
-      .existsSync();
+  return File.fromUri(
+    packageRoot.resolve('vendor/pdf_oxide/Cargo.toml'),
+  ).existsSync();
 }
 
 /// Check if `.gitmodules` exists in the package root.
@@ -264,8 +265,9 @@ Future<void> initSubmodules(Uri packageRoot) async {
 
 /// Read the package version from pubspec.yaml.
 String readVersion(Uri packageRoot) {
-  final lines = File.fromUri(packageRoot.resolve('pubspec.yaml'))
-      .readAsLinesSync();
+  final lines = File.fromUri(
+    packageRoot.resolve('pubspec.yaml'),
+  ).readAsLinesSync();
   for (final line in lines) {
     if (line.startsWith('version:')) {
       return line.substring('version:'.length).trim();

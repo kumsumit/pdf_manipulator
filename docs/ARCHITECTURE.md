@@ -230,6 +230,10 @@ lib/
     │   ├── pdf_config.dart                 ← PdfConfig (webIoMode, URLs)
     │   ├── pdf_enums.dart                  ← PdfIoMode, PdfEncryptionAlgorithm, ...
     │   ├── pdf_image.dart                  ← PdfImage, RenderedPage
+    │   ├── pdf_matrix.dart                 ← PdfMatrix: a PDF affine transform
+    │   ├── pdf_page_image.dart             ← PdfPageImage: an image XObject as placed on a page
+    │   ├── pdf_image_policy.dart           ← PdfImagePolicy: reduceImages knobs + screen/ebook/print/lossless presets
+    │   ├── pdf_image_report.dart           ← PdfImageReport/PdfImageOutcome + the encoding/color/action/reason enums
     │   ├── pdf_page_info.dart              ← PdfPageInfo
     │   ├── pdf_pages.dart                  ← PdfPages sealed (all, single, range)
     │   ├── pdf_params.dart                 ← PdfSaveOptions, PdfEncryption, ...
@@ -286,7 +290,14 @@ vendor/pdf_oxide/src/
 │   ├── dispatch.rs                         ← every op as a typed function
 │   ├── positioned_write.rs                 ← CountingWriter + SeekWriter
 │   ├── sign.rs                             ← O(1) signing with AcroForm
-│   ├── image_optimizer.rs                  ← JPEG recompress
+│   ├── images/                             ← image reducer behind reduceImages and compress, five stages
+│   │   ├── inventory.rs                    ← which XObjects are images; every painted image with its placements (core)
+│   │   ├── classify.rs                     ← Encoding × ColorModel × Masks from the dictionary; the support verdict
+│   │   ├── policy.rs                       ← Policy, effective ppi, the pure decision table (unit-tested)
+│   │   ├── execute.rs                      ← decode (extractor) → resample → encode → dict rewrite → stage; the driver
+│   │   ├── encode.rs                       ← Flate+PNG predictors, JPEG, CCITT G4 (round-trip unit tests)
+│   │   ├── resample.rs                     ← Triangle resize; bilevel area-average + threshold
+│   │   └── report.rs                       ← Outcome/Report + wire names
 │   ├── font_optimizer.rs                   ← Standard 14 unembedding
 │   ├── constants.rs                        ← buffer sizes
 │   ├── lane_state.rs                       ← per-lane engine state (no locks)
@@ -576,12 +587,15 @@ FATAL abort on Windows). The order:
 ### Kill semantics (web)
 
 `worker.terminate()` frees the worker, its WASM heap, and every open
-OPFS `SyncAccessHandle` in one stroke. The lane completes its pending
-submits as cancelled on the Dart side; the host reclaims the dead
-worker's OPFS directory once its liveness lock confirms the agent is
-gone (see **OPFS mode**, under Streaming I/O). A killed-before-use
-worker is returned to the pristine pool instead of terminated (see
-budget below).
+OPFS `SyncAccessHandle` in one stroke — asynchronously: the call is a
+request, and the browser reaps the agent on its own schedule. The lane
+completes its pending submits as cancelled on the Dart side at once.
+Every worker holds a Web Lock from before `ready` until it dies, in
+every I/O mode; the host acquires that lock as the death certificate,
+and only then returns the worker's budget slot and (OPFS mode)
+reclaims its directory (see **OPFS mode**, under Streaming I/O). A
+killed-before-use worker is returned to the pristine pool instead of
+terminated (see budget below).
 
 ### Parallel ops + the budgets
 
@@ -593,9 +607,16 @@ budget below).
   Past the cap, lane spawns queue FIFO inside Rust — an op can
   wait, it can never fail for capacity.
 - **Web global budget:** at most 64 live workers page-wide, FIFO
-  waiters past the cap. Lanes killed before receiving work return
-  their worker to a pristine pool, so rapid create+dispose churn
-  recycles workers instead of booting thousands.
+  waiters past the cap. A slot returns when the browser confirms the
+  worker is dead (its liveness lock becomes acquirable), never when
+  `terminate()` is merely called — the budget counts the WASM memory
+  the browser still holds, not the intent to free it, exactly as the
+  native budget counts threads that have actually exited. Under rapid
+  create+dispose churn the next boot past the cap therefore waits in
+  the FIFO instead of failing with "Cannot allocate Wasm memory" while
+  dead workers are still being reaped. Lanes killed before receiving
+  work return their worker to a pristine pool, so churn recycles
+  workers instead of booting thousands.
 - The web worker boot uses an explicit `booted → init → ready`
   handshake: the worker announces when its message handler is
   attached, because a message posted before that is silently
@@ -717,14 +738,41 @@ user-facing text (README, pubspec).
 pdf carries three local native capabilities under
 `.github/actions/capabilities/`:
 
-- **`rust/`** — Rust toolchain + sccache. Sets the `pdf_oxide` submodule
-  rev the wasm and xcode caches key on.
+- **`rust/`** — pinned Rust toolchain, one shared cargo target dir, and
+  the cargo cache (rust-cache). Sets the `pdf_oxide` submodule rev the
+  wasm and xcode caches key on.
 - **`wasm-cache/`** — caches WASM build output.
 - **`wasm-build/`** — compiles WASM on a cache miss.
 
 pdf's local `make-target` wrapper provisions these before delegating the
 generic run to whuppi/ci. The capability model and the "what is a
 capability" test live in whuppi/ci/docs/ARCHITECTURE.md.
+
+### Caching — what is cached, why, and the cold guard
+
+The engine's final artifact is a cdylib built with fat LTO. No compiler
+wrapper cache (sccache, ccache) can cache a crate that invokes the system
+linker, so a wrapper at a 100 % hit rate still rebuilt the expensive step
+every job. The only thing that reuses it is cargo's fingerprint inside
+`target/` — so `target/` is what CI caches.
+
+| Piece | How |
+|---|---|
+| One target dir | Every build path in a job — the consumer hook (`dart test`, `flutter build` inside Gradle/Xcode), `tool/compile.dart`, `cargo test` — lands in `vendor/pdf_oxide/target`. The hook learns this from `~/.pdf_manipulator/cargo-target-dir`, a file, because `hooks_runner` strips env vars to an allowlist (`HOME` survives). Consumers never have the file; their hook keeps building inside `.dart_tool`. |
+| The cache | `Swatinem/rust-cache` archives `~/.cargo` + both vendored `target/` dirs per key. Key = rustc host + version, every `Cargo.lock`/`Cargo.toml` hash, the `CARGO`/`RUST` env, the **build family** (`native` / `wasm` / `android` / `ios` / `check` / `test` — each matrix row declares its `cache:`; rows that build the same triples and features share one archive, rows that build something else never do) and both vendored submodule revs. One warm set is ~12 archives, ~6 GB; keyed per row it was 33 archives, ~14 GB, mostly identical bytes. `cache-workspace-crates: true` is required — the default drops the workspace's own crates, and the vendored engine IS the workspace crate. |
+| Path-crate freshness | cargo fingerprints a path crate by source mtimes, and a checkout stamps every file "now", so a restored cache would still rebuild the engine (the first warm run proved it: deps hit, `pdf_oxide` recompiled). After restore, CI pins every file under `vendor/` to a fixed past instant. Safe only because the key names the exact vendor revs: same key ⇒ identical sources ⇒ the artifact is the right one; any change ⇒ new key ⇒ cold. The revs in the key and the mtime pin are one mechanism — never keep one without the other. |
+| Unhashed engine outputs | Both engines are `cdylib + rlib + staticlib`, and cargo emits every output of such a lib unit without a hash (`libpdf_oxide.so`, `.rlib`, `.a`). rust-cache's save-time cleanup keeps a `deps/` entry only when its name is `<crate>-<hash>`, so it deletes exactly those files and the fat-LTO engine rebuilt on every "warm" run (probe: `FailedToReadMetadata(deps/libpdf_oxide.so)` with everything else cached). The rust action therefore keeps a second, small archive of just those outputs, restored over rust-cache's and saved from `actions/cache`'s own post step so it runs before rust-cache's cleanup. It also carries the crates' `.fingerprint/` and `build/` entries — cargo keeps one fingerprint per unit hash, so a row whose units differ from the deps archive's saver would otherwise restore the artifacts without their fingerprints and rebuild anyway. Same key ingredients, same save gate. The compile rows key this archive by their own family (`engine:` in the matrix) while sharing the hook rows' deps archive — rust-cache writes an archive once per key from whichever row finishes first, so their 4-ABI outputs need a key nobody races for, and a second deps archive per compile family would cost ~3.5 GB of the 10 GB quota for bytes already cached. |
+| Staleness bound | rust-cache prunes artifacts older than seven days at save time, so a warm cache can never drift more than a week from a from-scratch build. |
+| The cold guard | `release.yml` compiles with the cache off, always: a release binary's provenance is the tagged source, not "whatever was cached". `full-test.yml` runs the whole matrix cold every Monday, and both workflows take `cold: true` on manual dispatch. This is the routine proof that a fresh clone builds every target from vendor source — the promise the pub.dev tarball makes. |
+| The test family, the compile rows and the slow hook rows on ghcr | The Rust tests job, every `compile:` row, `verify: Android`, `int: Android`, `verify: macOS` and `pkg: Web` (whose `dart test -p chrome` builds the host engine through the hook first) keep their whole vendored `target` trees (every integration-test and bin executable, which rust-cache always dropped) plus the cargo registry on the GitHub Container Registry, keyed on the vendor revs with a `-latest` fallback so an engine-bump PR rebuilds only what changed; rust-cache is skipped for those families. Each compile row is its own family (`compile-android`, `compile-ios`, …): on the Actions cache the compile rows shared the hook rows' key, rust-cache saves once per key from the first finisher, and the near-empty hook rows always won the race, so the compile rows' dependency trees were never saved and every warm run rebuilt them (Android: 22 min for four ABIs). Gigabytes per revision — fine on GHCR (public, uncapped, pruned at 14 days), impossible on the Actions cache. |
+| Rust test speed | `make test-rust` runs the engines' suites through cargo-nextest — every test its own process across all cores; `cargo test` ran pdf_oxide's ~330 test binaries one after another (9,078 tests: 5 min → 1.8 min) — plus `cargo test --doc` for the doctests nextest skips. Same tests, same pass/fail; nextest is required, never a fallback, so "the suite passed" means one thing on every machine. It is a pinned, sha256-verified download (`NEXTEST_VERSION` in `tool/versions.env`, radar-tracked by `upgrade.sh`). The build half (~2.5 min for ~330 test crates) is rustc-bound on the runner's cores: mold was measured at no gain and dropped; caching the binaries would cost gigabytes per family. |
+| Disk headroom | `make-target`'s `free-disk` is a guard, not a fixed step: it reads live `df` and runs the ~2 min reclaim only when the image has less than `min-free-gb` free (the ubuntu-24.04 image went from ~14 GB to ~80 GB free; the reclaim was pure overhead on every Rust tests run). A post-build `df` line is the evidence for the threshold. |
+| Where the big archives live | The Flutter SDK (~0.8 GB per OS), Gradle homes (~1.3 GB per OS) and AVD snapshots (~1 GB) are stored on the GitHub Container Registry through whuppi/ci's `oci-cache` (`cache-backend: ghcr` on every make-target call): GitHub Packages is free and uncapped for this public repo and Actions pulls are free, while the Actions cache is 10 GB per repo and evicts by last read — a fully warm set is ~19 GB, so on the Actions cache alone every matrix run found rows cold again. The Rust deps + engine archives (~8 GB) stay on the Actions cache, which is what rust-cache's key and cleanup machinery need. `oci-cache-prune.yml` is the ghcr retention (14 days; fallback tags kept). |
+| Scope | GitHub lets a run read caches from its own ref, the PR base, and the default branch only — caches written from a PR ref are invisible to every other PR and only spend the 10 GB quota. So `dev` is the one warm source: `ci.yml` and `full-test.yml` run on push to `dev` (paths = the cache-key inputs) with every save on; PR runs pass `rust-cache-save`/`cache-save: false` and only read — except a PR whose Rust inputs changed, which writes its own cargo cache so its later pushes aren't cold. `cache-cleanup.yml` deletes a PR's caches when it closes. |
+
+The bar this protects: a green row must mean the row did its own work.
+A cache hit skips a rebuild of identical inputs; it never substitutes
+another row's artifact or a lighter profile.
 
 ### Workflows
 
@@ -766,6 +814,11 @@ Single matrix with two tiers in one sorted list:
 | Package | macOS, Linux, Windows, Web | Web on macos + win |
 | Integration | macOS, Linux, Windows, Android, iOS, Web | Android on macos-intel + win, Web on macos + win |
 | Verify | Android, iOS, macOS, Linux, Web | Android on macos + win, Web on macos + win |
+
+Every row family states, in a comment beside it in `full-test.yml`, the
+claim it proves and what a build from a different host would silently stop
+proving. That comment is the contract: CI gets faster by caching what a row
+builds, never by removing the row or handing it another row's output.
 
 ### Build inputs — `build.json` vs `versions.env`
 
@@ -866,7 +919,7 @@ test/
 │   └── streaming_guard_test.dart   Tests the guards themselves
 │
 ├── ops/
-│   ├── core/                       7 shared batteries (*_battery.dart —
+│   ├── core/                       8 shared batteries (*_battery.dart —
 │   │                               register-only, no main; runners call them)
 │   ├── stress/                     6 stress batteries (1000-page)
 │   ├── platform/                   guarantees only ONE platform can break
@@ -941,9 +994,10 @@ this table summarizes what each patched file carries and why.
 | File | What the patches carry |
 |---|---|
 | `Cargo.toml` | `native-bridge` deps + `office_oxide` as path dependency |
-| `lib.rs` | `pub mod host;` |
+| `lib.rs` | The shared widget-appearance regeneration helpers, the `pdfa` gate, the two `public-api` gates, `pub mod host;` |
 | `document.rs` | External reader variant + `from_external_reader()` (O(1)-memory open), info/encryption/permissions accessors, `collect_refs_of()` (zero-clone GC), streaming `to_docx/pptx/xlsx_writer_flow()`, scan-all `/Subtype` Form detection |
-| `editor/document_editor.rs` | State accessors, `merge_from_reader()` + shared merge core, zero-clone GC BFS + `stage_trimmed_pages_for_gc()`, `write_full_to_writer(PositionedWrite)` (function-wide streaming offsets), per-save page-ref cache, scoped destructive erase (`erase_regions_destructive`), appearance generation for AP-less annotation types, §12.5.5 appearance placement, `add_page_annotation()`, `all_media_boxes()` |
+| `editor/document_editor.rs` | State accessors, `merge_from_reader()` + shared merge core, zero-clone GC BFS + `stage_trimmed_pages_for_gc()`, `write_full_to_writer(PositionedWrite)` (function-wide streaming offsets), per-save page-ref cache, scoped destructive erase (`erase_regions_destructive`), appearance generation for AP-less annotation types, §12.5.5 appearance placement, `add_page_annotation()`, `all_media_boxes()`, image modifications applied in page space (`rewrite_content_stream_with_image_mods` composes with the enclosing CTM, matching `get_page_images`), `staged_or_source_object()` so the resource walk writes a staged XObject/ExtGState instead of the source copy (the sweep skips ids already written), form field properties reach the saved file (`flush_form_fields_to_modified_objects` writes every dirty wrapper's `/TU`, `/Rect`, `/MaxLen`, `/Q`, `/Ff`, `/MK`, `/BS`, `/DA`, not only `/V`) and `remove_deleted_form_fields_from_acroform` drops removed fields from `/Fields` and `/Annots` |
+| `extractors/images.rs` | `PdfImageHandle::object_ref()` and `ctm()` — the identity and composed placement the host image reducer groups and measures by |
 | `encryption/mod.rs` + `encryption/algorithms.rs` | Raw file key exposed to the writer (`file_key`, `build_with_key`) so streams encrypt with the key the dict advertises; PDF 2.0 Algorithm 10 (`/Perms` for R6) |
 | `compliance/converter.rs` | Expose `convert_with_editor`, bundled 12 Liberation fonts (WASM has no system fonts) |
 | `writer/pdf_writer.rs` | `finish_to_writer(PositionedWrite)` — streaming save |
@@ -954,7 +1008,7 @@ this table summarizes what each patched file carries and why.
 
 ### office_oxide — streaming OPC writer
 
-Branch `office_kit/0.1.2-patches`. Marked with `── office_kit patch ──`.
+Branch `office_kit/0.1.11-patches`. Marked with `── office_kit patch ──`.
 
 | File | Patch |
 |---|---|
@@ -1085,6 +1139,13 @@ source in the pub tarball compiles locally.
   size-measuring recipe (audit modes, the README verifier, and why the
   linker map is the only trustworthy instrument) lives in
   [`UPDATING.md`](UPDATING.md).
+- `make check-keep-sets` compiles every keep-set a user can write, both
+  targets, with `cfg(test)` on, so the trim probes are checked too. The
+  list is generated from `capabilities.dart`, one home for the requires
+  graph. CI's `keepsets` job runs it on every PR that touches the
+  engine or the keep vocabulary. It catches code that compiles at the
+  full feature set and fails at a subset, such as upstream code that
+  uses a module one of our feature gates removes.
 
 ## The one-line summary
 

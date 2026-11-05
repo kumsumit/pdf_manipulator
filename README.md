@@ -311,7 +311,8 @@ await pdf.watermark(source, output,
     text: 'CONFIDENTIAL',
     style: PdfWatermarkStyle(opacity: 0.2, fontSize: 60));
 
-await pdf.compress(source, output, imageQuality: 75);
+await pdf.compress(source, output); // images to 150 ppi (PdfImagePolicy.ebook), streams deflated, unused objects dropped
+await pdf.compress(source, output, images: PdfImagePolicy.screen); // 72 ppi
 
 await pdf.encrypt(source, output,
     encryption: PdfEncryptionConfig(
@@ -322,7 +323,7 @@ await pdf.encrypt(source, output,
 await pdf.split(source, (i) => MemorySink(), every: 5);
 ```
 
-The full one-shot set, all the same shape: `merge`, `split` / `splitBySize` / `splitByBookmarks`, `extractPages`, `deletePages`, `reorderPages`, `movePage`, `rotatePages` / `rotateAllPages`, `addStamp` / `addImageStamp`, `flattenForms`, `applyRedactions`, `embedFile`, `eraseRegions`, `decrypt`, `sign`, `convertTo` (DOCX/PPTX/XLSX), `convertToPdf`, `convertToPdfA`, `imagesToPdf`.
+The full one-shot set, all the same shape: `merge`, `split` / `splitBySize` / `splitByBookmarks`, `extractPages`, `deletePages`, `reorderPages`, `movePage`, `rotatePages` / `rotateAllPages`, `addStamp` / `addImageStamp`, `flattenForms`, `applyRedactions`, `embedFile`, `eraseRegions`, `decrypt`, `sign`, `convertTo` (DOCX/PPTX/XLSX), `convertToPdf`, `convertToPdfA`, `convertXfaToAcroForm`, `imagesToPdf`.
 
 > Doing several of these to the *same* PDF? Use the editor (below); it parses once instead of re-parsing per call.
 
@@ -336,6 +337,9 @@ print('${doc.pageCount} pages · encrypted: ${doc.isEncrypted}');
 
 final text = await doc.extract(pages: PdfPages.all());
 final hits = await doc.search(query: 'revenue', pages: PdfPages.all());
+for (final field in await doc.formFields) {
+  print('${field.name}: ${field.type.name} = ${field.value}');
+}
 
 await for (final page in doc.render(
     pages: PdfPages.all(), size: PdfRenderSize.thumbnail(200))) {
@@ -345,7 +349,7 @@ await for (final page in doc.render(
 await doc.dispose();
 ```
 
-Also on the document: `extract` (plain / markdown / html), `extractImages`, `getSignatures` / `verifySignatures`, `validatePdfA` / `validatePdfUa`, `classifyPage` / `classifyDocument`, `planSplitByBookmarks`, plus metadata getters (`title`, `author`, `version`, `isTagged`).
+Also on the document: `extract` (plain / markdown / html), `extractImages`, `signatures` / `verifySignatures`, `validatePdfA` / `validatePdfUa`, `classifyPage` / `classifyDocument`, `planSplitByBookmarks`, `formFields` / `formField(name)`, `exportFormData` (FDF / XFDF), `xfa`, `attachments` / `extractAttachment`, plus metadata getters (`title`, `author`, `version`, `isTagged`).
 
 ### Edit a document
 
@@ -358,13 +362,14 @@ await editor.setTitle('Q4 Report');
 await editor.mergeFrom(appendix);
 await editor.deletePage(4);
 await editor.addWatermark(0, 'FINAL', style: PdfWatermarkStyle(opacity: 0.15));
-await editor.optimizeImages(quality: 70);
+final report = await editor.reduceImages(PdfImagePolicy.ebook); // 150 ppi, JPEG q75
+print('${report.changed} images, ${report.bytesBefore} → ${report.bytesAfter} bytes');
 
 await editor.save(output); // see save options below
 await editor.dispose();
 ```
 
-Also on the editor: `selectPages`, `rotatePage` / `rotateAllPages`, `addStamp` / `addImageStamp`, `embedFile`, `eraseRegions`, `cropMargins`, `resizeImage`, `flattenForms` / `flattenAllAnnotations`, `setFormFieldValue`, `unembedStandardFonts`, `convertToPdfA`, `scrubMetadata`, and metadata get/set.
+Also on the editor: `mergeFrom` (all pages, or `pages:`), `selectPages`, `rotatePage` / `rotateAllPages` / `setPageRotation` (absolute), `addStamp` / `addImageStamp`, `embedFile` (with description, mime type and relationship), `eraseRegions` / `clearEraseRegions`, `cropMargins`, `pageImages` / `resizeImage` / `repositionImage` / `setImageBounds`, `pageMediaBox` / `setPageMediaBox`, `pageCropBox` / `setPageCropBox`, `flattenForms` / `flattenAnnotations` (each takes an optional `page`), `setFormFieldValue`, `removeFormField`, `setFormFieldReadOnly` / `setFormFieldRequired` / `setFormFieldFlags`, `setFormFieldTooltip`, `setFormFieldBounds`, `setFormFieldMaxLength`, `setFormFieldAlignment`, `setFormFieldBackgroundColor` / `setFormFieldBorderColor` / `setFormFieldBorderWidth` / `setFormFieldAppearance`, `unembedStandardFonts`, `convertToPdfA`, `scrubMetadata` / `sanitize`, and metadata get/set.
 
 Save options:
 
@@ -377,7 +382,8 @@ Redaction is a mark-then-apply lifecycle (the content is removed, not just hidde
 ```dart
 editor.addRedaction(0, PdfRect(x: 72, y: 700, width: 200, height: 20));
 print(await editor.redactionCount(0)); // pending marks on this page
-await editor.applyRedactions(); // gone for good
+final report = await editor.applyRedactions(); // gone for good
+print('${report.glyphsRemoved} glyphs and ${report.imagesRemoved} images removed');
 ```
 
 ### Build from scratch
@@ -467,12 +473,12 @@ Two knobs decide the size — **`keep`** (which capabilities go in) and **`build
 
 | Engine | Native | Web — raw (gzipped) |
 |---|---|---|
-| Full · `speed` (default) | 21.1 MB | 17.5 MB (7.3 MB) |
-| Full · `size` | 15.9 MB | 14.4 MB (6.3 MB) |
-| Core only · `speed` | 6.3 MB | 5.2 MB (1.9 MB) |
-| Core only · `size` | 5.1 MB | 4.4 MB (1.7 MB) |
+| Full · `speed` (default) | 22.7 MB | 18.7 MB (7.7 MB) |
+| Full · `size` | 16.7 MB | 15.1 MB (6.6 MB) |
+| Core only · `speed` | 6.7 MB | 5.6 MB (2.1 MB) |
+| Core only · `size` | 5.4 MB | 4.7 MB (1.8 MB) |
 
-The top row is the default; the bottom row is the smallest — core + `size`, about three quarters off. `keep` does the heavy lifting (full → core is about 70% of the native library gone); `build: size` shaves another ~15–25% on top. `size` trades a little runtime speed for the bytes: the cost lands on rendering and image work, and is negligible for parse, edit, and metadata.
+The top row is the default; the bottom row is the smallest — core + `size`, about three quarters off. `keep` does the heavy lifting (full → core is about 71% of the native library gone); `build: size` shaves another ~20–25% on top. `size` trades a little runtime speed for the bytes: the cost lands on rendering and image work, and is negligible for parse, edit, and metadata.
 
 A custom engine — only the capabilities you keep — compiles on your machine. There is nothing to set up in advance: if a piece is missing, the build stops with the exact instruction. What it will ask for:
 
@@ -529,12 +535,12 @@ How do you know what to keep? Each capability covers a small set of methods. Cor
 
 | Capability | Keep it if you call | Also brings | Adds (native) |
 |---|---|---|---|
-| `core` | everything else — merge, split, forms, watermark, encrypt, build… | — | always included (~6.3 MB) |
-| `render` | `doc.render()`, `editor.optimizeImages()`, the `compress` one-shot | — | +4.2 MB |
-| `signatures` | `sign()`, `doc.getSignatures()`, `doc.verifySignatures()` | — | +0.9 MB |
+| `core` | everything else — merge, split, forms, watermark, encrypt, build… | — | always included (~6.7 MB) |
+| `render` | `doc.render()`, `editor.reduceImages()`, the `compress` one-shot | — | +4.8 MB |
+| `signatures` | `sign()`, `doc.signatures`, `doc.verifySignatures()` | — | +1.0 MB |
 | `pdfa` | `doc.validatePdfA()`, `doc.validatePdfUa()`, `convertToPdfA` | — | +0.1 MB |
-| `extract` | `doc.extract()`, `doc.search()`, `doc.classifyPage()`, `doc.classifyDocument()` | — | +3.0 MB |
-| `office` | `convertTo`, `convertToPdf` (DOCX / PPTX / XLSX) | `extract`, automatically | +2.5 MB on top of `extract` |
+| `extract` | `doc.extract()`, `doc.search()`, `doc.classifyPage()`, `doc.classifyDocument()` | — | +3.2 MB |
+| `office` | `convertTo`, `convertToPdf` (DOCX / PPTX / XLSX) | `extract`, automatically | +2.9 MB on top of `extract` |
 
 Dependencies are handled for you: `keep: [office]` switches on `extract` as well. Costs are measured one capability at a time, and capabilities share some code — so a combination can total a little less than the sum of its rows.
 

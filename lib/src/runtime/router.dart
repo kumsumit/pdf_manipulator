@@ -68,12 +68,17 @@ class _HeldResource {
 
 /// The shared routing brain. One per Pdf() instance.
 class Router implements PdfTransport {
-  /// Creates a router over [_host], capping concurrent lanes at
+  /// Creates a router over [host], capping concurrent lanes at
   /// [maxLanes] per instance (a process-wide budget lives below the
   /// host — hitting either cap queues, never errors).
-  Router({required this._host, required int maxLanes, required this._mode})
-    : assert(maxLanes >= 1, 'maxLanes must be at least 1'),
-      _maxLanes = maxLanes;
+  Router({
+    required LaneHost host,
+    required int maxLanes,
+    required PdfIoMode mode,
+  }) : assert(maxLanes >= 1, 'maxLanes must be at least 1'),
+       _host = host,
+       _maxLanes = maxLanes,
+       _mode = mode;
 
   final LaneHost _host;
   final int _maxLanes;

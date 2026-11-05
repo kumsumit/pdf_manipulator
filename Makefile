@@ -1,4 +1,4 @@
-.PHONY: check analyze analyze-floor platforms lint-shell format fixtures test-guards \
+.PHONY: check analyze check-keep-sets analyze-floor platforms lint-shell format fixtures test-guards \
        build build-native build-wasm \
        compile-macos compile-ios compile-android compile-linux compile-windows compile-wasm compile-natives \
        test test-pkg-native test-unit test-rust shake-audit verify-readme-sizes \
@@ -30,7 +30,7 @@ VERBOSE := $(if $(CI),--verbose,)
 #
 # make check    Full local gate before PR.
 
-check: lint-shell analyze analyze-floor platforms verify-tarball test-guards test test-example
+check: lint-shell analyze check-keep-sets analyze-floor platforms verify-tarball test-guards test test-example
 
 # make hooks    Activate the repo's git hooks (commit-msg, pre-commit).
 #               Run once after cloning — they stay dormant otherwise.
@@ -49,6 +49,14 @@ hooks:
 
 analyze: fixtures
 	@DART="$(DART)" FLUTTER="$(FLUTTER)" bash tool/analyze.sh
+
+# make check-keep-sets  Compiles every valid keep-set (`tool/keep_sets.dart`,
+#                       from capabilities.dart's requires graph) against the
+#                       vendored engine, for both targets. Catches a
+#                       feature-gate break the full-set build in `analyze`
+#                       hides.
+check-keep-sets:
+	@DART="$(DART)" bash tool/check_keep_sets.sh
 
 # make analyze-floor  Resolve to the OLDEST in-range dependencies and analyze
 #                     the shipped code (lib bin hook). The wide lower bounds
@@ -96,7 +104,11 @@ format:
 #
 # make fixtures      Generate test fixtures (skips when the stamp matches
 #                    the catalog — existence is never proof, the stamp is).
-# make test-guards   Mechanical guards over the test suite:
+# make test-guards   Mechanical guards over the test suite and the changelogs:
+#                      - changelog bullets stay one sentence: at most 60 words
+#                        (80 for a Breaking bullet), tool/check_changelog_shape.sh
+#                      - fork tests: host/ unit tests for pure functions only;
+#                        none in patched upstream files or tests/, tool/check_fork_tests.sh
 #                      - no dart:io in tests (fixtures are imported Dart
 #                        source, so VM and browser consume identical
 #                        bytes; exempt: the hybrid asset server, native
@@ -110,8 +122,19 @@ format:
 #                        builder battery is exempt wholesale — emitted
 #                        PDF syntax IS its subject)
 
+# Bare `dart`, NOT `dart run`. `dart run` fires every build hook in the
+# dependency graph before the script starts, so generating 13 pure-Dart
+# fixtures would first compile the native engine (fat-LTO cdylib, minutes)
+# in every target that depends on `fixtures` — including `analyze` and the
+# browser rows, which never load it. generate_fixtures.dart imports only
+# dart:* + crypto + the catalog. The consumer hook path loses no coverage:
+# `dart test` in test-unit / test-ops-native runs the hook on every PR.
+# The explicit `pub get` replaces the implicit resolve `dart run` did, so a
+# fresh clone still works; with an up-to-date lockfile it is a no-op.
+# Do not put `run` back "for consistency".
 fixtures:
-	$(DART) run tool/generate_fixtures.dart
+	@$(DART) pub get --no-example >/dev/null
+	$(DART) tool/generate_fixtures.dart
 
 # Two static guards. Guard 1: tests run identically on VM and browser, so no
 # dart:io; a test that genuinely needs it carries an 'io-exempt: <reason>'
@@ -121,6 +144,8 @@ fixtures:
 # bytegrep-exempt is the per-line opt-out, and pdf_builder_battery is excluded
 # whole rather than marked 15 times.
 test-guards:
+	@./tool/check_changelog_shape.sh
+	@./tool/check_fork_tests.sh
 	@bad=$$(for f in $$(grep -rln "dart:io" test/ --include="*.dart"); do \
 	  grep -q "io-exempt:" "$$f" || echo "$$f"; \
 	done); \
@@ -212,7 +237,7 @@ compile-natives:
 #
 # make test              Unit + all ops (native + 3 web modes).
 # make test-pkg-native   Unit + native ops only (CI fast gate).
-# make test-unit         Types + bridge + runtime + harness (pure Dart, VM).
+# make test-unit         Every test/ folder but ops/ and fixtures/ (VM).
 # make test-ops          All 4 ops runners.
 # make test-ops-native   Ops: native FFI.
 # make test-ops-web      Ops: all 3 web modes.
@@ -225,10 +250,14 @@ test: fixtures test-unit test-ops
 
 test-pkg-native: fixtures test-unit test-ops-native
 
+# The folders are derived, never listed: a new test/ folder runs here the
+# day it lands. ops/ runs through its own runners; fixtures/ is data.
+UNIT_TEST_DIRS := $(filter-out test/ops/ test/fixtures/,$(sort $(wildcard test/*/)))
+
 test-unit:
-	@echo "=== Unit: types + io + bridge + runtime + harness ==="
+	@echo "=== Unit: $(UNIT_TEST_DIRS) ==="
 	@mkdir -p $(TEST_RESULTS_DIR)
-	$(DART) test $(TIMEOUT) test/types/ test/io/ test/bridge/ test/runtime/ test/harness/ -p vm --concurrency=1 --file-reporter json:$(TEST_RESULTS_DIR)/unit.json
+	$(DART) test $(TIMEOUT) $(UNIT_TEST_DIRS) -p vm --concurrency=1 --file-reporter json:$(TEST_RESULTS_DIR)/unit.json
 
 test-ops: fixtures test-ops-native test-ops-web
 
@@ -295,12 +324,40 @@ test-rust: export CARGO_PROFILE_TEST_DEBUG := 0
 # embedded fallback fonts, but the upstream test suites cover both (the
 # CJK flatten tests are self-gated and silently SKIP without the feature),
 # so tests compile and run WITH them.
+#
+# cargo-nextest runs every test as its own process across all cores.
+# `cargo test` runs pdf_oxide's ~330 test binaries one after another (most
+# hold a handful of tests), so the machine idles — measured 5 min vs 1.8 min
+# for the same 9,078 tests. nextest skips doctests, so `cargo test --doc`
+# runs beside it: same set, nothing lost. Required, never optional — a
+# silent fallback to `cargo test` would make "the suite passed" mean two
+# different things on two machines. CI-installed the same way GTK is (see
+# ensure_gtk): pinned + sha256-verified through fetch_verified.sh; a dev
+# machine gets the exact install command instead of a surprise download.
+# (mold was tried for the ~330 links and measured no gain — the build half
+# is rustc-bound on the runner's cores, not link-bound. Don't re-add it
+# without a measurement.)
+define ensure_nextest
+	@$(CARGO) nextest --version >/dev/null 2>&1 || { \
+		if [ -n "$$CI" ] && [ "$$(uname -s)" = Linux ] && [ "$$(uname -m)" = x86_64 ]; then \
+			. tool/versions.env; \
+			bash tool/fetch_verified.sh \
+			  "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-$$NEXTEST_VERSION/cargo-nextest-$$NEXTEST_VERSION-x86_64-unknown-linux-gnu.tar.gz" \
+			  "$$NEXTEST_SHA256_LINUX_X64" /tmp/nextest.tar.gz && \
+			tar -xzf /tmp/nextest.tar.gz -C "$$HOME/.cargo/bin" cargo-nextest; \
+		else echo "Error: cargo-nextest not found. Run: cargo install cargo-nextest --locked"; exit 1; fi; }
+endef
+
 test-rust:
+	$(ensure_nextest)
 	@echo "=== Rust: pdf_oxide ==="
-	$(CARGO) test --manifest-path vendor/pdf_oxide/Cargo.toml \
+	$(CARGO) nextest run --no-fail-fast --manifest-path vendor/pdf_oxide/Cargo.toml \
+	  --features "$$($(DART) tool/compile.dart --features native),test-support,public-api,cjk-form-fonts,pdfa"
+	$(CARGO) test --doc --manifest-path vendor/pdf_oxide/Cargo.toml \
 	  --features "$$($(DART) tool/compile.dart --features native),test-support,public-api,cjk-form-fonts,pdfa"
 	@echo "=== Rust: office_oxide ==="
-	$(CARGO) test --manifest-path vendor/office_oxide/Cargo.toml
+	$(CARGO) nextest run --no-fail-fast --manifest-path vendor/office_oxide/Cargo.toml
+	$(CARGO) test --doc --manifest-path vendor/office_oxide/Cargo.toml
 
 # ═══════════════════════════════════════════════════════════════════
 # § 6 — Integration tests (example app)

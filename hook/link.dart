@@ -81,8 +81,9 @@ Future<CodeAsset> _trimFromRecordings(
 
   final constants = BuildConstants.load(input.packageRoot);
   final keep = recordedCapabilities(recordings);
-  final features = KeepConfig.keep(keep)
-      .featuresFor(constants.nativeFeatures, keep);
+  final features = KeepConfig.keep(
+    keep,
+  ).featuresFor(constants.nativeFeatures, keep);
   if (features == constants.nativeFeatures) {
     stdout.writeln(
       'pdf_manipulator keep (record-use): every capability is reachable — '

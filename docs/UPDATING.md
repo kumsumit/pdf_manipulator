@@ -12,8 +12,8 @@ patch branch.
 
 | Crate | Upstream | Fork | Branch | Base tag | Submodule |
 |---|---|---|---|---|---|
-| pdf_oxide | [`yfedoseev/pdf_oxide`](https://github.com/yfedoseev/pdf_oxide) | [`whuppi/pdf_oxide`](https://github.com/whuppi/pdf_oxide) | `pdf_manipulator/0.3.73-patches` | `v0.3.73` | `vendor/pdf_oxide/` |
-| office_oxide | [`yfedoseev/office_oxide`](https://github.com/yfedoseev/office_oxide) | [`whuppi/office_oxide`](https://github.com/whuppi/office_oxide) | `office_kit/0.1.3-patches` | `v0.1.3` | `vendor/office_oxide/` |
+| pdf_oxide | [`yfedoseev/pdf_oxide`](https://github.com/yfedoseev/pdf_oxide) | [`whuppi/pdf_oxide`](https://github.com/whuppi/pdf_oxide) | `pdf_manipulator/0.3.78-patches` | `v0.3.78` | `vendor/pdf_oxide/` |
+| office_oxide | [`yfedoseev/office_oxide`](https://github.com/yfedoseev/office_oxide) | [`whuppi/office_oxide`](https://github.com/whuppi/office_oxide) | `office_kit/0.1.11-patches` | `v0.1.11` | `vendor/office_oxide/` |
 
 pdf_oxide depends on office_oxide as a path dependency
 (`office_oxide = { path = "../office_oxide" }`).
@@ -35,7 +35,7 @@ to a new upstream `vX.Y.Z`:
    CI actually uses; it MUST equal the branch's version
 3. the **Branch** and **Base tag** columns in the table above
 
-office_oxide is the same, under its own branch name and `v0.1.3`.
+office_oxide is the same, under its own branch name and `v0.1.11`.
 
 ### The fork contract
 
@@ -152,13 +152,16 @@ done
 ```sh
 git rebase vNEW
 (cd ../.. && make test-rust)
+(cd ../.. && make check-keep-sets)
 ```
 
 Resolve conflicts commit by commit. `Cargo.lock` conflicts: take the
 base (`git checkout vNEW -- Cargo.lock`) and let cargo re-add our
 feature deps on the next build. `make test-rust` runs the full `cargo
 test` (not `--lib`) for both crates — the `tests/` tree catches
-signature drift the lib tests miss.
+signature drift the lib tests miss. `make check-keep-sets` compiles
+every keep-set for both targets, so upstream code that uses something
+one of our feature gates removes fails here, before any wasm build.
 
 ### 4. Rename branch
 
@@ -188,7 +191,11 @@ cd ../..
 make build-wasm
 make clean
 make check
+make shake-audit
 ```
+
+`make shake-audit` builds the core-only binary and runs the trim
+probes against it; see [S5b](#s5b--measure-sizes) for its modes.
 
 ### 7. Commit
 
@@ -214,12 +221,57 @@ grep -rl "pdf_manipulator patch" src/ --include="*.rs"
 cd ../..
 
 make test-rust
+make check-keep-sets
 make build-wasm
 make check
 ```
 
 **Verify zero warnings:** `make analyze` checks Rust warnings in our
 patched lines automatically (see [S7](#s7--verify-our-code-warnings)).
+
+**Tests in the fork: `host/` unit tests for pure functions only, nothing
+else.** A patch proves itself from this repo, in `test/ops/` — with a
+fixture in `test/fixtures/handwritten.dart` when the engine bug needs a
+PDF no foreign writer emits. Upstream files and `tests/` never carry a
+test of ours: a test in a patched upstream file is extra surface every S1
+rebase has to carry onto the next base tag, for a proof the Dart battery
+already makes at the level a consumer actually experiences (rendered
+pixels, per ARCHITECTURE.md's testing section).
+
+`host/` is different on both counts: it is never rebased, and it holds
+pure functions whose invariants a consumer cannot observe at the right
+granularity — the lane budget, the shared-buffer byte layout, a CCITT
+polarity, a PNG predictor round trip. Those may carry `#[cfg(test)]` unit
+tests, under one boundary: **no PDF bytes, no `PdfDocument`, no
+`DocumentEditor` inside a `host/` test.** The moment a test needs a
+document, it is a behaviour a consumer can see, and it belongs in
+`test/ops/`. One named exception: the trim probes — modules whose name
+contains `trim_probe`, under `#[cfg(all(test, not(feature = "…")))]` in
+`host/dispatch.rs`, run by `tool/shake_audit.sh` against a trimmed build — open a minimal
+in-memory PDF to prove an excluded op answers with the typed "not enabled
+in this build" error, a build that no Dart test can be compiled against.
+`make test-guards` enforces both the boundary and the exception's shape
+(`tool/check_fork_tests.sh`).
+
+Prior art: #161 was the same shape as #215 — an engine-side forms bug —
+and landed as a hand-authored fixture plus battery cases here, with the
+submodule bumped and no Rust test.
+
+If a proof genuinely cannot be made from Dart and is not a pure `host/`
+function, that is a signal the fix belongs upstream: open it as a PR on
+the upstream repo, where its test lives with it
+(see `universal/external-contributions.md`).
+
+**Watch for a detached submodule.** `git submodule update` leaves
+`vendor/pdf_oxide` on a detached HEAD, so a commit made after it lands on
+no branch and `git push` reports "Everything up-to-date" while pushing
+nothing. Check before committing, and re-point the branch if it happened:
+
+```sh
+cd vendor/pdf_oxide
+git branch --show-current           # empty = detached
+git branch -f <branch-name> HEAD && git checkout <branch-name>
+```
 
 **Commit AND push the submodule, or CI will fail:**
 
@@ -460,7 +512,7 @@ Last match wins (gitignore semantics): the release/config paths override the def
 1. Runs `cargo check` with all features (same set as CI release builds)
 2. Uses `--message-format=json` to get warnings even from cached builds
 3. Derives the upstream base tag from the branch name automatically
-   (`pdf_manipulator/0.3.73-patches` → `v0.3.73`). No hardcoded tag —
+   (`pdf_manipulator/0.3.78-patches` → `v0.3.78`). No hardcoded tag —
    renaming the branch in S1 step 4 is all that's needed.
 4. Diffs against the base tag to find lines we changed
 5. Fails if any warning falls inside our changed lines
@@ -491,6 +543,10 @@ feature sets can't drift apart.
 | `function X is never used` | Patch replaced callers with a new variant | Prefix with underscore: `_fn_name` |
 | `unused Result that must be used` | `.write_all(…)` without `?` | Add `?` to propagate the error |
 
+The warning check above runs at the full feature set only.
+`make check-keep-sets` checks errors at every keep-set; it does not
+check warnings at reduced sets.
+
 ---
 
 ## S8 — Preview changelog before pub.dev publish
@@ -500,10 +556,18 @@ changelog" step of the upload-assets job — right before the publish
 approval gate. Open the workflow run, expand that step, and review
 the full changelog that will be published.
 
-To preview locally:
+To preview locally, run the same mode the publish job runs. `release.sh`
+lives in the shared [whuppi/ci](https://github.com/whuppi/ci) repo, not
+this one — CI reaches it through the `release-tool` action, so locally you
+point at a checkout of that repo (a sibling of this one). Run from this
+package's root, and set `GITHUB_REPOSITORY` — the script requires it while
+loading, whichever mode you ask for, and exits without it. Some modes want
+more: `--check-versions` also needs `BRANCH` (`dev` or `prod`, picking the
+lane it checks). `--help` lists every mode.
 
 ```sh
-bash tool/ci/release.sh --stamp-changelog vX.Y.Z
+GITHUB_REPOSITORY=whuppi/pdf_manipulator \
+  bash ../ci/tool/ci/release.sh --stamp-changelog vX.Y.Z
 cat CHANGELOG.md
 git checkout CHANGELOG.md   # restore
 ```

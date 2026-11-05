@@ -1,10 +1,10 @@
 {
   "crate": "pdf_oxide",
   "repo": "whuppi/pdf_manipulator",
-  "baseTag": "v0.3.73",
+  "baseTag": "v0.3.78",
   "features": {
     "native": "icc,legacy-crypto,rendering,signatures,native-bridge,pdfa,office,extract",
-    "wasm": "wasm,rendering,signatures,pdfa,office,extract"
+    "wasm": "wasm,icc,legacy-crypto,rendering,signatures,pdfa,office,extract"
   },
   "web": {
     "pdf_oxide_bg.wasm": "wasm-pdf_oxide_bg.wasm",
