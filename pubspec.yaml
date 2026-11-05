@@ -16,14 +16,14 @@ topics:
   - encryption
 
 environment:
-  sdk: ">=3.12.0 <4.0.0"
+  sdk: ">=3.13.0 <4.0.0"
 
 hooks:
   build: true
 
 dependencies:
   # Build hook — native asset compilation protocol
-  code_assets: ^1.2.1
+  code_assets: ^2.1.0
   hooks: ^2.1.0
 
   # Build hook — SHA256 verification of downloaded pre-built binaries

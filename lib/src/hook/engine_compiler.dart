@@ -200,9 +200,8 @@ void ensureCargoVersion(Uri packageRoot) {
   // "cargo 1.84.0 (66221abde 2024-11-19)" → 1.84.0. Match the "cargo <semver>"
   // token directly rather than a fixed word index, so a prefix line (e.g. a
   // cargo deprecation warning ahead of the version) can't shift the parse.
-  final versionMatch = RegExp(
-    r'cargo\s+(\d+\.\d+\.\d+)',
-  ).firstMatch(probe.stdout as String);
+  final versionMatch = RegExp(r'cargo\s+(\d+\.\d+\.\d+)')
+      .firstMatch(probe.stdout as String);
   if (versionMatch == null) return;
   final detected = versionMatch.group(1)!;
   final have = _semver(detected);

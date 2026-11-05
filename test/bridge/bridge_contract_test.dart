@@ -30,9 +30,8 @@ void main() {
       final bytes = encodeRequest('test', {'a': 1, 'b': 2, 'c': 3});
       final opLen = bytes[0];
       final fieldCountOffset = 1 + opLen;
-      final fieldCount = ByteData.sublistView(
-        bytes,
-      ).getUint16(fieldCountOffset, Endian.little);
+      final fieldCount = ByteData.sublistView(bytes)
+          .getUint16(fieldCountOffset, Endian.little);
       expect(fieldCount, 3);
     });
 
@@ -43,9 +42,8 @@ void main() {
         'also_present': 'hello',
       });
       final opLen = bytes[0];
-      final fieldCount = ByteData.sublistView(
-        bytes,
-      ).getUint16(1 + opLen, Endian.little);
+      final fieldCount = ByteData.sublistView(bytes)
+          .getUint16(1 + opLen, Endian.little);
       expect(fieldCount, 2);
     });
 

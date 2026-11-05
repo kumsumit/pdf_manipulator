@@ -25,6 +25,7 @@ import 'dart:isolate';
 import 'package:package_config/package_config.dart';
 
 import '../hook/build.dart' as build;
+
 import 'package:pdf_manipulator/src/hook/app_root.dart';
 import 'package:pdf_manipulator/src/hook/build_constants.dart';
 import 'package:pdf_manipulator/src/hook/keep_plan.dart';

@@ -57,9 +57,8 @@ Future<void> main() async {
   // and injected into every spec's build() so the catalog needs no
   // raster of its own.
   final photoPng = buildPhotoPng();
-  File(
-    '$_generatedDir/f_photo_png.dart',
-  ).writeAsStringSync(_emitBytes('photoPng', photoPng));
+  File('$_generatedDir/f_photo_png.dart')
+      .writeAsStringSync(_emitBytes('photoPng', photoPng));
   exports.add("export 'f_photo_png.dart';");
 
   // The transparent raster the image-stamp transparency test feeds in.

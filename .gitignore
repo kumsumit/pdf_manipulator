@@ -28,3 +28,7 @@ migrate_working_dir/
 .dart_tool/
 .packages
 build/
+
+# Generated test fixtures (regenerate with make fixtures).
+/test/fixtures/generated/
+/test-results/
